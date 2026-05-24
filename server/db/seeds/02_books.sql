@@ -1,0 +1,84 @@
+INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,format,condition,search_index,status,image,lending_terms,created_at, updated_at, is_deleted,deleted_at) VALUES
+
+(
+  'bk_00001',
+  'u_00001', 
+  'Alice''s Adventures in Wonderland', -- Double single-quote escapes the apostrophe in SQL!
+  'Lewis Carroll, John Tenniel',
+  'Standard Edition',
+  'OL138052W',
+  '0706413121, 9780706413120', --Reformat predictable string matches
+  'Hardcover',
+  'Good',
+  'lewis carroll alices adventures in wonderland 0706413121 9780706413120',
+  'AVAILABLE',
+  'https://images.openlibrary.org/b/id/12547113-M.jpg', --No image though
+  '2 weeks max, no dog-ears',
+  CURRENT_TIMESTAMP,
+  CURRENT_TIMESTAMP,
+  FALSE,
+  NULL
+),
+(
+  'bk_00002',
+  'u_00001',
+  'The Divine Comedy: Inferno, Purgatoria, Paradiso',
+  'Dante Alighieri, Henry Wordsworth Longfellow',
+  'Royal Collectors Edition',
+  'work_dante_divine_comedy',
+  '9781774762554',
+  'Hardcover',
+  'Mint',
+  'dante alighieri the divine comedy inferno purgatoria paradiso 9781774762554 OL93140W OL93230W OL93227W',
+  'AVAILABLE',
+  'https://images.openlibrary.org/b/id/10522833-M.jpg',
+  'Four weeks max',
+  CURRENT_TIMESTAMP,
+  CURRENT_TIMESTAMP,
+  FALSE,
+  NULL
+);
+
+
+(
+  'bk_00003',
+  'u_00001', -- Owned by meep (deetz)
+  'Space Pirates of Alpha Centauri',
+  'Gore Vidal Jr.', -- Fictional pulp author
+  '1985 Pulp Edition',
+  'work_alpha_centauri',
+  '9780000000001',
+  'Paperback',
+  'Fair', -- Matches "trashy sci-fi" selection comment!
+  'gore vidal space pirates of alpha centauri pulp sci-fi trashy',
+  'AVAILABLE',
+  NULL, '1 week max', '2026-01-05 14:00:00', '2026-01-05 14:00:00' FALSE, NULL
+),
+(
+  'bk_00004',
+  'u_00004', -- Owned by the_fantacist
+  'The Chronicle of the Iron Throne',
+  'M.K. Darkwood',
+  'Limited Foil Collector''s Edition',
+  'work_iron_throne',
+  '9780000000002',
+  'Paperback',
+  'Poor', -- It got ruined by serial_dogearer!
+  'mk darkwood chronicle of the iron throne high fantasy limited edition',
+  'AVAILABLE',
+  NULL, 'In-library reference only now', '2026-01-05 14:00:00', '2026-01-05 14:00:00' FALSE, NULL
+),
+(
+  'bk_00005',
+  'u_00005', -- Owned by ghost_reader
+  'The Silent Whispers',
+  'A. Ghost',
+  'First Edition',
+  'work_silent_whispers',
+  '9780000000003',
+  'Hardcover',
+  'Good',
+  'a ghost the silent whispers mystery thriller poet',
+  'LENT', -- Set to LENT because ghost_reader vanished with it!
+  NULL, 'Return promptly', '2026-01-10 09:00:00', '2026-01-10 09:00:00', FALSE, NULL
+);
