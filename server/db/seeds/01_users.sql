@@ -63,8 +63,8 @@ INSERT INTO user (user_id,user_name,email,postcode,about,interests,status, creat
 ),
 (
   'u_00007',
-  'brandon',
-  'cat@rule.com',
+  'branesque',
+  'cats@rule.com',
   '1010',
   '',
   'Graphic novels, paperback fiction',
@@ -73,7 +73,7 @@ INSERT INTO user (user_id,user_name,email,postcode,about,interests,status, creat
 ),
 (
   'u_00008',
-  'ezra',
+  'ezra_1',
   'dearleader@project.com',
   '',
   'Early adopter.',
@@ -83,7 +83,7 @@ INSERT INTO user (user_id,user_name,email,postcode,about,interests,status, creat
 ),
 (
   'u_00009',
-  'eden',
+  'eden@home',
   'cankanban@sorted.com',
   '6000', 
   '',
@@ -103,4 +103,18 @@ INSERT INTO user (user_id,user_name,email,postcode,about,interests,status, creat
   '2026-04-15 14:30:00', -- updated_at = deletion day
   TRUE,                  -- is_deleted is set to TRUE
   '2026-04-15 14:30:00'  -- deleted_at timestamp populated
+);
+
+(
+  'u_00011',
+  'off-piste',
+  'gone@forawhile.com',
+  '1021',
+  'In the Hebrides for the month.',
+  'Horse racing fiction',
+  'INACTIVE', 
+  '2026-01-01 10:00:00',
+  '2026-04-15 14:30:00', -- updated_at = set inactive
+  FALSE,                  
+  NULL 
 );
