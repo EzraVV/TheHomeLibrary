@@ -24,17 +24,25 @@ const files = [
 export async function up (knex) {
   for (const file of files) {
     const rawSql = fs.readFileSync(path.join(__dirname, '../schema', file), 'utf8')
-   
-    // Clean up trailing spaces, newlines, or windows carriage returns (\r)
-    const sql = rawSql.trim();
+    
+    // Split the file by semicolons to execute statements individually
+    const statements = rawSql
+      .split(';')
+      .map(statement => statement.trim())
+      .filter(statement => statement.length > 0);
 
-    // ONLY execute if the file actually contains SQL statements!
-    if (sql) {
-      await knex.raw(sql);
+    console.log(`Processing ${file} (${statements.length} statements found)...`);
+
+    for (const statement of statements) {
+      try {
+        await knex.raw(statement);
+      } catch (error) {
+        console.error(`Error in file ${file} on statement: \n"${statement}"`);
+        throw error; // Halts migration and surfaces syntax error
+      }
     }
   }
 }
-
 /**
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }

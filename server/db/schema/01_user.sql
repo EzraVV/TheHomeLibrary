@@ -1,0 +1,15 @@
+CREATE TABLE user (
+  user_id TEXT PRIMARY KEY,
+  user_name TEXT UNIQUE NOT NULL,
+  prounouns TEXT,
+  email TEXT UNIQUE NOT NULL,
+  postcode TEXT,
+  about TEXT,
+  interests TEXT,
+  status TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+  is_deleted BOOLEAN DEFAULT FALSE,
+  deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

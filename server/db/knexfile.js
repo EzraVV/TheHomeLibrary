@@ -8,6 +8,7 @@ export default {
   development: {
     client: 'sqlite3',
     useNullAsDefault: true,
+    
     connection: {
       filename: Path.join(__dirname, 'dev.sqlite3'),
     },
