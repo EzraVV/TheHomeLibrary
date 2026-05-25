@@ -1,8 +1,8 @@
 INSERT INTO follows (id, follower_id, followed_id) VALUES
 (
   'f_00001', 
-  'u_00001', -- meep
-  'u_00002'  -- follows compulsive_reader
+  'u_00001', 
+  'u_00002'  
 ),
 (
   'f_00002', 
