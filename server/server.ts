@@ -1,7 +1,6 @@
 import * as Path from 'node:path'
 import express from 'express'
 import users from './routes/users'
-
 import booksRoutes from './routes/book'
 
 const server = express()

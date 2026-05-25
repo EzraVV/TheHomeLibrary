@@ -1,33 +1,55 @@
 import connection from './connection'
 
-export async function getAllUsers() {
-  return connection('user').where('is_deleted', false).select()
+// map for interests
+function mapUser(row: any) {
+  return {
+    ...row,
+    interests: row.interests
+      ? row.interests.split(',').map((s: string) => s.trim())
+      : [],
+  }
 }
 
-export async function getUserById(userId: string) {
-  return connection('user')
-    .where({ user_id: userId, is_deleted: false })
-    .first()
+export async function getAllUsers() {
+  const users = await connection('user')
+  return users.map(mapUser)
+}
+
+export async function getUserById(id: string) {
+  const user = await connection('user').where({ user_id: id }).first()
+  return user ? mapUser(user) : null
 }
 
 export async function searchUsers(query: string) {
-  return connection('user')
+  const users = await connection('user')
     .where('user_name', 'like', `%${query}%`)
     .orWhere('email', 'like', `%${query}%`)
     .orWhere('interests', 'like', `%${query}%`)
     .orWhere('postcode', 'like', `%${query}%`)
     .andWhere('is_deleted', false)
+
+  return users.map(mapUser)
 }
 
 export async function createUser(newUser: any) {
-  return connection('user').insert(newUser).returning('*')
+  const rows = await connection('user').insert(newUser).returning('*')
+
+  return mapUser(rows[0])
 }
 
 export async function updateUser(userId: string, updates: any) {
-  return connection('user')
+  // Update
+  await connection('user')
     .where({ user_id: userId })
-    .update({ ...updates, updated_at: new Date().toISOString() })
-    .returning('*')
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString(),
+    })
+
+  // Fetch
+  const updated = await connection('user').where({ user_id: userId }).first()
+
+  return mapUser(updated)
 }
 
 export async function softDeleteUser(userId: string) {

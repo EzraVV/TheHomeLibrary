@@ -1,0 +1,38 @@
+import request from 'superagent'
+
+const baseUrl = '/api/v1/users'
+
+// GET all users
+export async function getAllUsers() {
+  const res = await request.get(baseUrl)
+  return res.body
+}
+
+// GET one user by ID
+export async function getUserById(id: string) {
+  const res = await request.get(`${baseUrl}/${id}`)
+  return res.body
+}
+
+// SEARCH users
+export async function searchUsers(query: string) {
+  const res = await request.get(`${baseUrl}/search`).query({ query })
+  return res.body
+}
+
+// CREATE user
+export async function createUser(user: any) {
+  const res = await request.post(baseUrl).send(user)
+  return res.body
+}
+
+// UPDATE user
+export async function updateUser(id: string, updates: any) {
+  const res = await request.patch(`${baseUrl}/${id}`).send(updates)
+  return res.body
+}
+
+// DELETE (soft delete)
+export async function deleteUser(id: string) {
+  await request.delete(`${baseUrl}/${id}`)
+}
