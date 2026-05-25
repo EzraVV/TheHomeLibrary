@@ -3,16 +3,16 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
 (
   'bk_00001',
   'u_00001', 
-  'Alice''s Adventures in Wonderland', -- Double single-quote escapes the apostrophe in SQL!
+  'Alice''s Adventures in Wonderland', 
   'Lewis Carroll, John Tenniel',
   'Standard Edition',
   'OL138052W',
-  '0706413121, 9780706413120', --Reformat predictable string matches
+  '0706413121, 9780706413120', 
   'Hardcover',
   'Good',
   'lewis carroll alices adventures in wonderland 0706413121 9780706413120',
   'AVAILABLE',
-  'https://images.openlibrary.org/b/id/12547113-M.jpg', --No image though
+  'https://images.openlibrary.org/b/id/12547113-M.jpg', 
   '2 weeks max, no dog-ears',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP,
@@ -37,40 +37,50 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
   CURRENT_TIMESTAMP,
   FALSE,
   NULL
-);
+),
 
 
 (
   'bk_00003',
-  'u_00001', -- Owned by meep (deetz)
+  'u_00001', 
   'Space Pirates of Alpha Centauri',
-  'Gore Vidal Jr.', -- Fictional pulp author
+  'Gore Vidal Jr.', 
   '1985 Pulp Edition',
   'work_alpha_centauri',
   '9780000000001',
   'Paperback',
-  'Fair', -- Matches "trashy sci-fi" selection comment!
+  'Fair', 
   'gore vidal space pirates of alpha centauri pulp sci-fi trashy',
   'AVAILABLE',
-  NULL, '1 week max', '2026-01-05 14:00:00', '2026-01-05 14:00:00' FALSE, NULL
+   'https://images.openlibrary.org/b/id/10522833-M.jpg',
+  '1 week max', 
+  '2026-01-05 14:00:00', 
+  '2026-01-05 14:00:00', 
+  FALSE, 
+  NULL
 ),
 (
   'bk_00004',
-  'u_00004', -- Owned by the_fantacist
+  'u_00004', 
   'The Chronicle of the Iron Throne',
   'M.K. Darkwood',
   'Limited Foil Collector''s Edition',
   'work_iron_throne',
   '9780000000002',
   'Paperback',
-  'Poor', -- It got ruined by serial_dogearer!
+  'Poor', 
   'mk darkwood chronicle of the iron throne high fantasy limited edition',
   'AVAILABLE',
-  NULL, 'In-library reference only now', '2026-01-05 14:00:00', '2026-01-05 14:00:00' FALSE, NULL
+   'https://images.openlibrary.org/b/id/10522833-M.jpg',
+  'In-city only now', 
+  '2026-01-05 14:00:00', 
+  '2026-01-05 14:00:00', 
+  FALSE, 
+  NULL
 ),
 (
   'bk_00005',
-  'u_00005', -- Owned by ghost_reader
+  'u_00005',
   'The Silent Whispers',
   'A. Ghost',
   'First Edition',
@@ -79,6 +89,152 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
   'Hardcover',
   'Good',
   'a ghost the silent whispers mystery thriller poet',
-  'LENT', -- Set to LENT because ghost_reader vanished with it!
-  NULL, 'Return promptly', '2026-01-10 09:00:00', '2026-01-10 09:00:00', FALSE, NULL
+  'LENT', 
+   'https://images.openlibrary.org/b/id/10522833-M.jpg',
+  'Return promptly', 
+  '2026-01-10 09:00:00', 
+  '2026-01-10 09:00:00', 
+  FALSE, 
+  NULL
+),
+
+
+(
+  'bk_00006',
+  'u_00001',
+  'The Left Hand of Darkness',
+  'Le Guin, Ursula K.',
+  '50th Anniversary Edition',
+  'wrk_90112',
+  '9780441007318',
+  'Paperback',
+  'Good',
+  'the left hand of darkness ursula k le guin paperback 9780441007318',
+  'Available',
+  'https://images.openlibrary.org/b/id/8234567-L.jpg',
+  '14-day max loan, local pickup only',
+  '2026-01-15 09:30:00',
+  '2026-01-15 09:30:00',
+  FALSE,
+  NULL
+),
+
+(
+  'bk_00007',
+  'u_00002',
+  'Dune',
+  'Herbert, Frank',
+  'Ace Premium Edition',
+  'wrk_14590',
+  '9780441172719',
+  'Paperback',
+  'Fair',
+  'dune frank herbert ace premium edition 9780441172719',
+  'On Loan',
+  'https://images.openlibrary.org/b/id/9102345-L.jpg',
+  'Flexible return, treat it with care',
+  '2026-01-22 14:15:00',
+  '2026-02-10 11:00:00',
+  FALSE,
+  NULL
+),
+
+(
+  'bk_00008',
+  'u_00003',
+  'Neuromancer',
+  'Gibson, William',
+  'Ace Science Fiction Matrix Series',
+  'wrk_33412',
+  '9780441569595',
+  'Paperback',
+  'Like New',
+  'neuromancer william gibson ace matrix 9780441569595',
+  'Available',
+  'https://images.openlibrary.org/b/id/1122334-L.jpg',
+  '7-day quick swap preferred',
+  '2026-02-02 18:22:00',
+  '2026-02-02 18:22:00',
+  FALSE,
+  NULL
+),
+
+(
+  'bk_00009',
+  'u_00004',
+  'Frankenstein',
+  'Shelley, Mary',
+  'Penguin Classics',
+  'wrk_00281',
+  '9780141439471',
+  'Paperback',
+  'Poor',
+  'frankenstein mary shelley penguin classics 9780141439471',
+  'Available',
+  'https://images.openlibrary.org/b/id/4455667-L.jpg',
+  'Spine is fragile, read at your desk only',
+  '2026-02-18 10:05:00',
+  '2026-02-18 10:05:00',
+  FALSE,
+  NULL
+),
+
+(
+  'bk_00010',
+  'u_00005',
+  'The Hobbit',
+  'Tolkien, J.R.R.',
+  'Del Rey Mass Market Edition',
+  'wrk_55491',
+  '9780345339683',
+  'Paperback',
+  'Good',
+  'the hobbit jrr tolkien del rey mass market 9780345339683',
+  'Available',
+  'https://images.openlibrary.org/b/id/7788990-L.jpg',
+  'No notes or underlining please',
+  '2026-03-01 12:40:00',
+  '2026-03-01 12:40:00',
+  FALSE,
+  NULL
+),
+
+(
+  'bk_00011',
+  'u_00006',
+  'Pride and Prejudice',
+  'Austen, Jane',
+  'Hardcover Collector''s Library',
+  'wrk_88321',
+  '9781909621640',
+  'Hardcover',
+  'As New',
+  'pride and prejudice jane austen hardcover collectors library 9781909621640',
+  'Available',
+  'https://images.openlibrary.org/b/id/5544332-L.jpg',
+  'Deposit required for non-regulars',
+  '2026-03-14 16:55:00',
+  '2026-03-14 16:55:00',
+  FALSE,
+  NULL
+),
+
+(
+  'bk_00012',
+  'u_00010',
+  'Brave New World',
+  'Huxley, Aldous',
+  'Harper Perennial Modern Classics',
+  'wrk_77104',
+  '9780060850524',
+  'Paperback',
+  'Good',
+  'brave new world aldous huxley harper perennial 9780060850524',
+  'Available',
+  'https://images.openlibrary.org/b/id/2233445-L.jpg',
+  '3-week maximum checkout window',
+  '2026-04-05 08:20:00',
+  '2026-04-05 08:20:00',
+  FALSE,
+  NULL
 );
