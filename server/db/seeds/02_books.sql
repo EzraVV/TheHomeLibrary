@@ -3,16 +3,16 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
 (
   'bk_00001',
   'u_00001', 
-  'Alice''s Adventures in Wonderland', -- Double single-quote escapes the apostrophe in SQL!
+  'Alice''s Adventures in Wonderland', 
   'Lewis Carroll, John Tenniel',
   'Standard Edition',
   'OL138052W',
-  '0706413121, 9780706413120', --Reformat predictable string matches
+  '0706413121, 9780706413120', 
   'Hardcover',
   'Good',
   'lewis carroll alices adventures in wonderland 0706413121 9780706413120',
   'AVAILABLE',
-  'https://images.openlibrary.org/b/id/12547113-M.jpg', --No image though
+  'https://images.openlibrary.org/b/id/12547113-M.jpg', 
   '2 weeks max, no dog-ears',
   CURRENT_TIMESTAMP,
   CURRENT_TIMESTAMP,
@@ -37,7 +37,7 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
   CURRENT_TIMESTAMP,
   FALSE,
   NULL
-);
+),
 
 
 (
@@ -52,7 +52,12 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
   'Fair', 
   'gore vidal space pirates of alpha centauri pulp sci-fi trashy',
   'AVAILABLE',
-  NULL, '1 week max', '2026-01-05 14:00:00', '2026-01-05 14:00:00' FALSE, NULL
+   'https://images.openlibrary.org/b/id/10522833-M.jpg',
+  '1 week max', 
+  '2026-01-05 14:00:00', 
+  '2026-01-05 14:00:00', 
+  FALSE, 
+  NULL
 ),
 (
   'bk_00004',
@@ -66,7 +71,12 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
   'Poor', 
   'mk darkwood chronicle of the iron throne high fantasy limited edition',
   'AVAILABLE',
-  NULL, 'In-city only now', '2026-01-05 14:00:00', '2026-01-05 14:00:00' FALSE, NULL
+   'https://images.openlibrary.org/b/id/10522833-M.jpg',
+  'In-city only now', 
+  '2026-01-05 14:00:00', 
+  '2026-01-05 14:00:00', 
+  FALSE, 
+  NULL
 ),
 (
   'bk_00005',
@@ -80,5 +90,10 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
   'Good',
   'a ghost the silent whispers mystery thriller poet',
   'LENT', 
-  NULL, 'Return promptly', '2026-01-10 09:00:00', '2026-01-10 09:00:00', FALSE, NULL
+   'https://images.openlibrary.org/b/id/10522833-M.jpg',
+  'Return promptly', 
+  '2026-01-10 09:00:00', 
+  '2026-01-10 09:00:00', 
+  FALSE, 
+  NULL
 );
