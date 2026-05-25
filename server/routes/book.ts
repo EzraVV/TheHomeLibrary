@@ -14,6 +14,18 @@ router.get('/', async (req, res) => {
   }
 })
 
+// GET /api/v1/book/search?query=foo
+router.get('/search', async (req, res) => {
+  const q = (req.query.query as string) || ''
+  try {
+    const books = await db.searchBook(q)
+    res.json(books)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Search failed' })
+  }
+})
+
 // GET /api/v1/book/:id
 router.get('/:id', async (req, res) => {
   try {
