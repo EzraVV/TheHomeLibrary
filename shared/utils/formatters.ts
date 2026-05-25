@@ -1,11 +1,45 @@
-export function normaliseTitle(title:string) {
+export function flattenText(text:string) {
+  if (!text) return ''
+  return text
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, "");
+}
+
+export function prepareForHash(title: string, creator?: string | null): string {
+  const semanticTitle = cleanBookTitle(title);
+  const semanticCreator = cleanBookTitle(creator ?? '');
+
+  const base = `${semanticTitle} ${semanticCreator}`;
+   return flattenText(base).replace(/[^a-z0-9]/g, "");
+}
+
+export function prepareForSearchIndex(title: string, creator?: string | null, isbn?: string | null): string {
+  const semanticTitle = cleanBookTitle(title);
+  const semanticCreator = cleanBookTitle(creator ?? '');
+  const cleanIsbn = isbn ?? '';
+
+  const combined = `${semanticTitle} ${semanticCreator} ${cleanIsbn}`;
+  
+  return flattenText(combined)
+    .replace(/[^a-z0-9\s]/g, "")
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function cleanBookTitle(title:string) {
   if(!title) return '';
-  return title
-    .toLowerCase()
-    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-    .replace(/\b(paperback|hardcover|edition|volume|vol|copy)\b/g,'')
-    .trim()
-    .replace(/\s+/g,` `) //Collapse spacing
+
+  let cleanTitle = title
+
+  const trailingPattern = /\b(paperback|hardcover|edition|volume|vol|copy)\b\.?\s*(?:#?\s*\d+)?/gi;
+  cleanTitle = cleanTitle.replace(trailingPattern, '');
+
+  const leadingPattern = /\b\d*(?:st|nd|rd|th)?\s*(paperback|hardcover|edition|volume|vol|copy)\b/gi;
+  cleanTitle = cleanTitle.replace(leadingPattern, '');
+
+  return cleanTitle
+
 }
 
 export function normaliseAuthorName(author:string) {
