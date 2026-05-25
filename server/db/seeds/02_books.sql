@@ -96,9 +96,8 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
   '2026-01-10 09:00:00', 
   FALSE, 
   NULL
-  'LENT', -- Set to LENT because ghost_reader vanished with it!
-  NULL, 'Return promptly', '2026-01-10 09:00:00', '2026-01-10 09:00:00', FALSE, NULL
 ),
+
 
 (
   'bk_00006',
@@ -119,6 +118,7 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
   FALSE,
   NULL
 ),
+
 (
   'bk_00007',
   'u_00002',
@@ -138,6 +138,7 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
   FALSE,
   NULL
 ),
+
 (
   'bk_00008',
   'u_00003',
@@ -157,6 +158,7 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
   FALSE,
   NULL
 ),
+
 (
   'bk_00009',
   'u_00004',
@@ -176,6 +178,7 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
   FALSE,
   NULL
 ),
+
 (
   'bk_00010',
   'u_00005',
@@ -195,6 +198,7 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
   FALSE,
   NULL
 ),
+
 (
   'bk_00011',
   'u_00006',
@@ -214,6 +218,7 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
   FALSE,
   NULL
 ),
+
 (
   'bk_00012',
   'u_00010',
