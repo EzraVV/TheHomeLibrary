@@ -42,35 +42,35 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
 
 (
   'bk_00003',
-  'u_00001', -- Owned by meep (deetz)
+  'u_00001', 
   'Space Pirates of Alpha Centauri',
-  'Gore Vidal Jr.', -- Fictional pulp author
+  'Gore Vidal Jr.', 
   '1985 Pulp Edition',
   'work_alpha_centauri',
   '9780000000001',
   'Paperback',
-  'Fair', -- Matches "trashy sci-fi" selection comment!
+  'Fair', 
   'gore vidal space pirates of alpha centauri pulp sci-fi trashy',
   'AVAILABLE',
   NULL, '1 week max', '2026-01-05 14:00:00', '2026-01-05 14:00:00' FALSE, NULL
 ),
 (
   'bk_00004',
-  'u_00004', -- Owned by the_fantacist
+  'u_00004', 
   'The Chronicle of the Iron Throne',
   'M.K. Darkwood',
   'Limited Foil Collector''s Edition',
   'work_iron_throne',
   '9780000000002',
   'Paperback',
-  'Poor', -- It got ruined by serial_dogearer!
+  'Poor', 
   'mk darkwood chronicle of the iron throne high fantasy limited edition',
   'AVAILABLE',
-  NULL, 'In-library reference only now', '2026-01-05 14:00:00', '2026-01-05 14:00:00' FALSE, NULL
+  NULL, 'In-city only now', '2026-01-05 14:00:00', '2026-01-05 14:00:00' FALSE, NULL
 ),
 (
   'bk_00005',
-  'u_00005', -- Owned by ghost_reader
+  'u_00005',
   'The Silent Whispers',
   'A. Ghost',
   'First Edition',
@@ -79,6 +79,6 @@ INSERT INTO book (book_id,owner_id,title,creator,edition_name,work_id,isbn,forma
   'Hardcover',
   'Good',
   'a ghost the silent whispers mystery thriller poet',
-  'LENT', -- Set to LENT because ghost_reader vanished with it!
+  'LENT', 
   NULL, 'Return promptly', '2026-01-10 09:00:00', '2026-01-10 09:00:00', FALSE, NULL
 );
