@@ -28,7 +28,7 @@ export function normaliseAuthorName(author:string) {
 //Sort in front-end component
 export function generateSortTitle(title:string) {
   if (!title) return ''
-  let cleanTitle = title.trim()
+  const cleanTitle = title.trim()
 
   const articleRegex = /^(The|a|An)\s+(.*)$/i
   const match = cleanTitle.match(articleRegex)

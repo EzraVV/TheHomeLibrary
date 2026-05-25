@@ -1,7 +1,12 @@
 import connection from './connection'
+import { User } from '../../models/user'
+
+type UserRow = Omit<User, 'interests'> & {
+  interests: string | null
+}
 
 // map for interests
-function mapUser(row: any) {
+function mapUser(row: UserRow): User {
   return {
     ...row,
     interests: row.interests
@@ -31,23 +36,26 @@ export async function searchUsers(query: string) {
   return users.map(mapUser)
 }
 
-export async function createUser(newUser: any) {
+export async function createUser(newUser: User): Promise<User> {
   const rows = await connection('user').insert(newUser).returning('*')
 
   return mapUser(rows[0])
 }
 
-export async function updateUser(userId: string, updates: any) {
+export async function updateUser(
+  id: string,
+  updates: Partial<User>,
+): Promise<User> {
   // Update
   await connection('user')
-    .where({ user_id: userId })
+    .where({ user_id: id })
     .update({
       ...updates,
       updated_at: new Date().toISOString(),
     })
 
   // Fetch
-  const updated = await connection('user').where({ user_id: userId }).first()
+  const updated = await connection('user').where({ user_id: id }).first()
 
   return mapUser(updated)
 }

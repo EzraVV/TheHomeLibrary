@@ -1,4 +1,5 @@
 import request from 'superagent'
+import { User } from '../../models/user'
 
 const baseUrl = '/api/v1/users'
 
@@ -21,13 +22,13 @@ export async function searchUsers(query: string) {
 }
 
 // CREATE user
-export async function createUser(user: any) {
+export async function createUser(user: User) {
   const res = await request.post(baseUrl).send(user)
   return res.body
 }
 
 // UPDATE user
-export async function updateUser(id: string, updates: any) {
+export async function updateUser(id: string, updates: Partial<User>) {
   const res = await request.patch(`${baseUrl}/${id}`).send(updates)
   return res.body
 }
