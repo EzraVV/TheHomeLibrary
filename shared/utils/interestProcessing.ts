@@ -8,7 +8,7 @@ export function stringifyInterests(interests: string[]): string {
 } 
 
 //Take flat DB string and create interest units for tags, linking etc.
-export function atomizeInterests(interestsString: string | null | undefined): string[] {
+export function atomiseInterests(interestsString: string | null | undefined): string[] {
   if (!interestsString) return [];
   return interestsString
     .split(',')
