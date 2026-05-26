@@ -1,12 +1,16 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * @param {import('knex').Knex} knex
  */
 export async function seed(knex) {
   // adjust path to where SQL files are stored
-  const seedFolder = path.resolve('./seeds');
+  const seedFolder = __dirname;
 
   const files = fs.readdirSync(seedFolder)
     .filter(f => f.endsWith('.sql'))
