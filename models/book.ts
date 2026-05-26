@@ -15,3 +15,17 @@ export interface Book {
   created_at: string
   updated_at: string
 }
+
+export interface CleanBookResult {
+  title: string;
+  creator: string;
+  isbn: string;
+  coverUrl?: string;
+  genre?: string
+}
+
+export interface BookFormProps {
+  initialValues?: CleanBookResult | null
+  onSubmit: (data: CleanBookResult) => void
+  isSaving: boolean
+}
