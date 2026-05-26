@@ -39,8 +39,9 @@ export default function AddUserPage() {
       })
 
       // TODO: redirect to profile or show success message
-    } catch (err: any) {
-      if (err.response?.body?.error === 'Email already in use') {
+    } catch (err) {
+      const error = err as { response?: { body?: { error?: string } } }
+      if (error.response?.body?.error === 'Email already in use') {
         setError('Email already in use')
         return
       }

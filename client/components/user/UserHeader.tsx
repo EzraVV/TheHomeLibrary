@@ -1,5 +1,5 @@
 import { useCurrentUser } from '../../hooks/useCurrentUser'
-import { User, Sparkles } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 
 export default function UserHeader() {
   const { data: user, isLoading } = useCurrentUser()

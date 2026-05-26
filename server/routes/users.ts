@@ -53,8 +53,9 @@ router.post('/', async (req, res) => {
     }
     const created = await db.createUser(newUser)
     res.status(201).json(created)
-  } catch (err: any) {
-    if (err.code === 'SQLITE_CONSTRAINT') {
+  } catch (err) {
+    const error = err as { code?: string }
+    if (error.code === 'SQLITE_CONSTRAINT') {
       return res.status(400).json({ error: 'Email already in use' })
     }
 
