@@ -16,6 +16,10 @@ export async function searchBook(query: string) {
     .orWhere('isbn', 'like', `%${query}%`)
 }
 
+export async function getBooksByOwner(ownerId: string) {
+  return connection('book').where({ owner_id: ownerId })
+}
+
 export async function getBookByTitle(title: string): Promise<Book | undefined> {
   return connection('book').where({ title }).first()
 }

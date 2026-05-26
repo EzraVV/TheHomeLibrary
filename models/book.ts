@@ -11,7 +11,7 @@ export interface Book {
   search_index?: string
   lending_terms?: string
   status: 'Available' | 'On loan' | 'In transit' | 'Reserved'
-  image_urls: string[] //Array of condition images?
+  image_urls: string //Array of condition images? // agree but for now maybe just image
   created_at: string
   updated_at: string
 }

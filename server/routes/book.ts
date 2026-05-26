@@ -42,6 +42,18 @@ router.get('/:id', async (req, res) => {
   }
 })
 
+// GET /api/v1/book/owner/:id
+router.get('/owner/:id', async (req, res) => {
+  try {
+    const ownerId = req.params.id
+    const books = await db.getBooksByOwner(ownerId)
+    res.json(books)
+  } catch (err) {
+    console.error(err)
+    res.sendStatus(500)
+  }
+})
+
 // GET /api/v1/book/:title
 router.get('/:title', async (req, res) => {
   try {

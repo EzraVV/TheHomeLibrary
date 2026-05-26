@@ -17,7 +17,7 @@ export function isValidISBN(isbn: string) {
       sum +=digit * (10-i)
     }
 
-    let last = clean[9].toUpperCase();
+    const last = clean[9].toUpperCase();
     sum+= (last ==='X') ? 10 : parseInt(last, 10)
     return sum % 11 === 0
   }
