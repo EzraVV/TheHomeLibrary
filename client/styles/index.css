@@ -1,8 +1,51 @@
-body {
-  position: absolute;
-  top: 0;
-  left: 0;
-  margin: 0;
-  padding: 20px;
-  font: 14px 'Helvetica Neue', Helvetica, Arial, sans-serif;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #F5F1EA;
+    color: #1F1F1F;
+    @apply font-body min-h-screen antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: #1F1F1F;
+    @apply font-heading tracking-tight;
+  }
+
+  h1 {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  p, span, li, button, input {
+    @apply font-body text-base;
+    line-height: 1.5;
+  }
+
+  small {
+    font-size: 14px;
+  }
+
+  button {
+    font-size: 15px;
+    font-weight: 600;
+    @apply transition-all duration-180 ease-smooth active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
 }
