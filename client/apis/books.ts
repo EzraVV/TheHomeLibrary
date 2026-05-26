@@ -1,4 +1,6 @@
 import request from 'superagent'
+import { Book } from '../../models/book' //Aspirations
+import { CleanBookResult } from '../../models/book'
 
 const baseUrl = '/api/v1/books'
 
@@ -24,4 +26,10 @@ export async function searchBooks(query: string) {
 export async function getBooksByOwner(ownerId: string) {
   const res = await request.get(`${baseUrl}/owner/${ownerId}`)
   return res.body
+}
+
+//ADD book (draft, using short model cleanbookresult until i sort default vals,fallbacks etc.
+export async function createLocalBook(newBook: CleanBookResult) {
+  const response = await request.post('/api/v1/books').send(newBook)
+  return response.body
 }
