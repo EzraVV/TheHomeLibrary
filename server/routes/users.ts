@@ -45,11 +45,21 @@ router.get('/:id', async (req, res) => {
 // POST /api/v1/users
 router.post('/', async (req, res) => {
   try {
-    const newUser = await db.createUser(req.body)
-    res.status(201).json(newUser)
-  } catch (err) {
+    const lastId = await db.getLastUserId()
+    const newId = db.generateNextUserId(lastId)
+    const newUser = {
+      ...req.body,
+      user_id: newId,
+    }
+    const created = await db.createUser(newUser)
+    res.status(201).json(created)
+  } catch (err: any) {
+    if (err.code === 'SQLITE_CONSTRAINT') {
+      return res.status(400).json({ error: 'Email already in use' })
+    }
+
     console.error(err)
-    res.status(500).json({ error: 'Failed to create user' })
+    res.sendStatus(500)
   }
 })
 

@@ -25,7 +25,7 @@ export default function UserHeader() {
     <header className="rounded-md bg-surface p-6 shadow-card border border-border/40 flex flex-col sm:flex-row items-center gap-6 text-left w-full relative overflow-hidden">
       {/* Decorative subtle accent */}
       <div className="absolute top-0 left-0 right-0 h-1.5 bg-primary"></div>
-      
+
       {/* Avatar Container */}
       <div className="w-20 h-20 rounded-pill bg-secondary text-white font-heading text-3xl font-bold flex items-center justify-center border-4 border-background shadow-sm select-none">
         {initial}
@@ -43,7 +43,7 @@ export default function UserHeader() {
             </span>
           )}
         </div>
-        
+
         {/* User Status pill */}
         <div className="flex items-center justify-center sm:justify-start gap-1.5 text-sm text-text-muted">
           <Sparkles className="w-4 h-4 text-accent" />

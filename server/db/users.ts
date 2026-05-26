@@ -42,6 +42,23 @@ export async function createUser(newUser: User): Promise<User> {
   return mapUser(rows[0])
 }
 
+export async function getLastUserId(): Promise<string | null> {
+  const row = await connection('user').orderBy('user_id', 'desc').first()
+
+  return row ? row.user_id : null
+}
+
+export function generateNextUserId(lastId: string | null): string {
+  if (!lastId) {
+    return 'u_00001'
+  }
+
+  const num = parseInt(lastId.replace('u_', ''), 10)
+  const next = num + 1
+
+  return `u_${next.toString().padStart(5, '0')}`
+}
+
 export async function updateUser(
   id: string,
   updates: Partial<User>,
