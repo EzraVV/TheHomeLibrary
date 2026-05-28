@@ -28,11 +28,16 @@ export function AddBook() {
   }))
   const matchSource = searchResult?.source
 
-  const handleCreateRecord = (formData: BookFormData) => {
-    const finalWorkId = selectedBook?.work_id || selectedBook?.googleVolumeId || generateWorkId(formData.title, formData.creator)
+  const handleCreateRecord = async (formData: BookFormData) => {
+    let finalWorkId = selectedBook?.work_id || selectedBook?.googleVolumeId 
+    
+    if (!finalWorkId) {
+      finalWorkId = await generateWorkId(formData.title, formData.creator);
+    }
+
     const completeBookPayload: Book = {
       ...formData,
-      id: crypto.randomUUID?.() || Math.random().toString(36).substring(2,11),
+      id: window.crypto.randomUUID?.(),
       owner_id: 'usr_local_owner', //Pull from auth
 
       work_id: finalWorkId,
@@ -108,7 +113,24 @@ return (
           <ul>
             {lookupMatches.map((book:SelectableBook, i:number) => (
               <li key={i}>
+          
+                <div className="book-cover-thumbnail" style={{ width: '50px', height: '75px', backgroundColor: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {book.image_urls ? (
+                    <img 
+                      src={book.image_urls} 
+                      alt={`${book.title} cover`} 
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/assets/default-book-cover.png'
+                      }}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                    />
+                  ) : (
+                    <span style={{ fontSize: '10px', color: '#888' }}>No Cover</span>
+                  )}
+                </div>
+                {/*Metadata*/}
                 <span><strong>{book.title}</strong> by {book.creator}</span>
+                  <div style={{ fontSize: '14px', color: '#555' }}>by {book.creator}</div>
                 <button 
                   onClick={() => setSelectedBook(book)}
                 >
