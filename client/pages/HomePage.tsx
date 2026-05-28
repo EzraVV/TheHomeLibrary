@@ -8,7 +8,11 @@ import BookCard from '../components/BookCard'
 import { Library, Info, Sparkles } from 'lucide-react'
 
 export default function HomePage() {
-  const { data: books, isLoading, error } = useQuery<Book[]>({
+  const {
+    data: books,
+    isLoading,
+    error,
+  } = useQuery<Book[]>({
     queryKey: ['all-books'],
     queryFn: getAllBooks,
   })
@@ -20,7 +24,9 @@ export default function HomePage() {
     setBorrowingId(bookId)
     // Simulate borrowing process for 1.5s
     setTimeout(() => {
-      alert('Simulated Borrowing: A borrow request was submitted successfully! The owner will be notified to arrange pickup or delivery.')
+      alert(
+        'Simulated Borrowing: A borrow request was submitted successfully! The owner will be notified to arrange pickup or delivery.',
+      )
       setBorrowingId(null)
     }, 1500)
   }
@@ -30,7 +36,6 @@ export default function HomePage() {
       <Navbar />
 
       <main className="flex-grow max-w-app w-full mx-auto px-4 py-6 md:px-6 md:py-8 flex flex-col gap-8">
-        
         {/* Cozy Hero Section */}
         <section className="bg-surface rounded-md p-6 md:p-8 shadow-card border border-border/40 text-left relative overflow-hidden">
           <div className="relative z-10 max-w-2xl">
@@ -42,7 +47,9 @@ export default function HomePage() {
               Unlock the libraries hidden in our homes
             </h1>
             <p className="text-text-muted text-base md:text-lg mb-0">
-              We are building a cozy, person-to-person book lending network. Borrow books you love, share books you've read, and connect with fellow readers in your neighborhood.
+              We are building a cozy, person-to-person book lending network.
+              Borrow books you love, share books you&apos;ve read, and connect
+              with fellow readers in your neighborhood.
             </p>
           </div>
           <div className="absolute right-0 bottom-0 opacity-5 pointer-events-none hidden md:block">
@@ -66,7 +73,10 @@ export default function HomePage() {
           {isLoading && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {[...Array(8)].map((_, i) => (
-                <div key={i} className="rounded-md bg-surface p-4 shadow-card border border-border/40 animate-pulse flex flex-col justify-between h-[380px]">
+                <div
+                  key={i}
+                  className="rounded-md bg-surface p-4 shadow-card border border-border/40 animate-pulse flex flex-col justify-between h-[380px]"
+                >
                   <div>
                     <div className="aspect-[3/4] bg-background/80 rounded-sm mb-4 w-full"></div>
                     <div className="h-5 bg-background/80 rounded-sm w-3/4 mb-2"></div>
@@ -82,7 +92,10 @@ export default function HomePage() {
           {error && (
             <div className="bg-danger/10 border border-danger/30 text-danger rounded-md p-4 flex gap-3 items-center">
               <Info className="w-5 h-5 flex-shrink-0" />
-              <p className="text-sm font-medium">Failed to load the library catalogue. Please try reloading the page.</p>
+              <p className="text-sm font-medium">
+                Failed to load the library catalogue. Please try reloading the
+                page.
+              </p>
             </div>
           )}
 
@@ -90,9 +103,12 @@ export default function HomePage() {
           {!isLoading && !error && (!books || books.length === 0) && (
             <div className="rounded-md bg-surface border border-dashed border-border py-12 px-4 text-center max-w-md mx-auto my-8">
               <Library className="w-12 h-12 text-text-muted/40 mx-auto mb-3" />
-              <h3 className="text-lg font-bold text-secondary mb-1">No books uploaded yet</h3>
+              <h3 className="text-lg font-bold text-secondary mb-1">
+                No books uploaded yet
+              </h3>
               <p className="text-text-muted text-sm mb-4">
-                Be the first to share your home library collection with the community!
+                Be the first to share your home library collection with the
+                community!
               </p>
               <button className="min-h-11 rounded-sm bg-primary px-5 py-2 font-semibold text-white transition duration-200 ease-smooth hover:opacity-90">
                 Share a Book
@@ -114,7 +130,6 @@ export default function HomePage() {
             </div>
           )}
         </div>
-
       </main>
 
       <Footer />
