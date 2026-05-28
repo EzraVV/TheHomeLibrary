@@ -22,8 +22,8 @@ export async function fetchFromOpenLibrary(query:string): Promise<Book[]> {
       return{
       title: item.title,
       creator: item.author_name ? item.author_name[0]: 'Unknown Author',
-      isbn: item.isbn ? item.isbn[0]: 'No ISBN',
-      image_urls: computedImageUrl || undefined
+      isbn: item.isbn && item.isbn.length > 0 ? item.isbn[0] : undefined,
+      image: computedImageUrl || undefined
     }
   })
  } catch(err) {
@@ -44,7 +44,7 @@ export async function fetchFromGoogleBooks(query: string) : Promise<Book[]> {
       title: item.volumeInfo.title,
       creator: item.volumeInfo.authors ? item.volumeInfo.authors[0] : 'Unknown Author',
       isbn: item.volumeInfo.industryIdentifiers ? item.volumeInfo.industryIdentifiers[0].identifier : 'No ISBN',
-      coverUrl: item.volumeInfo.imageLinks?.thumbnail
+      image: item.volumeInfo.imageLinks?.thumbnail
     }))
   } catch (err) {
     console.error ('Google Books search failed:', err)

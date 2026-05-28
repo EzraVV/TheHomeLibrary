@@ -9,9 +9,9 @@ export default function BookForm({initialValues, onSubmit, isSaving}: BookFormPr
   const [creator, setCreator] = useState('')//One day will be able to convey illustrator, editor etc
   const [isbn, setIsbn] = useState('')
   const [status, setStatus] = useState<Status>('Available')
-  const [edition, setEdition] = useState('')
+  const [edition_name, setEdition] = useState('')
   const [format, setFormat] = useState('')
-  const [image_urls, setImageUrls] = useState('')
+  const [image, setImageUrls] = useState('')
 
   useEffect(() => {
     if(initialValues) {
@@ -19,22 +19,22 @@ export default function BookForm({initialValues, onSubmit, isSaving}: BookFormPr
       setCreator(initialValues.creator || '')
       setIsbn(initialValues.isbn || '')
       setStatus(initialValues.status || 'Available')
-      setEdition(initialValues.edition || '')
+      setEdition(initialValues.edition_name || '')
       setFormat(initialValues.format || 'Paperback')
-      setImageUrls(initialValues.image_urls || '')
+      setImageUrls(initialValues.image || '')
     }
   }, [initialValues])
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit({title, creator, isbn: isbn ||undefined, status, edition, format, image_urls})
+    onSubmit({title, creator, isbn: isbn ||undefined, status, edition_name, format, image})
   }
 
   return (
     <form onSubmit={handleFormSubmit} className="book-form-layout">
-      {image_urls && (
+      {image && (
         <div className="form-image-preview">
-          <img src={image_urls} alt="Cover layout preview" style={{ maxWidth: '100px', borderRadius: '4px' }} />
+          <img src={image} alt="Cover layout preview" style={{ maxWidth: '100px', borderRadius: '4px' }} />
         </div>
       )}
     <div>
@@ -70,7 +70,7 @@ export default function BookForm({initialValues, onSubmit, isSaving}: BookFormPr
       <input 
         type="text"
         placeholder="e.g. Deluxe, Standard, Abridged"
-        value={edition}
+        value={edition_name}
         onChange={(e) => setEdition(e.target.value)}
         />
     </div>
@@ -99,7 +99,7 @@ export default function BookForm({initialValues, onSubmit, isSaving}: BookFormPr
         <label>Cover Image URL</label>
         <input 
           type="text"
-          value={image_urls}
+          value={image}
           onChange={(e) => setImageUrls(e.target.value)}
         />
       </div>

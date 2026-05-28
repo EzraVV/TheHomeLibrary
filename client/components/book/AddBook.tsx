@@ -35,10 +35,9 @@ export function AddBook() {
       finalWorkId = await generateWorkId(formData.title, formData.creator);
     }
 
-    const completeBookPayload: Book = {
+    const completeBookPayload: Partial<Book> = {
       ...formData,
-      id: window.crypto.randomUUID?.(),
-      owner_id: 'usr_local_owner', //Pull from auth
+      owner_id: 'u_00001', //Pull from auth
 
       work_id: finalWorkId,
 
@@ -115,9 +114,9 @@ return (
               <li key={i}>
           
                 <div className="book-cover-thumbnail" style={{ width: '50px', height: '75px', backgroundColor: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  {book.image_urls ? (
+                  {book.image ? (
                     <img 
-                      src={book.image_urls} 
+                      src={book.image} 
                       alt={`${book.title} cover`} 
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = '/assets/default-book-cover.png'
