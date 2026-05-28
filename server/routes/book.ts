@@ -1,6 +1,7 @@
 import express from 'express'
 import * as db from '../db/book'
 import { Book } from '../../models/book'
+import { useBorrowBookSearch } from '../../client/hooks/useBooks'
 
 const router = express.Router()
 
@@ -19,15 +20,44 @@ router.get('/', async (req, res) => {
 router.get('/search', async (req, res) => {
   const q = (req.query.query || req.query.q || '') as string
   try {
-    if (!q.trim()) {
-      return res.json([])//Return empty list if nothing typed
-    }
-
     const books = await db.searchBook(q)
-    return res.json(books)
+    res.json(books)
   } catch (err) {
     console.error(err)
-    return res.status(500).json({ error: 'Search failed' })
+    res.status(500).json({ error: 'Search failed' })
+  }
+})
+
+//Cataloguing search - cascade to OpenLibrary, Google Books
+//Get /api/v1/books/search/registries?query=foo
+router.get(`/search/registries`, async (req, res, next) => {
+  try {
+    const query = (req.query.query || '') as string
+    const localMatches = await db.searchBook(query)
+    if (localMatches.length > 0) {
+      return res.json({source: 'local', data: localMatches})
+    }
+    console.log(`Cascading registry search for: ${query}`)
+    // const externalResults = await cascadeExternalRegistries(query)
+    // return res.json({ source: 'external', data: externalResults })
+
+    return res.json({ source: 'external', data: [] })
+  } catch (e) {
+    next(e)
+  }
+})
+
+// GET /api/v1/books/search/network?query=foo
+router.get('/search/network', async (req, res, next) => {
+  try {
+    const query = (req.query.query || '') as string
+    
+    console.log(`Querying WorldCat shared network collections for: ${query}`)
+    const networkMatches = await useBorrowBookSearch(query)
+    res.json(networkMatches)
+    return res.json([])
+  } catch (e) {
+    next(e)
   }
 })
 

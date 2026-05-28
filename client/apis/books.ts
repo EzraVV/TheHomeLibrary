@@ -1,6 +1,5 @@
 import request from 'superagent'
 import { Book } from '../../models/book' //Aspirations
-import { CleanBookResult } from '../../models/book'
 import { fetchFromGoogleBooks, fetchFromOpenLibrary } from './externalBooks'
 import { isValidISBN } from '../../shared/utils/isbnCheck'
 
@@ -9,6 +8,11 @@ export interface SearchQueryResponse {
   source: 'local' | 'openlibrary' | 'google' | 'none' | 'worldcat';
   data: any[];
   redirectUrl?: string //WorldCat link
+}
+
+export interface IngestionPayload {
+  type: 'isbn' | 'openlibrary' | 'google';
+  identifier: string; // This could be an ISBN-13 string, an OL Work Key ("OL27479W"), or a Google Vol ID
 }
 
 const baseUrl = '/api/v1/books'
@@ -38,8 +42,17 @@ export async function getBooksByOwner(ownerId: string) {
 }
 
 //ADD book (draft, using short model cleanbookresult until i sort default vals,fallbacks etc.
-export async function createLocalBook(newBook: CleanBookResult) {
+export async function createLocalBook(newBook: Book) {
   const response = await request.post('/api/v1/books').send(newBook)
+  return response.body
+}
+
+//ADD book (exotic external book)
+export async function ingestExternalBook(payload: IngestionPayload) {
+  const response = await request
+  .post(`${baseUrl}/ingest`)
+  .send(payload)
+
   return response.body
 }
 
