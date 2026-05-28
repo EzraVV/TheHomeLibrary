@@ -24,15 +24,15 @@ export async function getBookByTitle(title: string): Promise<Book | undefined> {
   return connection('book').where({ title }).first()
 }
 
-export async function updateBook(id: string, updatedFields: Partial<Book>): Promise<Book> {
+export async function updateBook(book_id: string, updatedFields: Partial<Book>): Promise<Book> {
   const bookData = await connection('book')
-  .where({id})
+  .where({book_id})
   .update(updatedFields)
   .returning('*')
   return bookData[0] ?? null
  }
 
- export async function addBook(newBookData: Omit<Book, 'id'| 'book_id'>): Promise<string>{
+ export async function addBook(newBookData: Omit<Book, 'book_id'| 'book_id'>): Promise<string>{
   try {
     const [insertedId] = await connection('book')
     .insert(newBookData)
