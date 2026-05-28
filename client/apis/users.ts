@@ -22,9 +22,9 @@ export async function searchUsers(query: string) {
 }
 
 // CREATE user
-export async function createUser(user: User) {
-  const res = await request.post(baseUrl).send(user)
-  return res.body
+export async function createUser(newUser: Partial<User>) {
+  const res = await request.post(baseUrl).send(newUser)
+  return res.body as User
 }
 
 // UPDATE user
