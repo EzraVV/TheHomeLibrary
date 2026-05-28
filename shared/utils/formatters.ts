@@ -32,14 +32,13 @@ export function cleanBookTitle(title:string) {
 
   let cleanTitle = title
 
-  const trailingPattern = /\b(paperback|hardcover|edition|volume|vol|copy)\b\.?\s*(?:#?\s*\d+)?/gi;
-  cleanTitle = cleanTitle.replace(trailingPattern, '');
-
   const leadingPattern = /\b\d*(?:st|nd|rd|th)?\s*(paperback|hardcover|edition|volume|vol|copy)\b/gi;
   cleanTitle = cleanTitle.replace(leadingPattern, '');
 
-  return cleanTitle
+  const trailingPattern = /\b(paperback|hardcover|edition|volume|vol|copy)\b\.?\s*(?:#?\s*\d+)?/gi;
+  cleanTitle = cleanTitle.replace(trailingPattern, '');
 
+  return cleanTitle.trim()
 }
 
 export function normaliseAuthorName(author:string) {

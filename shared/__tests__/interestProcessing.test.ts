@@ -13,15 +13,26 @@ describe ('Atomise interests', () => {
   it('should create an array from csv interest tags', () => {
     const fakeInterests = 'Ponies, Cats, Action films'
     const result = atomiseInterests(fakeInterests)
-    expect(result).toBe(['Ponies', 'Cats', 'Action films'])
+    expect(result).toEqual(['Ponies', 'Cats', 'Action films'])
   })
-    it('should handle missing spaces and odd casing', () => {
-    const fakeInterests = 'Ponies, Cats, Action films'
+
+  it('should handle missing spaces and odd casing', () => {
+    const fakeInterests = 'ponies,cats,  Action films'
     const result = atomiseInterests(fakeInterests)
-    expect(result).toBe(['Ponies', 'Cats',,'Action films'])
+    expect(result).toEqual(['ponies', 'cats', 'Action films'])
   })
-    it('should return an empty array if given null, undefined or empty text', () => {
+
+  it('should return an empty array if given null, undefined or empty text', () => {
     expect(atomiseInterests(null)).toEqual([])
     expect(atomiseInterests('')).toEqual([])
+  })
+})
+
+describe('Stringify interests edge cases', () => {
+  it('should return empty string if input is not an array', () => {
+    // @ts-ignore
+    expect(stringifyInterests(null)).toBe('')
+    // @ts-ignore
+    expect(stringifyInterests('not-an-array')).toBe('')
   })
 })

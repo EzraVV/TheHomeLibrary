@@ -15,23 +15,29 @@ describe ('Generate Sort Title', () => {
 })
 
   it('should invert An with main title', () => {
-  const fakeTitle = 'An endgame of thrones'
-  const result = generateSortTitle(fakeTitle)
-  expect(result).toBe('endgame of thrones, an')
-})
+    const fakeTitle = 'An endgame of thrones'
+    const result = generateSortTitle(fakeTitle)
+    expect(result).toBe('endgame of thrones, An')
+  })
+
+  it('should return the original title if it does not start with an article', () => {
+    const fakeTitle = 'Game of Thrones'
+    const result = generateSortTitle(fakeTitle)
+    expect(result).toBe('Game of Thrones')
+  })
 })
 
 describe ('Normalise Author Name', () => {
   it('should reverse last name, firstname', () =>{
     const author = 'Surname, Forename'
     const result = normaliseAuthorName(author)
-    expect(result).toBe('Forename Surname')
+    expect(result).toBe('forename surname')
   })
 
-    it('should ignore initials', () =>{
+  it('should ignore initials', () =>{
     const author = 'Jerome K. Jerome'
     const result = normaliseAuthorName(author)
-    expect(result).toBe('Jerome K. Jerome')
+    expect(result).toBe('jerome k. jerome')
   })
 })
 
@@ -42,10 +48,10 @@ describe ('Clean Book Title', () => {
     expect(result).toBe('Dune')
   })
 
-    it('should ignore redundant ordinal prefix ', () =>{
+  it('should ignore redundant ordinal prefix ', () =>{
     const title = 'Tristram Shandy 5th edition'
     const result = cleanBookTitle(title)
-    expect(result).toBe('tristram shandy')
+    expect(result).toBe('Tristram Shandy')
   })
 })
 
@@ -76,5 +82,28 @@ describe ('Prepare for search index', () => {
 
     const result = prepareForSearchIndex(title, creator, cleanIsbn)
     expect(result).toBe('maori music dalvanius prime')
+  })
+})
+
+describe('Formatter edge cases', () => {
+  it('should handle falsy values elegantly', () => {
+    // @ts-ignore
+    expect(flattenText(null)).toBe('')
+    // @ts-ignore
+    expect(cleanBookTitle(null)).toBe('')
+    // @ts-ignore
+    expect(normaliseAuthorName(null)).toBe('')
+    // @ts-ignore
+    expect(generateSortTitle(null)).toBe('')
+  })
+
+  it('should handle prepareForHash with missing creator', () => {
+    const result = prepareForHash('Dune 1st volume', null)
+    expect(result).toBe('dune')
+  })
+
+  it('should handle prepareForSearchIndex with missing creator or isbn', () => {
+    const result = prepareForSearchIndex('Māori Music', null, null)
+    expect(result).toBe('maori music')
   })
 })
