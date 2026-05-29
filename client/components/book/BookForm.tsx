@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Book, BookFormProps, Status } from '../../../models/book'
-//Component jst takes metadata and maps to state, then fires submission call back
+//Component just takes metadata and maps to state, then fires submission call back
  
 
 export default function BookForm({initialValues, onSubmit, isSaving}: BookFormProps) {
@@ -14,14 +14,30 @@ export default function BookForm({initialValues, onSubmit, isSaving}: BookFormPr
   const [image, setImageUrls] = useState('')
 
   useEffect(() => {
-    if(initialValues) {
+if (initialValues) {
       setTitle(initialValues.title || '')
       setCreator(initialValues.creator || '')
-      setIsbn(initialValues.isbn || '')
-      setStatus(initialValues.status || 'Available')
       setEdition(initialValues.edition_name || '')
       setFormat(initialValues.format || 'Paperback')
       setImageUrls(initialValues.image || '')
+      setStatus(initialValues.status || 'Available')
+
+      let incomingIsbn = ''
+      if (Array.isArray(initialValues.isbn)) {
+        incomingIsbn = String(initialValues.isbn[0] || '')
+      } else {
+        incomingIsbn = String(initialValues.isbn || '')
+      }
+
+      if (
+        incomingIsbn === 'No ISBN determined' || 
+        incomingIsbn === 'No ISBN' || 
+        incomingIsbn.trim() === ''
+      ) {
+        setIsbn('')
+      } else {
+        setIsbn(incomingIsbn.trim())
+      }
     }
   }, [initialValues])
 
@@ -30,6 +46,7 @@ export default function BookForm({initialValues, onSubmit, isSaving}: BookFormPr
     onSubmit({title, creator, isbn: isbn ||undefined, status, edition_name, format, image})
   }
 
+  console.log("👉 Form rendered with initialValues:", initialValues, "Current local ISBN State:", isbn);
   return (
     <form onSubmit={handleFormSubmit} className="book-form-layout">
       {image && (
