@@ -1,5 +1,5 @@
 import request from "superagent";
-import { Book } from "../../models/book";
+import { Book, BookEditionMinimal } from "../../models/book";
 
 //OpenLibrary fetcher
 export async function fetchFromOpenLibrary(query:string): Promise<Book[]> {
@@ -51,3 +51,38 @@ export async function fetchFromGoogleBooks(query: string) : Promise<Book[]> {
     return []
   }
 }
+
+
+/*
+//Editions fetcher 
+export async function fetchEditionsForWork(work_id:string): Promise<BookEditionMinimal[]> {
+  try {
+    const cleanId = work_id.replace('/works/', '')
+    const url =  `https://openLibrary.org/works${cleanId}/editions.json?Limit=10`;
+
+    const response = await request.get(url)
+    const data = await response.body
+    const entries = data.entries || []
+
+    return entries
+      .filter((edit: any) => edit.isbn_13?.length || edit.isbn_10?.length)
+      .map((edit: any) => {
+        const exactIsbn = (edit.isbn_13?.[0]) || (edit.isbn_10??[0])
+        const separationKey = edit.key ? edit.key.replace('/books/', ''):'';
+
+        let formatText = 'Paperback';
+        if (edit.physical_format){
+          formatText = edit.physical_format.toLowerCase().includes('hard') ? 'Hardcover' : 'Paperback';
+        }
+        return {
+          edition_name: edit.publish_name || edit.title || 'Standard Edition',
+          isbn: exactIsbn,
+          format: formatText,
+          image: separationKey ? `https://covers.openlibrary.org/b/olid${separationKey}-M.jpg`:''
+        }
+      }) 
+    } catch (err) {
+    console.error('Failed fetching specific book copies', err);
+    return []
+  }
+}*/
