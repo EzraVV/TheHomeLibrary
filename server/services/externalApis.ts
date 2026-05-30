@@ -7,22 +7,38 @@ export async function fetchFromOpenLibraryBackend(query: string): Promise<any[]>
     const fields = 'key,title,author_name,language,isbn,edition_name,ia,cover_i,cover_edition_key,edition_key';
 
     const cleanQuery = query.trim();
-    const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(cleanQuery)}+language:eng&limit=20&fields=${fields}`
+    const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(cleanQuery)}+language:eng&limit=20&fields=${fields}`;
     
+    console.log(`📡 Sending Language-Strict Target URL: ${url}`);
+
     const response = await request.get(url);
     const items = response.body.docs || [];
 
     return items.map((item: any) => {
-      const isbnList = Array.isArray(item.isbn) ? item.isbn : []
-      const cleanIsbn = isbnList
-        .map((num: string) => num.replace(/[^0-9X]/gi, '').trim()) // Strip text comments
-        .find((num: string) => num.length === 10 || num.length === 13); // Find standard lengths
-     
+      const isbnList = Array.isArray(item.isbn) ? item.isbn : [];
+
+      // 1. Clean raw strings to remove hyphens, spaces, and text junk
+      const cleanIsbns = isbnList
+        .map((num: string) => num.replace(/[^0-9X]/gi, '').trim())
+        .filter((num: string) => num.length === 10 || num.length === 13);
+
+      // 2. English Group validation tests
+      const isEnglish13 = (num: string) => /^(978|979)[01]/.test(num);
+      const isEnglish10 = (num: string) => /^[01]/.test(num);
+
+      // 3. Prioritise clean English ISBN-13 or ISBN-10 first
+      const prioritizedIsbn = cleanIsbns.find((num: string) => num.length === 13 && isEnglish13(num))
+        || cleanIsbns.find((num: string) => num.length === 10 && isEnglish10(num))
+        || cleanIsbns.find((num: string) => num.length === 13) // Fallback to any standard 13-digit if no English found
+        || cleanIsbns[0];                             // Absolute fallback to index zero
+
+      // 4. Assign the resulting priority token to payload object
+      const coreIsbn = prioritizedIsbn || null;
       return {  
         key: item.key,
         title: item.title,
         author_name: item.author_name || [],
-        isbn: cleanIsbn || null,
+        isbn: coreIsbn || null,
         edition_name: item.edition_name || '',
         image: item.cover_edition_key 
           ? `https://covers.openlibrary.org/b/olid/${item.cover_edition_key}-M.jpg`
