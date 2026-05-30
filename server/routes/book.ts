@@ -232,7 +232,7 @@ router.post('/ingest', async (req, res, next) => {
       owner_id: activeUserId // Forces explicit ownership injection
     }
 
-    const newBookData = sanitiseBookPayload(req.body)
+    const newBookData = sanitiseBookPayload(payload)
     if (!newBookData.status) newBookData.status='Available'
     const savedBook = await db.addBook(newBookData)
     return res.status(201).json(savedBook)

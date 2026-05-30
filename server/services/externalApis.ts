@@ -27,13 +27,13 @@ export async function fetchFromOpenLibraryBackend(query: string): Promise<any[]>
       const isEnglish10 = (num: string) => /^[01]/.test(num);
 
       // 3. Prioritise clean English ISBN-13 or ISBN-10 first
-      const prioritizedIsbn = cleanIsbns.find((num: string) => num.length === 13 && isEnglish13(num))
+      const prioritisedIsbn = cleanIsbns.find((num: string) => num.length === 13 && isEnglish13(num))
         || cleanIsbns.find((num: string) => num.length === 10 && isEnglish10(num))
         || cleanIsbns.find((num: string) => num.length === 13) // Fallback to any standard 13-digit if no English found
-        || cleanIsbns[0];                             // Absolute fallback to index zero
+        || cleanIsbns[0];  // Absolute fallback to index zero
 
       // 4. Assign the resulting priority token to payload object
-      const coreIsbn = prioritizedIsbn || null;
+      const coreIsbn = prioritisedIsbn || null;
       return {  
         key: item.key,
         title: item.title,
@@ -89,7 +89,7 @@ export async function fetchEditionsForWorkBackend(work_id:string): Promise<any[]
 
 
 // Proxies cataloguing searches to Google securely from the server
-
+// Doesn't seem to solve the 429, could get API but I've already shared enough APIs for this course
 export async function fetchFromGoogleBooksBackend(query: string) : Promise<any[]> {
   try {
     const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=20`
@@ -117,13 +117,13 @@ export async function fetchFromGoogleBooksBackend(query: string) : Promise<any[]
 
 
 //Proxies library sharing searches to WorldCat network securely from the server
+//If we ever got a luxury WorldCat API key (A Dream)
 
 export async function queryWorldCatBackend(query: string): Promise<any[]> {
   try {
     const WORLDCAT_API_KEY = process.env.WORLDCAT_API_KEY || 'mock-key-if-public';
-    
     const response = await request
-      .get('https://wan.worldcat.org/v2/search/brief') // Example WorldCat endpoint
+      .get('https://wan.worldcat.org/v2/search/brief') // An example WorldCat endpoint
       .query({ q: query })
       .set('Authorization', `Bearer ${WORLDCAT_API_KEY}`)
       .set('Accept', 'application/json');
