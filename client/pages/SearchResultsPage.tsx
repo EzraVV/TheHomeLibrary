@@ -60,18 +60,17 @@ export default function SearchResultsPage() {
     : [];
 
   const externalMatches = Array.isArray(searchResult?.externalData)
-    ? searchResult.externalData.map((b: any) => {
-        const normalised = normaliseBookPayload(b, searchResult.externalSource || 'openlibrary');
-        return {
-          ...normalised,
-          isLocal: false,
-          source: 'external'
-        };
-      })
+    ? searchResult.externalData
+        .map((b: any) => {
+          const normalised = normaliseBookPayload(b, searchResult.externalSource || 'openlibrary');
+          return {
+            ...normalised,
+            isLocal: false,
+            source: 'external' as const
+          };
+        })
+        .filter((book) => book.isbn && book.isbn.trim().length > 0)
     : [];
-
-
-  const lookupMatches: any[] = [...localMatches, ...externalMatches]
 
   //Default collapse external results if something matches locally
   useEffect(() => {
@@ -98,7 +97,6 @@ export default function SearchResultsPage() {
         </p>
       </div>
 
-    //LOCAL MATCHES
       <div className="bg-surface border border-border rounded-sm p-4">
         <div className="font-semibold mb-3">Available in your library ({localMatches.length}):</div>
           {localMatches.length > 0 ? (
@@ -120,7 +118,7 @@ export default function SearchResultsPage() {
                     </div>
                   </div>
                   <span className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-emerald-50 text-emerald-700 border-emerald-200">
-                  Ready to Borrow
+                  {book.status}
                   </span>
                 </li>
               ))}
@@ -161,9 +159,8 @@ export default function SearchResultsPage() {
               <ul className="divide-y divide-border opacity-90">
                 {externalMatches.map((book: any, i: number) => {
                   const itemLinkUrl = book.isbn 
-                    //? 
-                        `https://www.worldcat.org/isbn/${book.isbn}`
-                    //: `https://openlibrary.org/works/${book.work_id}`;
+                    ? `https://www.worldcat.org/isbn/${book.isbn}`
+                    : null;
 
                   return (
                     <li key={`external-${i}`} className="flex gap-4 py-3 items-center justify-between grayscale-[30%] hover:grayscale-0">
@@ -172,10 +169,13 @@ export default function SearchResultsPage() {
                           <SafeBookCover src={book.image} alt={book.title} />
                         </div>
                         <div>
-                          <a href={itemLinkUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-sm text-text-primary hover:underline flex items-center gap-1">
-                            {book.title} <span className="text-[10px]">↗</span>
-                          </a>
+                          {itemLinkUrl ? (
+                            <a href={itemLinkUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-sm text-text-primary hover:underline flex items-center gap-1">
+                              {book.title} <span className="text-[10px]">↗</span>
+                            </a>
+                          ) : (
                           <p className="text-xs text-text-muted">{book.creator}</p>
+                          )}
                         </div>
                       </div>
                     </li>

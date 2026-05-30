@@ -26,8 +26,11 @@ export function normaliseBookPayload(book: any, source: 'local' | 'openlibrary' 
     embeddedIsbns.push(rawIsbnSource.trim());
   }
 
-  let resolvedImage = book.image || '';
-  const coreIsbn = embeddedIsbns[0] || '';
+  const rawCoreIsbn = embeddedIsbns[0] || '';
+  const cleanCoreIsbn = rawCoreIsbn.replace(/[^0-9X]/gi, '').trim();
+  const coreIsbn = (cleanCoreIsbn.length === 10 || cleanCoreIsbn.length === 13) ? cleanCoreIsbn : '';
+
+  let resolvedImage = book.cover || '';
 
   if (source === 'openlibrary') {
     const coverId = book.cover_i || (Array.isArray(book.covers) && book.covers[0]) || book.cover_id;

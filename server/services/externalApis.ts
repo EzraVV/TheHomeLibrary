@@ -4,25 +4,34 @@ import request from 'superagent';
 
 export async function fetchFromOpenLibraryBackend(query: string): Promise<any[]> {
   try {
-    const fields = 'key,title,author_name,isbn,edition_name,ia,cover_i,cover_edition_key,edition_key';
-    const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=20&fields=${fields}`;
+    const fields = 'key,title,author_name,language,isbn,edition_name,ia,cover_i,cover_edition_key,edition_key';
+
+    const cleanQuery = query.trim();
+    const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(cleanQuery)}+language:eng&limit=20&fields=${fields}`
     
     const response = await request.get(url);
     const items = response.body.docs || [];
 
-    return items.map((item: any) => ({
-      key: item.key,
-      title: item.title,
-      author_name: item.author_name || [],
-      isbn: item.isbn || [],
-      edition_name: item.edition_name || '',
-      image: item.cover_edition_key 
-        ? `https://covers.openlibrary.org/b/olid/${item.cover_edition_key}-M.jpg`
-        : item.cover_i 
-          ? `https://covers.openlibrary.org/b/id/${item.cover_i}-M.jpg` 
-          : '',
-      ia: item.ia || []
-    }));
+    return items.map((item: any) => {
+      const isbnList = Array.isArray(item.isbn) ? item.isbn : []
+      const cleanIsbn = isbnList
+        .map((num: string) => num.replace(/[^0-9X]/gi, '').trim()) // Strip text comments
+        .find((num: string) => num.length === 10 || num.length === 13); // Find standard lengths
+     
+      return {  
+        key: item.key,
+        title: item.title,
+        author_name: item.author_name || [],
+        isbn: cleanIsbn || null,
+        edition_name: item.edition_name || '',
+        image: item.cover_edition_key 
+          ? `https://covers.openlibrary.org/b/olid/${item.cover_edition_key}-M.jpg`
+          : item.cover_i 
+            ? `https://covers.openlibrary.org/b/id/${item.cover_i}-M.jpg` 
+            : '',
+        ia: item.ia || []
+      }
+    });
   } catch (err) {
     console.error('Backend OpenLibrary proxy failed:', err);
     return [];
