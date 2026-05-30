@@ -32,3 +32,12 @@ export interface BookEditionMinimal {
 }
 
 export type Status = 'Available' | 'On loan' | 'In transit' | 'Reserved';
+
+export 
+type SelectableBook = Partial<Book> & {
+  source?: 'local' | 'openlibrary' | 'google' | 'none' | 'mixed'
+  isLocal?: boolean,
+  googleVolumeId?:string
+  availableIsbns?: string[]
+  redirectUrl?: string
+}

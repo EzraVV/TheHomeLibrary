@@ -1,6 +1,6 @@
 import express from 'express'
 import * as db from '../db/book'
-import { Book } from '../../models/book'
+import { Book, SelectableBook } from '../../models/book'
 import { fetchEditionsForWorkBackend, fetchFromGoogleBooksBackend, fetchFromOpenLibraryBackend, queryWorldCatBackend } from '../services/externalApis'
 
 const router = express.Router()
@@ -33,26 +33,59 @@ router.get('/search', async (req, res) => {
 router.get(`/search/registries`, async (req, res, next) => {
   try {
     const query = (req.query.query || '') as string
-    const localMatches = await db.searchBook(query)
-    if (localMatches.length > 0) {
-      return res.json({source: 'local', data: localMatches})
+    let localMatches: any = []
+    try {
+      localMatches = await db.searchBook(query) || []
+    } catch (dbErr) {
+      console.error("Local database search failed:", dbErr)
     }
+
     console.log(`Cascading registry search for: ${query}`)
-    const externalResultsOpenLibrary = await fetchFromOpenLibraryBackend(query) 
-    const externalResultsGoogle = await fetchFromGoogleBooksBackend(query)
-    const externalResults = [...externalResultsOpenLibrary, ...externalResultsGoogle]
+    let openLibraryResults = []
+    let googleResults = []
+
+    // Safe OpenLibrary Fetch
+    try {
+      openLibraryResults = await fetchFromOpenLibraryBackend(query) || []
+    } catch (olErr: any) {
+      console.warn("⚠️ OpenLibrary backend fetch skipped or failed:", olErr.message)
+    }
+
+    // Safe Google Books Fetch (Damn 429 Quota Limits)
+    try {
+      googleResults = await fetchFromGoogleBooksBackend(query) || []
+    } catch (googleErr) {
+      console.warn("⚠️ Google Books backend rate-limited or failed (429/Resource Exhausted). Falling back gracefully.")
+    }
+
+    // Combine registries that survived the network request
+    const externalResults = [...openLibraryResults, ...googleResults]
+
+    let unifiedSource = 'none'
+    if (localMatches.length > 0 && externalResults.length > 0) {
+      unifiedSource = 'mixed'
+    } else if (localMatches.length > 0) {
+      unifiedSource = 'local'
+    } else if (externalResults.length > 0) {
+      unifiedSource = 'openlibrary' // Default fallback tag for external assets
+    }
     
+    // Determine Tracking string for frontend metadata labels
+    let primaryExternalSource = 'none'
+    if (openLibraryResults.length > 0) primaryExternalSource = 'openlibrary'
+    else if (googleResults.length > 0) primaryExternalSource = 'google'
     return res.json({ 
-      source: 'externalSource', 
-      externalSource: 'openlibrary',
-      localData: [], 
-      externalData: externalResults 
+      source: unifiedSource, 
+      externalSource: primaryExternalSource,
+      localData: localMatches, 
+      externalData: externalResults,
+      data: [...localMatches, ...externalResults]
     })
   } catch (e) {
+    console.error("Fatal crash in registry router cascade root:", e)
     next(e)
   }
 })
-
 
 //Editions search for Open Library
 router.get('/work/:work_id/editions', async (req, res, next) => {
