@@ -23,7 +23,7 @@ function SafeBookCover({ src, alt }: { src?: string; alt: string }) {
       setIsLoaded(true)
     }
     img.onerror = () => {
-      setImageSrc('/assets/default-book-cover.png')
+      setImageSrc('/assets/default-book-cover.png')//Create basic image or default to custom styling
       setIsLoaded(true)
     }
   }, [src])
@@ -47,22 +47,12 @@ export default function SearchResultsPage() {
   // Fire search cascade custom react-query hook
   const { data: searchResult, isLoading: isSearching } = useBorrowBookSearch(searchQuery)
 
- /* useEffect(() => {
-    const hasLocalRecords = searchResult?.localData && searchResult.localData.length > 0;
-    
-    // ONLY allow the window redirect to execute if the source says worldcat AND local data is verified empty!
-    if (searchResult?.source === 'worldcat' && searchResult?.redirectUrl && !hasLocalRecords) {
-      console.log(`No local matches found. Safe to forward outward: ${searchResult.redirectUrl}`)
-      window.location.href = searchResult.redirectUrl
-    }
-  }, [searchResult])*/
-
   const localMatches = Array.isArray(searchResult?.localData)
     ? searchResult.localData.map((b: any) => {
         const normalised = normaliseBookPayload(b, 'local');
         return {
           ...normalised,
-          isLocal: true, // 🛡️ Absolute hard-override flag
+          isLocal: true, // Absolute hard-override flag
           source: 'local'
         };
       })
