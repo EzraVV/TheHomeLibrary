@@ -1,3 +1,7 @@
+import { Link, useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useBorrowBookSearch } from '../../hooks/useBooks'
+import { BookOpen, User, BookMarked, Layers, Search, LogOut } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { BookOpen, User, BookMarked, Layers, Search, LogOut, LogIn } from 'lucide-react'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
@@ -12,6 +16,31 @@ export default function Navbar() {
   const isActive = (path: string) => {
     return location.pathname === path
   }
+
+  const [inputValue, setInputValue] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+
+  //Debounce to reduce external calls
+  useEffect(() => {
+    // If the input is too short, skip the API entirely
+    if (inputValue.trim().length <= 2) {
+      setSearchQuery('')
+      return
+    }
+
+    // Single network window timer
+    const handler = setTimeout(() => {
+      setSearchQuery(inputValue.trim())
+    }, 600) 
+
+    // Clean-up before every single key strike
+    return () => {
+      clearTimeout(handler)
+    }
+  }, [inputValue])
+
+
+  const { data: searchResult, isLoading: isSearching } = useBorrowBookSearch(searchQuery)
 
   const linkClass = (path: string) => {
     return `flex items-center gap-1.5 px-3 py-2 rounded-sm text-sm font-semibold transition-all duration-180 ${
@@ -72,6 +101,8 @@ export default function Navbar() {
             <input
               type="text"
               placeholder="Search library..."
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
               className="w-full min-h-11 rounded-sm border border-border bg-background/50 pl-9 pr-3 py-2 text-sm focus:bg-surface focus:outline focus:outline-2 focus:outline-primary transition-all"
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted opacity-60" />
