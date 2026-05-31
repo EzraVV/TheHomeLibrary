@@ -1,10 +1,14 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { BookOpen, User, BookMarked, Layers, Search, LogOut } from 'lucide-react'
+import { BookOpen, User, BookMarked, Layers, Search, LogOut, LogIn } from 'lucide-react'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { data: user } = useCurrentUser()
 
   const isActive = (path: string) => {
     return location.pathname === path
@@ -26,26 +30,27 @@ export default function Navbar() {
 
   //Debounce to reduce external calls
   useEffect(() => {
+    const trimmedInput = inputValue.trim()
     // If the input is too short, skip the API entirely
-    if (inputValue.trim().length <= 2) {
+    if (trimmedInput.length <= 2) {
       return
     }
 
-    if (location.pathname === '/search' && currentQueryString === inputValue) {
+    if (location.pathname === '/search' && currentQueryString === trimmedInput) {
       return
     }
 
     // Single network window timer
   const handler = setTimeout(() => {
       // Redirect to dedicated search page automatically
-      navigate(`/search?query=${encodeURIComponent(inputValue.trim())}`)
+      navigate(`/search?query=${encodeURIComponent(trimmedInput)}`)
     }, 600)
 
     // Clean-up before every single key strike
     return () => {
       clearTimeout(handler)
     }
-  }, [inputValue, navigate])
+  }, [inputValue, navigate, location.pathname, currentQueryString])
 
   const linkClass = (path: string) => {
     return `flex items-center gap-1.5 px-3 py-2 rounded-sm text-sm font-semibold transition-all duration-180 ${
@@ -53,6 +58,18 @@ export default function Navbar() {
         ? 'bg-primary text-white shadow-sm'
         : 'text-text-muted hover:text-primary hover:bg-primary/5'
     }`
+  }
+
+  const handleAuthAction = () => {
+    if (user) {
+      // Simulate Logout
+      localStorage.setItem('active_user_id', 'none')
+      queryClient.invalidateQueries({ queryKey: ['current-user'] })
+      navigate('/signup')
+    } else {
+      // Redirect to simulated Login/Signup
+      navigate('/signup')
+    }
   }
 
   return (
@@ -102,10 +119,22 @@ export default function Navbar() {
           </div>          
           
           {/* Action button */}
-          <button className="min-h-11 rounded-sm bg-secondary px-4 py-2 font-semibold text-white transition duration-200 ease-smooth hover:opacity-95 text-sm flex items-center gap-1.5">
-            <LogOut className="w-4 h-4" />
-            <span className="hidden md:inline">Logout</span>
-          </button>    
+          <button
+            onClick={handleAuthAction}
+            className="min-h-11 rounded-sm bg-secondary px-4 py-2 font-semibold text-white transition duration-200 ease-smooth hover:opacity-95 text-sm flex items-center gap-1.5"
+          >
+            {user ? (
+              <>
+                <LogOut className="w-4 h-4" />
+                <span className="hidden md:inline">Logout</span>
+              </>
+            ) : (
+              <>
+                <LogIn className="w-4 h-4" />
+                <span>Login / Sign Up</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </nav>
