@@ -1,17 +1,20 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import HomePage from '../pages/HomePage'
 import UserProfilePage from '../pages/UserProfilePage'
-import Navbar from './layout/Navbar'
-import Footer from './layout/Footer'
+//import Navbar from './layout/Navbar'
+//import Footer from './layout/Footer'
 import { AddBook } from './book/AddBook'
+import SearchResultsPage from '../pages/SearchResultsPage'
 import { BookOpen, Library } from 'lucide-react'
 import AddUserPage from '../pages/AddUserPage'
+import AppLayout from './layout/AppLayout'
+
 
 // Cozy placeholder page for My Books
 function MyBooksPlaceholder() {
   return (
     <div className="min-h-screen bg-background text-text-primary font-body flex flex-col">
-      <Navbar />
+
       <main className="flex-grow max-w-app w-full mx-auto px-4 py-12 text-center flex flex-col items-center justify-center gap-4">
         <div className="p-4 bg-surface rounded-md shadow-card border border-border/40 max-w-md w-full py-12">
           <BookOpen className="w-12 h-12 text-text-muted/40 mx-auto mb-3" />
@@ -27,7 +30,7 @@ function MyBooksPlaceholder() {
           </Link>
         </div>
       </main>
-      <Footer />
+  
     </div>
   )
 }
@@ -36,7 +39,7 @@ function MyBooksPlaceholder() {
 function BorrowedPlaceholder() {
   return (
     <div className="min-h-screen bg-background text-text-primary font-body flex flex-col">
-      <Navbar />
+ 
       <main className="flex-grow max-w-app w-full mx-auto px-4 py-12 text-center flex flex-col items-center justify-center gap-4">
         <div className="p-4 bg-surface rounded-md shadow-card border border-border/40 max-w-md w-full py-12">
           <Library className="w-12 h-12 text-text-muted/40 mx-auto mb-3" />
@@ -55,22 +58,24 @@ function BorrowedPlaceholder() {
           </Link>
         </div>
       </main>
-      <Footer />
+
     </div>
   )
 }
 
 export default function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
+    <Routes>
+      <Route path="/" element={<AppLayout />}>
+        <Route index element={<HomePage />} />
         <Route path="/profile" element={<UserProfilePage />} />
-        <Route path="/my-books" element={<MyBooksPlaceholder />} />
-        <Route path="/borrowed" element={<BorrowedPlaceholder />} />
+       {/* <Route path="/my-books" element={<MyBooksPlaceholder />} />
+        <Route path="/borrowed" element={<BorrowedPlaceholder />} />*/}
         <Route path="/signup" element={<AddUserPage />} />
         <Route path="/books" element={<AddBook />} />
-      </Routes>
-    </Router>
+        <Route path="/search" element={<SearchResultsPage />} />
+      </Route>
+    </Routes>
   )
 }
+
