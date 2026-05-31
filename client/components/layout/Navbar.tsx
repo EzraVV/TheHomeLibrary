@@ -1,6 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { BookOpen, User, BookMarked, Layers, Search, LogOut } from 'lucide-react'
 import { BookOpen, User, BookMarked, Layers, Search, LogOut, LogIn } from 'lucide-react'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { useQueryClient } from '@tanstack/react-query'
