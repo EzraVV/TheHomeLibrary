@@ -53,7 +53,7 @@ export default function AddUserPage() {
         ? form.interests.split(',').map((s) => s.trim()).filter(Boolean)
         : []
 
-      await createUser({
+      const createdUser = await createUser({
         ...form,
         interests: interestsArray,
         status: 'ACTIVE',
@@ -62,6 +62,10 @@ export default function AddUserPage() {
         updated_at: new Date().toISOString(),
         deleted_at: null,
       })
+
+      if (createdUser && createdUser.user_id) {
+        localStorage.setItem('active_user_id', createdUser.user_id)
+      }
 
       setSuccess(true)
       setIsSubmitting(false)
