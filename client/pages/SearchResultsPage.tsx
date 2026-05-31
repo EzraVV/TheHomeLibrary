@@ -163,7 +163,9 @@ export default function SearchResultsPage() {
                     : null;
 
                   return (
-                    <li key={`external-${i}`} className="flex gap-4 py-3 items-center justify-between grayscale-[30%] hover:grayscale-0">
+                    <li key={`external-${book.work_id || 'no-work'}-${book.isbn || 'no-isbn'}-${i}`} 
+                        className="flex gap-4 py-3 items-center justify-between grayscale-[30%] hover:grayscale-0"
+                        >
                       <div className="flex gap-4 items-center">
                         <div className="w-10 h-14 bg-background border border-border flex-shrink-0 rounded-sm overflow-hidden opacity-80">
                           <SafeBookCover src={book.image} alt={book.title} />

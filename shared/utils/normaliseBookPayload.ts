@@ -40,7 +40,7 @@ export function normaliseBookPayload(book: any, source: 'local' | 'openlibrary' 
     } 
     // If the record has no cover ID but has an ISBN, build an ISBN image path!
     else if (coreIsbn) {
-      resolvedImage = `https://covers.openlibrary.org/b/isbn/${coreIsbn}-M.jpg?default=false`;
+      resolvedImage = `https://covers.openlibrary.org/b/isbn/${coreIsbn}-M.jpg`;
     }
   } else if (source === 'google' && book.volumeInfo?.imageLinks) {
     resolvedImage = book.volumeInfo.imageLinks.thumbnail || book.volumeInfo.imageLinks.smallThumbnail || '';

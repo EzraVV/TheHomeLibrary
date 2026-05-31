@@ -203,14 +203,28 @@ return (
                   </div>
 
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 'bold' }}>{book.title}</div>
-                    <div style={{ fontSize: '13px', color: '#555' }}>by {book.creator}</div>
-                    {book.availableIsbns && book.availableIsbns.length > 0 && (
-                      <span style={{ fontSize: '11px' }}>
-                        ({book.availableIsbns.length} copies matched)
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <span style={{ fontWeight: 'bold' }}>{book.title}</span>
+                    
+                    {/* Badge appears if the aggregated book lives in the local catalogue */}
+                    {book.availableIsbns && book.availableIsbns.length > 0 && (book.source === 'local' || book.id) && (
+                      <span style={{ 
+                        fontSize: '9px', 
+                        textTransform: 'uppercase', 
+                        letterSpacing: '0.5px', 
+                        fontWeight: '8px', 
+                        padding: '2px 6px', 
+                        borderRadius: '4px', 
+                        backgroundColor: '#f59e0b', // amber-500
+                        color: '#fff' 
+                      }}>
+                        In Catalogue
                       </span>
                     )}
                   </div>
+              </div>
+
+               <div style={{ fontSize: '13px', color: '#555', marginTop: '2px' }}>by {book.creator}</div>
 
                   <button type="button" onClick={() => handleSelectBookMatch(book)}>
                     Select
