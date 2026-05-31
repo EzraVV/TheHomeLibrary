@@ -36,9 +36,9 @@ export default function BookCard({ book, onBorrow, isLoading }: BookCardProps) {
       <div>
         {/* Cover image container */}
         <div className="aspect-[3/4] bg-background rounded-sm overflow-hidden mb-3 relative flex items-center justify-center border border-border/20">
-          {book.image_urls ? (
+          {book.image ? (
             <img
-              src={book.image_urls}
+              src={book.image}
               alt={book.title}
               className="w-full h-full object-cover"
               loading="lazy"

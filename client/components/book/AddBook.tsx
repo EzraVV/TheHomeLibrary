@@ -1,71 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAddBookSearch, useAddBook, useBookEditions } from '../../hooks/useBooks'
 import BookForm from './BookForm' 
-import { Book, BookFormData } from '../../../models/book'
+import { Book, BookFormData, SelectableBook } from '../../../models/book'
 import { generateWorkId } from '../../../server/utils/generateWorkId'
+import { normaliseBookPayload } from '../../../shared/utils/normaliseBookPayload'
 import { IngestionPayload } from '../../apis/books'
-
-type SelectableBook = Partial<Book> & {
-  source?: 'local' | 'openlibrary' | 'google' | 'none'
-  isLocal?: boolean,
-  googleVolumeId?:string
-  availableIsbns?: string[]
-}
-
-function normaliseBookPayload(book: any, source: 'local' | 'openlibrary' | 'google' | 'none'): SelectableBook {
-  const embeddedIsbns: string[] = [];
-
-  if (Array.isArray(book.ia)) {
-    book.ia.forEach((tag: string) => {
-      if (tag.startsWith('isbn_')) {
-        const clean = tag.replace('isbn_', '').trim();
-        if (clean && !embeddedIsbns.includes(clean)) embeddedIsbns.push(clean);
-      }
-    });
-  }
-
-  const rawIsbnSource = book.isbn || book.isbn_array || book.volumeInfo?.industryIdentifiers;
-  if (Array.isArray(rawIsbnSource)) {
-    rawIsbnSource.forEach((code: any) => {
-      if (code && typeof code === 'object' && code.identifier) {
-        embeddedIsbns.push(String(code.identifier).trim());
-      } else if (code) {
-        embeddedIsbns.push(String(code).trim());
-      }
-    });
-  } else if (typeof rawIsbnSource === 'string' && rawIsbnSource.trim()) {
-    embeddedIsbns.push(rawIsbnSource.trim());
-  }
-
-  let resolvedImage = book.image || '';
-  if (source === 'openlibrary') {
-    const coverId = book.cover_i || (Array.isArray(book.covers) && book.covers[0]) || book.cover_id;
-    if (coverId) {
-      resolvedImage = `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`;
-    }
-  } else if (source === 'google' && book.volumeInfo?.imageLinks) {
-    resolvedImage = book.volumeInfo.imageLinks.thumbnail || book.volumeInfo.imageLinks.smallThumbnail || '';
-  }
-
-  // If the book lacks an OpenLibrary work key, create a safe fallback string
-  const cleanWorkId = book.key ? book.key.replace('/works/', '') : (book.work_id || undefined);
-  const coreIsbn = embeddedIsbns[0] || '';
-
-  return {
-    ...book,
-    work_id: cleanWorkId,
-    source,
-    isLocal: source === 'local',
-    googleVolumeId: source === 'google' ? book.id : undefined,
-    availableIsbns: embeddedIsbns,
-    title: String(book.title || book.volumeInfo?.title || 'Untitled Edition'),
-    creator: String(book.author_name?.[0] || book.creator || book.volumeInfo?.authors?.[0] || 'Unknown').trim(),
-    isbn: coreIsbn,
-    edition_name: String(book.edition_name || '').trim(),
-    format: book.format || 'Paperback',
-    image: resolvedImage
-  };
-}
 
 export function AddBook() {
   const [inputValue, setInputValue] = useState('')
@@ -295,7 +234,7 @@ return (
             <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 12px 0' }}>
               We found multiple ISBN prints for <strong>{bookWithPendingIsbnChoice.title}</strong> inside this registry record. Match the one on your copy:
             </p>
-            {/* 🎯 THE BYPASS FIX: Let users push basic data straight to fields without an ISBN selection */}
+            {/* THE BYPASS: Let users push basic data straight to fields without an ISBN selection */}
     <button
       type="button"
       onClick={() => {

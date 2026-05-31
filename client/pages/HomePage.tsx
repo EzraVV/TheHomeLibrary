@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getAllBooks } from '../apis/books'
 import { Book } from '../../models/book'
-import Navbar from '../components/layout/Navbar'
-import Footer from '../components/layout/Footer'
+//import Navbar from '../components/layout/Navbar'
+//import Footer from '../components/layout/Footer'
 import BookCard from '../components/BookCard'
 import { Library, Info, Sparkles } from 'lucide-react'
 import { useCurrentUser } from '../hooks/useCurrentUser'
@@ -40,7 +40,7 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background text-text-primary font-body flex flex-col">
-      <Navbar />
+      {/*<Navbar />*/}
 
       <main className="flex-grow max-w-app w-full mx-auto px-4 py-6 md:px-6 md:py-8 flex flex-col gap-8">
         {/* Cozy Hero Section */}
@@ -133,9 +133,9 @@ export default function HomePage() {
             availableBooks &&
             availableBooks.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {availableBooks.map((book) => (
+                {availableBooks.map((book: any, i: number) => (
                   <BookCard
-                    key={book.id}
+                    key={book.id || book.isbn || `catalogue-${i}`}
                     book={book}
                     onBorrow={handleBorrow}
                     isLoading={borrowingId === book.id}
@@ -146,7 +146,7 @@ export default function HomePage() {
         </div>
       </main>
 
-      <Footer />
+    {/*  <Footer /> */}
     </div>
   )
 }
