@@ -1,6 +1,15 @@
 import connection from './connection'
 import type { Book } from '../../models/book'
 
+function generateNextBookId(lastId: string | null): string {
+  if (!lastId) {
+    return 'bk_00001'
+  }
+  const num = parseInt(lastId.replace('bk_', ''), 10)
+  const next = num + 1
+  return `bk_${next.toString().padStart(5, '0')}`
+}
+
 export async function getAllBooks(): Promise<Book[]> {
   return connection('book').select()
 }
@@ -32,11 +41,20 @@ export async function updateBook(book_id: string, updatedFields: Partial<Book>):
   return bookData[0] ?? null
  }
 
- export async function addBook(newBookData: Omit<Book, 'book_id'| 'book_id'>): Promise<string>{
+ export async function addBook(newBookData: Omit<Book, 'id'| 'book_id'>): Promise<string>{
+  const lastBook = await connection('book').orderBy('book_id', 'desc').first()
+  const lastId = lastBook ? lastBook.book_id : null
+
+  const nextBookId = generateNextBookId(lastId)
+
   try {
-    const [insertedId] = await connection('book')
-    .insert(newBookData)
-    return insertedId as unknown as string
+    const bookWithId = {
+      ...newBookData,
+      book_id: nextBookId
+    } 
+    
+    await connection('book').insert(bookWithId)
+    return nextBookId
   } catch (err) {
     console.error('Database insertion error', err)
     throw err

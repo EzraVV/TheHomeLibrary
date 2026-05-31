@@ -24,4 +24,11 @@ export interface BookFormProps {
   isSaving: boolean
 }
 
+export interface BookEditionMinimal {
+  edition_name: string
+  isbn:string
+  image: string
+  format: string
+}
+
 export type Status = 'Available' | 'On loan' | 'In transit' | 'Reserved';

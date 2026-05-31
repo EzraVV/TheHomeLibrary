@@ -5,9 +5,12 @@ import { isValidISBN } from '../../shared/utils/isbnCheck'
 
 
 export interface SearchQueryResponse {
-  source: 'local' | 'openlibrary' | 'google' | 'none' | 'worldcat';
-  data: any[];
-  redirectUrl?: string //WorldCat link
+  source: 'local' | 'openlibrary' | 'google' | 'mixed' | 'none' | 'worldcat';
+  data?: any[];          // Kept for borrow search compatibility
+  localData?: any[];     // New structure for catalog search
+  externalData?: any[];  // New structure for catalog search
+  externalSource?: 'openlibrary' | 'google' | 'none';
+  redirectUrl?: string;
 }
 
 export interface IngestionPayload {
@@ -25,7 +28,7 @@ export async function getAllBooks() {
 
 // GET one book by ID
 export async function getBookById(id: string) {
-  const res = await request.get(`${baseUrl}/${id}`)
+  const res = await request.get(`${baseUrl}/item/${id}`)
   return res.body
 }
 
@@ -49,35 +52,36 @@ export async function createLocalBook(newBook: Book) {
 
 //ADD book (exotic external book)
 export async function ingestExternalBook(payload: IngestionPayload) {
+  const token = localStorage.getItem('token'); 
   const response = await request
   .post(`${baseUrl}/ingest`)
+  .set('Authorization', `Bearer ${token}`)
   .send(payload)
 
   return response.body
 }
 
 export async function executeCatalogSearchCascade(query: string): Promise<SearchQueryResponse> {
-  //Check Local SQLite inventory via your Express route
-  const localResponse = await request.get(`${baseUrl}/search`).query({ query })
-  if (localResponse.body && localResponse.body.length > 0) {
-    return { source: 'local', data: localResponse.body }
-  }
+  try {
+    console.log(`Sending single aggregated lookup request for: "${query}"`);
+    
+    const response = await request
+      .get('/api/v1/books/search/registries')
+      .query({ query });
 
-  //Check OpenLibrary
-  console.log('Local miss. Executing OpenLibrary data fetch...')
-  const olResults = await fetchFromOpenLibrary(query)
-  if (olResults && olResults.length > 0) {
-    return { source: 'openlibrary', data: olResults }
-  }
+    const serverResult = response.body;
 
-  //Check Google Books
-  console.log('OpenLibrary miss. Executing Google Books data fetch...')
-  const gbResults = await fetchFromGoogleBooks(query)
-  if (gbResults && gbResults.length > 0) {
-    return { source: 'google', data: gbResults }
-  }
+    return {
+      source: serverResult.source || 'none',
+      localData: serverResult.source === 'local' ? (serverResult.data || []) : [],
+      externalData: serverResult.source === 'externalSource' ? (serverResult.externalData || []) : [],
+      externalSource: serverResult.externalSource || 'none'
+    };
 
-  return { source: 'none', data: [] }
+  } catch (err) {
+    console.error('❌ Server proxy aggregator returned an error code:', err);
+    return { source: 'none', localData: [], externalData: [] };
+  }
 }
 
 

@@ -1,7 +1,7 @@
 import express from 'express'
 import * as db from '../db/book'
 import { Book } from '../../models/book'
-import { useBorrowBookSearch } from '../../client/hooks/useBooks'
+import { fetchEditionsForWorkBackend, fetchFromGoogleBooksBackend, fetchFromOpenLibraryBackend, queryWorldCatBackend } from '../services/externalApis'
 
 const router = express.Router()
 
@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
   }
 })
 
-// GET /api/v1/book/search?query=foo
+// GET /api/v1/books/search?query=foo
 router.get('/search', async (req, res) => {
   const q = (req.query.query || req.query.q || '') as string
   try {
@@ -38,31 +38,49 @@ router.get(`/search/registries`, async (req, res, next) => {
       return res.json({source: 'local', data: localMatches})
     }
     console.log(`Cascading registry search for: ${query}`)
-    // const externalResults = await cascadeExternalRegistries(query)
-    // return res.json({ source: 'external', data: externalResults })
-
-    return res.json({ source: 'external', data: [] })
+    const externalResultsOpenLibrary = await fetchFromOpenLibraryBackend(query) 
+    const externalResultsGoogle = await fetchFromGoogleBooksBackend(query)
+    const externalResults = [...externalResultsOpenLibrary, ...externalResultsGoogle]
+    
+    return res.json({ 
+      source: 'externalSource', 
+      externalSource: 'openlibrary',
+      localData: [], 
+      externalData: externalResults 
+    })
   } catch (e) {
     next(e)
   }
 })
 
+
+//Editions search for Open Library
+router.get('/work/:work_id/editions', async (req, res, next) => {
+  try {
+    const { work_id } = req.params;
+    const editions = await fetchEditionsForWorkBackend(work_id); 
+    return res.json(editions);
+  } catch (e) {
+    next(e);
+  }
+});
+
 // GET /api/v1/books/search/network?query=foo
 router.get('/search/network', async (req, res, next) => {
   try {
     const query = (req.query.query || '') as string
-    
     console.log(`Querying WorldCat shared network collections for: ${query}`)
-    const networkMatches = await useBorrowBookSearch(query)
-    res.json(networkMatches)
-    return res.json([])
+    
+    const networkMatches = await queryWorldCatBackend(query)
+    
+      return res.json(networkMatches) 
   } catch (e) {
     next(e)
   }
 })
 
 // GET /api/v1/book/:id
-router.get('/:id', async (req, res) => {
+router.get('/item/:id', async (req, res) => {
   try {
     const book = await db.getBookById(req.params.id)
 
@@ -77,7 +95,7 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-// GET /api/v1/book/owner/:id
+// GET /api/v1/books/owner/:id
 router.get('/owner/:id', async (req, res) => {
   try {
     const ownerId = req.params.id
@@ -89,7 +107,7 @@ router.get('/owner/:id', async (req, res) => {
   }
 })
 
-// GET /api/v1/book/:title
+// GET /api/v1/books/:title
 router.get('/:title', async (req, res) => {
   try {
     const book = await db.getBookByTitle(req.params.title)
@@ -107,8 +125,11 @@ router.get('/:title', async (req, res) => {
 export default router
 
 
-//Shared between update and add
+//MUTATIONS AND ACCESS CONTROL
+
+//Shared between update and add: Sanitise book data
 type NewBookInput = Omit<Book, 'id' | 'book_id'>
+
 function sanitiseBookPayload(body: any): NewBookInput {
 const allowedKeys= [
   'id', 'owner_id', 'title', 'creator', 'edition', 'work_id', 
@@ -123,19 +144,40 @@ const allowedKeys= [
   }
  }
 
- sanitised.updated_at = new Date().toISOString()
+ if (!sanitised.status) {
+    sanitised.status = 'Available' // Ensure background ingested books are instantly discoverable
+  }
+  
+  if (!sanitised.condition) {
+    sanitised.condition = 'Good' // Default fallback condition for text scrapers
+  }
 
- return sanitised as NewBookInput
+  sanitised.updated_at = new Date().toISOString()
+
+  return sanitised as NewBookInput
 }
 
 
-// PATCH /api/v1/books/update
-router.patch(`/books/:id/update`, async (req, res, next) => {
+// PATCH /api/v1/book/update
+router.patch(`/:id/update`, async (req, res, next) => {
   try {
     const {id} = req.params
+    const requestorUserId = req.headers['x-user-id'] || req.body.owner_id || 'anonymous'
+
     const book = await db.getBookById(id)
-    if (!book) return res.status(404).json({error: 'Book not found'})
+      if (!book) { return res.status(404).json({error: 'Book not found'})
+    }
+
+    if (String(book.owner_id) !== String(requestorUserId)) {
+      console.warn(`⚠️ Access Denied: User ${requestorUserId} attempted to modify Book ${id} owned by ${book.owner_id}`)
+      return res.status(403).json({ error: 'Access Denied: You do not have editing clearance for this inventory asset.' })
+    }
+
     const fieldsToUpdate = sanitiseBookPayload(req.body)
+
+    //You don't get to sign away ownership
+    delete (fieldsToUpdate as any).owner_id;
+
     const updatedBook = await db.updateBook(id, fieldsToUpdate)
     return res.status(200).json(updatedBook)
   } catch (e) {
@@ -143,9 +185,20 @@ router.patch(`/books/:id/update`, async (req, res, next) => {
   }
 })
 
-// POST /api/v1/book/add
-router.post('/', async (req, res, next) => {
+// POST /api/v1/books/add
+router.post('/ingest', async (req, res, next) => {
   try {
+    const activeUserId = req.headers['u-00001'] || req.body.owner_id;
+    
+    if (!activeUserId) {
+      return res.status(401).json({ error: 'Authentication required: Missing owner context assignment.' })
+    }
+
+    const payload = {
+      ...req.body,
+      owner_id: activeUserId // Forces explicit ownership injection
+    }
+
     const newBookData = sanitiseBookPayload(req.body)
     if (!newBookData.status) newBookData.status='Available'
     const savedBook = await db.addBook(newBookData)
