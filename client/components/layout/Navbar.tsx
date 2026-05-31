@@ -1,10 +1,15 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { BookOpen, User, BookMarked, Layers, Search, LogOut } from 'lucide-react'
+import { BookOpen, User, BookMarked, Layers, Search, LogOut, LogIn } from 'lucide-react'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  const { data: user } = useCurrentUser()
 
   const isActive = (path: string) => {
     return location.pathname === path
@@ -55,6 +60,18 @@ export default function Navbar() {
     }`
   }
 
+  const handleAuthAction = () => {
+    if (user) {
+      // Simulate Logout
+      localStorage.setItem('active_user_id', 'none')
+      queryClient.invalidateQueries({ queryKey: ['current-user'] })
+      navigate('/signup')
+    } else {
+      // Redirect to simulated Login/Signup
+      navigate('/signup')
+    }
+  }
+
   return (
     <nav className="border-b border-border bg-surface sticky top-0 z-50 shadow-sm px-4 py-3 md:px-6">
       <div className="max-w-app mx-auto flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -102,10 +119,22 @@ export default function Navbar() {
           </div>          
           
           {/* Action button */}
-          <button className="min-h-11 rounded-sm bg-secondary px-4 py-2 font-semibold text-white transition duration-200 ease-smooth hover:opacity-95 text-sm flex items-center gap-1.5">
-            <LogOut className="w-4 h-4" />
-            <span className="hidden md:inline">Logout</span>
-          </button>    
+          <button
+            onClick={handleAuthAction}
+            className="min-h-11 rounded-sm bg-secondary px-4 py-2 font-semibold text-white transition duration-200 ease-smooth hover:opacity-95 text-sm flex items-center gap-1.5"
+          >
+            {user ? (
+              <>
+                <LogOut className="w-4 h-4" />
+                <span className="hidden md:inline">Logout</span>
+              </>
+            ) : (
+              <>
+                <LogIn className="w-4 h-4" />
+                <span>Login / Sign Up</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
     </nav>
