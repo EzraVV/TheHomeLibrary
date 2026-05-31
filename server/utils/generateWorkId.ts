@@ -1,17 +1,22 @@
-import crypto from 'crypto';
-import { normaliseAuthorName, normaliseTitle } from '../../shared/utils/formatters';
+import { normaliseAuthorName, prepareForHash,  } from '../../shared/utils/formatters';
 
-export function generateWorkId(title: string, author: string) {
+export async function generateWorkId(title: string, author: string) {
   if (!title) return 'wrk_unknown';
 
-  const cleanTitle = normaliseTitle(title)
-  //Strips spaces, stops for hash match step
-  const hashAuthor = normaliseAuthorName(author).replace(/[^a-z0-9]/g,``)
-
+  const cleanTitle = prepareForHash(title)
   if (!cleanTitle) return 'wrk_unknown'
+  //Strips spaces, stops for hash match step
 
-  const signature = `{cleanTitle}|${hashAuthor}`
-  const hash = crypto.createHash('sha256').update(signature).digest('hex');
+  const cleanAuthor = author ? normaliseAuthorName(author) : 'unknown';
+  const hashAuthor = cleanAuthor.replace(/[^a-z0-9]/g, '');
+  
+  const signature = `${cleanTitle}|${hashAuthor}`
+  const msgUint8 = new TextEncoder().encode(signature);
 
-  return `wrk_${hash.substring(0,16)}`
-  }
+  const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgUint8);
+  
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+  return `wrk_${hashHex.substring(0, 16)}`;
+}

@@ -3,6 +3,7 @@ import HomePage from '../pages/HomePage'
 import UserProfilePage from '../pages/UserProfilePage'
 import Navbar from './layout/Navbar'
 import Footer from './layout/Footer'
+import { AddBook } from './book/AddBook'
 import { BookOpen, Library } from 'lucide-react'
 import AddUserPage from '../pages/AddUserPage'
 
@@ -21,9 +22,9 @@ function MyBooksPlaceholder() {
             You haven&apos;t listed any books in your personal library yet.
             Share a book with your community!
           </p>
-          <button className="min-h-11 rounded-sm bg-primary px-6 py-2 font-semibold text-white transition duration-200 ease-smooth hover:opacity-90">
+          <Link to='/books' className="min-h-11 rounded-sm bg-primary px-6 py-2 font-semibold text-white transition duration-200 ease-smooth hover:opacity-90">
             Add to My Library
-          </button>
+          </Link>
         </div>
       </main>
       <Footer />
@@ -68,6 +69,7 @@ export default function App() {
         <Route path="/my-books" element={<MyBooksPlaceholder />} />
         <Route path="/borrowed" element={<BorrowedPlaceholder />} />
         <Route path="/signup" element={<AddUserPage />} />
+        <Route path="/books" element={<AddBook />} />
       </Routes>
     </Router>
   )
