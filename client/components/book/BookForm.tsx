@@ -9,6 +9,7 @@ export default function BookForm({initialValues, onSubmit, isSaving}: BookFormPr
   const [creator, setCreator] = useState('')//One day will be able to convey illustrator, editor etc
   const [isbn, setIsbn] = useState('')
   const [status, setStatus] = useState<Status>('Available')
+  const [work_id, setWorkId] = useState('')
   const [edition_name, setEdition] = useState('')
   const [format, setFormat] = useState('')
   const [image, setImageUrls] = useState('')
@@ -18,6 +19,7 @@ if (initialValues) {
       setTitle(initialValues.title || '')
       setCreator(initialValues.creator || '')
       setEdition(initialValues.edition_name || '')
+      setWorkId(initialValues.work_id || '')
       setFormat(initialValues.format || 'Paperback')
       setImageUrls(initialValues.image || '')
       setStatus(initialValues.status || 'Available')
@@ -43,7 +45,7 @@ if (initialValues) {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit({title, creator, isbn: isbn ||undefined, status, edition_name, format, image})
+    onSubmit({title, creator, isbn: isbn ||undefined, status, edition_name, work_id, format, image})
   }
 
   console.log("👉 Form rendered with initialValues:", initialValues, "Current local ISBN State:", isbn);
@@ -81,6 +83,7 @@ if (initialValues) {
       onChange={(e) => setIsbn(e.target.value)}
       />
     </div>
+  
 
     <div>
       <label>Edition</label>

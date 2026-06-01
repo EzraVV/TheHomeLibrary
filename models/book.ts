@@ -16,7 +16,7 @@ export interface Book {
   updated_at: string
 }
 
-export type BookFormData = Omit<Book, 'id' | 'owner_id' | 'work_id' | 'search_index' | 'created_at' | 'updated_at'>;
+export type BookFormData = Omit<Book, 'id' | 'owner_id' | 'search_index' | 'created_at' | 'updated_at'>;
 
 export interface BookFormProps {
   initialValues?: Partial<Book> | null

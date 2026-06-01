@@ -31,8 +31,9 @@ router.get('/search', async (req, res) => {
 //Cataloguing search - cascade to OpenLibrary, Google Books
 //Get /api/v1/books/search/registries?query=foo
 router.get(`/search/registries`, async (req, res, next) => {
+  console.log("🔥 HIT: Registry Cascade Search");
   try {
-    const query = (req.query.query || '') as string
+    const query = (req.query.query || req.query.q || '') as string
     let localMatches: any = []
     try {
       localMatches = await db.searchBook(query) || []
@@ -164,30 +165,21 @@ export default router
 type NewBookInput = Omit<Book, 'id' | 'book_id'>
 
 function sanitiseBookPayload(body: any): NewBookInput {
-const allowedKeys= [
-  'id', 'owner_id', 'title', 'creator', 'edition', 'work_id', 
-    'isbn', 'format', 'condition', 'search_index', 'lending_terms', 'status', 'image_urls'
- ]
+  const forbidden = ['owner_id', 'id', 'book_id', 'created_at'];
+    
+  const sanitised: any = {};
 
- const sanitised: Partial<NewBookInput> = {}
+    Object.keys(body).forEach(key => {
+      if (!forbidden.includes(key)) {
+        sanitised[key] = body[key];
+      }
+    });
 
- for (const key of allowedKeys) {
-  if (body[key] !== undefined) {
-    (sanitised as any)[key] = body[key]
-  }
- }
+    sanitised.status = body.status || 'Available';
+    sanitised.condition = body.condition || 'Good';
+    sanitised.updated_at = new Date().toISOString();
 
- if (!sanitised.status) {
-    sanitised.status = 'Available' // Ensure background ingested books are instantly discoverable
-  }
-  
-  if (!sanitised.condition) {
-    sanitised.condition = 'Good' // Default fallback condition for text scrapers
-  }
-
-  sanitised.updated_at = new Date().toISOString()
-
-  return sanitised as NewBookInput
+  return sanitised;
 }
 
 
@@ -195,6 +187,8 @@ const allowedKeys= [
 router.patch(`/:id/update`, async (req, res, next) => {
   try {
     const {id} = req.params
+    //TODO sort out user_id from Auth
+    const user_id = 'x-user-id'
     const requestorUserId = req.headers['x-user-id'] || req.body.owner_id || 'anonymous'
 
     const book = await db.getBookById(id)
@@ -211,7 +205,7 @@ router.patch(`/:id/update`, async (req, res, next) => {
     //You don't get to sign away ownership
     delete (fieldsToUpdate as any).owner_id;
 
-    const updatedBook = await db.updateBook(id, fieldsToUpdate)
+    const updatedBook = await db.updateBook(id, user_id, fieldsToUpdate)
     return res.status(200).json(updatedBook)
   } catch (e) {
     next(e)
@@ -240,3 +234,36 @@ router.post('/ingest', async (req, res, next) => {
     next(e)
   }
 })
+
+router.get (`/work/:workId/editions`, async (req, res) => {
+  try {
+    const {workId} = req.params;
+
+    const editions = response.body.entries.map((entry: any) => ({
+      title: entry.title,
+      isbn: (entry.isbn_13?.[0] || entry.isbn_10?.[0]) || 'N/A',
+      edition_name: entry.edition_name || 'Standard edition',
+      cover_url: entry.covers ? `https://covers.openlibrary.org/b/id/${entry.covers[0]}-M.jpg` : null,
+      work_id: workId
+    }))
+    res.json(edition)
+  } catch (error) {
+    res.status(500).json({error: 'Failed to fetch editions'})
+  }
+})
+
+router.get('/search/metadata', async (req, res) => {
+  try {
+    const { q } = req.query;
+    
+    if (!q || typeof q !== 'string') {
+      return res.status(400).json({ error: 'Missing query' });
+    }
+
+    const results = await fetchFromOpenLibraryBackend(q);
+    console.log("DEBUG: Backend returning items:", results);
+    res.json(results);
+  } catch (error) {
+    res.status(500).json({ error: 'Proxy failed' });
+  }
+});
