@@ -10,6 +10,7 @@ import { BookOpen, Library } from 'lucide-react'
 import AddUserPage from '../pages/AddUserPage'
 import { EditBook } from './book/EditBook'
 import AppLayout from './layout/AppLayout'
+import BookDetail from './book/BookDetail'
 
 
 // Cozy placeholder page for My Books
@@ -76,7 +77,7 @@ export default function App() {
         <Route path="/signup" element={<AddUserPage />} />
         <Route path="/books" element={<AddBook />} />
         <Route path="/books/:id/update" element={<EditBook />} />
-        <Route path="/books/:id/lookup" element={<SearchResultsList />} />
+        <Route path="/books/:id/" element={<BookDetail />} />
         <Route path="/books/search" element={<SearchResultsPage />} />
       </Route>
     </Routes>

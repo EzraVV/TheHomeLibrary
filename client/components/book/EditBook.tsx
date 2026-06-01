@@ -4,6 +4,7 @@ import { Book, BookFormData } from '../../../models/book'
 import { useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'react-router'
+import { atomiseInterests } from '../../../shared/utils/interestProcessing'
 
 
 export function EditBook() {
@@ -17,6 +18,10 @@ export function EditBook() {
   const [stagedBook, setStagedBook] = useState<Book | null>(null);
   const currentFormData = stagedBook || selectedBook;
 
+  const tags = currentFormData?.subject_index 
+    ? atomiseInterests(currentFormData.subject_index) 
+    : [];
+  
   const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
 
   useEffect(() => {
@@ -113,7 +118,18 @@ console.log("Search Result Data:", searchResults);
       />
     </div>
   </div>
-
+<section>
+       {/* UI uses the already-calculated tags */}
+       {tags.length > 0 && (
+         <div className="flex flex-wrap gap-2">
+           {tags.map((tag) => (
+             <span key={tag} className="...">
+               {tag}
+             </span>
+           ))}
+         </div>
+       )}
+    </section>
 </div>
   );
 }
