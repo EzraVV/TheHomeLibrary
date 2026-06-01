@@ -19,6 +19,7 @@ export interface IngestionPayload {
 }
 
 const baseUrl = '/api/v1/books'
+console.log("🔥 API file loaded!");
 
 // GET all books
 export async function getAllBooks() {
@@ -42,6 +43,16 @@ export async function searchBooks(searchQuery: string) {
 export async function getBooksByOwner(ownerId: string) {
   const res = await request.get(`${baseUrl}/owner/${ownerId}`)
   return res.body
+}
+
+// EDIT book (draft, using short model cleanbookresult until i sort default vals,fallbacks etc.
+export async function updateBook(book_id: string, updatedFields: Partial<Book>) {
+  //TODO: Replace hardcoded user id with one from Auth context
+  const currentUserId = 'u_00001';
+  const response = await request.patch(`/api/v1/books/${book_id}/update`)
+  .set('x-user-id', currentUserId)
+  .send(updatedFields)
+  return response.body
 }
 
 // ADD book (draft, using short model cleanbookresult until i sort default vals,fallbacks etc.
@@ -177,4 +188,16 @@ export async function executeBorrowSearchCascade(rawQuery: string): Promise<Sear
     externalData: externalDataResult,
     redirectUrl: redirectUrlResult
   };
+}
+
+// api/books.ts
+export async function editSearchBooks(query: string) {
+  console.log("🚀 Request initiated for:", query);
+  if (!query || query.length < 3) return [];
+  
+  const response = await request
+    .get(`/api/v1/books/search/metadata`)
+    .query({ q: encodeURIComponent(query) }); 
+    
+  return response.body || [];
 }

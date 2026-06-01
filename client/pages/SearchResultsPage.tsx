@@ -79,7 +79,7 @@ export default function SearchResultsPage() {
     } else {
       setIsExpanded(false)
     }
-  }, [searchResult])
+  })
 
   
   if (isSearching) {

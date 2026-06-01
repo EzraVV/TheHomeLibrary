@@ -33,9 +33,9 @@ export async function getBookByTitle(title: string): Promise<Book | undefined> {
   return connection('book').where({ title }).first()
 }
 
-export async function updateBook(book_id: string, updatedFields: Partial<Book>): Promise<Book> {
+export async function updateBook(book_id: string, user_id: string, updatedFields: Partial<Book>): Promise<Book> {
   const bookData = await connection('book')
-  .where({book_id})
+  .where({book_id, owner_id: user_id})
   .update(updatedFields)
   .returning('*')
   return bookData[0] ?? null

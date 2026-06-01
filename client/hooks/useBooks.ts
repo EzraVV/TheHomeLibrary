@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { createLocalBook, executeBorrowSearchCascade, executeCatalogSearchCascade, ingestExternalBook, SearchQueryResponse } from '../apis/books';
+import { getBookById, createLocalBook, executeBorrowSearchCascade, executeCatalogSearchCascade, ingestExternalBook, SearchQueryResponse, editSearchBooks } from '../apis/books';
 import { fetchEditionsForWork } from '../apis/externalBooks';
+import { isValidISBN } from '../../shared/utils/isbnCheck'
 
 export function useAddBookSearch(query: string) {
   const searchQuery = query.trim()
@@ -21,40 +22,75 @@ export function useBorrowBookSearch (query: string ) {
   })
 }
 
-export function useBookEditions(workId: string | undefined ) {
-  const cleanId = workId ? workId.replace('/works/','').trim() : '';
+export function useBookEditions(workId: string | undefined, options = { selectOnlyIsbns: false }) {
+  const cleanId = workId ? workId.replace('/works/', '').trim() : '';
 
   return useQuery({
     queryKey: ['book-editions', cleanId],
     enabled: cleanId.length > 0,
-    queryFn: async () => {
-      const editions = await fetchEditionsForWork(cleanId);
+    queryFn: () => fetchEditionsForWork(cleanId),
+    select: (editions) => {
+      // If we need the clean list, return only the unique metadata objects
+      const uniqueEditions = editions.filter((v, i, a) => a.findIndex(t => t.isbn === v.isbn) === i);
+      
+      if (options.selectOnlyIsbns) {
+        return uniqueEditions.map(e => e.isbn);
+      }
+      return uniqueEditions;
+    }
+  });
+}
 
-      const harvestedIsbns: string[] = []
-      editions.forEach((edit: any) => {
-        if(edit.isbn && !harvestedIsbns.includes(edit.isbn)) {
-          harvestedIsbns.push(edit.isbn)
-        }
-      });
-      return harvestedIsbns
+export function useAddBook() {
+  const queryClient = useQueryClient()
+
+  return useMutation ({
+    mutationFn: async ({mode, payload}: {mode: 'manual' | 'ingest'; payload: any}) => {
+    if (mode === 'ingest') {
+      return ingestExternalBook(payload) //Payload = ISBN
+    }
+    return createLocalBook(payload) //Payload = BookResult object
+  },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-books'] })
+      queryClient.invalidateQueries({ queryKey: ['catalog-search'] })
+      queryClient.invalidateQueries({ queryKey: ['borrow-search'] })
     }
   })
 }
 
-  export function useAddBook() {
-    const queryClient = useQueryClient()
+export function useEditBook() {
+  const queryClient = useQueryClient()
 
-    return useMutation ({
-      mutationFn: async ({mode, payload}: {mode: 'manual' | 'ingest'; payload: any}) => {
-      if (mode === 'ingest') {
-        return ingestExternalBook(payload) //Payload = ISBN
-      }
-      return createLocalBook(payload) //Payload = BookResult object
-    },
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['all-books'] })
-        queryClient.invalidateQueries({ queryKey: ['catalog-search'] })
-        queryClient.invalidateQueries({ queryKey: ['borrow-search'] })
-      }
-    })
-  }
+  return useMutation ({
+    mutationFn: async (payload: any) => {
+
+    return createLocalBook(payload) //Payload = BookResult object
+  },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-books'] })
+      queryClient.invalidateQueries({ queryKey: ['catalog-search'] })
+      queryClient.invalidateQueries({ queryKey: ['borrow-search'] })
+    }
+  })
+}
+
+export function useGetBookById(id: string) {
+  const cleanId = id.trim()
+
+  return useQuery({
+    queryKey: ['catalogue-search', cleanId],
+    queryFn:() => getBookById(cleanId),
+    enabled: !!cleanId,
+  })
+}
+
+// Lookup by isbn / title etc for enriching metadata
+export function useEditSearchBooks(query: string) {
+  return useQuery({
+    queryKey: ['book-search', query],
+    queryFn: () => editSearchBooks(query), // Now it calls the function that has access to 'request'
+    enabled: query.length >= 3,
+    staleTime: 0,
+  });
+}
