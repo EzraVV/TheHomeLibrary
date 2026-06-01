@@ -238,15 +238,8 @@ router.post('/ingest', async (req, res, next) => {
 router.get (`/work/:workId/editions`, async (req, res) => {
   try {
     const {workId} = req.params;
-
-    const editions = response.body.entries.map((entry: any) => ({
-      title: entry.title,
-      isbn: (entry.isbn_13?.[0] || entry.isbn_10?.[0]) || 'N/A',
-      edition_name: entry.edition_name || 'Standard edition',
-      cover_url: entry.covers ? `https://covers.openlibrary.org/b/id/${entry.covers[0]}-M.jpg` : null,
-      work_id: workId
-    }))
-    res.json(edition)
+    const editions = await fetchEditionsForWorkBackend(workId)
+    res.json(editions)
   } catch (error) {
     res.status(500).json({error: 'Failed to fetch editions'})
   }

@@ -1,4 +1,4 @@
-import { Book } from '../../models/books'
+import { Book } from '../../../models/book'
 
 export const SearchResultsList = ({ 
   results = [], // Default value, safety first
