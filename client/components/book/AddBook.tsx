@@ -138,7 +138,16 @@ export function AddBook() {
         setSelectedBook(null)
         setSearchQuery('')
       },
-      onError: () => alert('Failed to ingest book with this ISBN. Try manual form entry.')
+      onError: (err: unknown) => {
+        const isHttpError = (err:unknown): err is { status: number } => {
+          return typeof err == 'object' && err !== null && 'status' in err;
+        }
+        if (isHttpError(err) && err.status === 401) {
+            alert('Session expired. Please log in again to ingest books.');
+          } else {
+            alert('Failed to ingest book. Check your connection or try manual entry.');
+          }
+        }
     })
 }
 
