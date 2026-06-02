@@ -15,7 +15,7 @@ export default function SearchPage() {
 
 
   const [postcode, setPostcode] = useState('')
-  const [radius, setRadius] = useState(5); //Default 5km
+  const [radius, setRadius] = useState(5); //Default 5km; TODO - no distance limit?
 
   //const {userProfile } = useAuth() 
 
@@ -23,7 +23,7 @@ export default function SearchPage() {
   const { data, isLoading } = useBorrowBookSearch(query);
 
   const handleApplyFilters = () => {
-    const geo = getCoordsByPostcode(parseInt(postcode, 10))
+    const geo = getCoordsByPostcode(parseInt(postcode, 10)) //Base 10, convert to number if not already. Source might be json file.
     if (geo) {
       setSearchParams({ 
         query, 
@@ -35,6 +35,7 @@ export default function SearchPage() {
   };
 
 
+  //This needs to connect book owner postcode via book, then compare with borrower postcode
   const processedLocal = (data?.localData || []).map(book => ({
     ...book,
     distance: userLat && userLon ? getDistanceKM(userLat, userLon, book.lat, book.lon) : null

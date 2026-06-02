@@ -11,7 +11,7 @@ export function AddBook() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedBook, setSelectedBook] = useState<SelectableBook | null>(null)
   
-  //Track a search map when multiple isbns to choose from, track selected work.
+  //Track a search map when there are multiple isbns to choose from; track selected work.
   const [bookWithPendingIsbnChoice, setBookWithPendingIsbnChoice] = useState<SelectableBook | null>(null)
   const [activeWorkId, setActiveWorkId] = useState<string | undefined>(undefined)
 
@@ -21,7 +21,7 @@ export function AddBook() {
   const bookMutation = useAddBook()
   const isSaving = bookMutation.isPending
   
-  //Debounce
+  //Debounce to prevent excessive reloads/calls
   useEffect(() => {
     // If the input is too short, skip the API entirely
     if (inputValue.trim().length <= 2) {
@@ -52,7 +52,7 @@ export function AddBook() {
           );
 
           return {
-            ...prev, // carry over values please
+            ...prev, // carry over values please, present to user for choice
             availableIsbns: isbnStrings,
             isbn: harvestedIsbns[0] as string
           };
@@ -79,7 +79,7 @@ export function AddBook() {
         normaliseBookPayload(b, searchResult?.externalSource || 'none')
       )
     : [];
-    
+      
   const lookupMatches: SelectableBook[] = [...localMatches, ...externalMatches];
 
   //Intercept list selections
@@ -102,7 +102,7 @@ export function AddBook() {
     let finalWorkId = selectedBook?.work_id || selectedBook?.googleVolumeId 
     
     if (!finalWorkId) {
-      finalWorkId = await generateWorkId(formData.title, formData.creator);
+      finalWorkId = await generateWorkId(formData.title, formData.creator);//Incorporate hash later!
     }
 
     const completeBookPayload: Partial<Book> = {
