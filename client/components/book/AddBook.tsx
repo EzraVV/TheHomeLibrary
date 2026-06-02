@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAddBookSearch, useAddBook, useBookEditions } from '../../hooks/useBooks'
 import BookForm from './BookForm' 
-import { Book, BookFormData, SelectableBook } from '../../../models/book'
+import { Book, BookFormData, SelectableBook,BookEditionMinimal } from '../../../models/book'
 import { generateWorkId } from '../../../server/utils/generateWorkId'
 import { normaliseBookPayload } from '../../../shared/utils/normaliseBookPayload'
 import { IngestionPayload } from '../../apis/books'
@@ -44,12 +44,17 @@ export function AddBook() {
   useEffect(() => {
     if (activeWorkId && harvestedIsbns && bookWithPendingIsbnChoice) {
       if (harvestedIsbns.length > 0) {
-        setBookWithPendingIsbnChoice(prev => {
+        setBookWithPendingIsbnChoice((prev) => {
           if (!prev) return null;
+
+          const isbnStrings = harvestedIsbns.map(item => 
+            typeof item === 'string' ? item : item.isbn
+          );
+
           return {
             ...prev, // carry over values please
-            availableIsbns: harvestedIsbns,
-            isbn: harvestedIsbns[0]
+            availableIsbns: isbnStrings,
+            isbn: harvestedIsbns[0] as string
           };
         });
       } else {
