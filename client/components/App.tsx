@@ -4,8 +4,9 @@ import UserProfilePage from '../pages/UserProfilePage'
 //import Navbar from './layout/Navbar'
 //import Footer from './layout/Footer'
 import { AddBook } from './book/AddBook'
+import SearchPage from './book/SearchPage'
 import SearchResultsPage from '../pages/SearchResultsPage'
-import { SearchResultsList } from './book/SearchResultsList'
+import  BookDashboard from './book/BookDashboard'
 import { BookOpen, Library } from 'lucide-react'
 import AddUserPage from '../pages/AddUserPage'
 import { EditBook } from './book/EditBook'
@@ -75,10 +76,11 @@ export default function App() {
        {/* <Route path="/my-books" element={<MyBooksPlaceholder />} />
         <Route path="/borrowed" element={<BorrowedPlaceholder />} />*/}
         <Route path="/signup" element={<AddUserPage />} />
-        <Route path="/books" element={<AddBook />} />
+        <Route path="/books/dashboard" element={<BookDashboard />} />
+        <Route path="/books/add" element={<AddBook />} />
         <Route path="/books/:id/update" element={<EditBook />} />
         <Route path="/books/:id/" element={<BookDetail />} />
-        <Route path="/books/search" element={<SearchResultsPage />} />
+        <Route path="/books/search" element={<SearchPage />} />
       </Route>
     </Routes>
   )

@@ -20,9 +20,9 @@ export default function Navbar() {
 
   //Keep search value active while navigating
   useEffect(() => {
-    if (location.pathname === '/search' && currentQueryString !== inputValue) {
+    if (location.pathname === '/books/search' && currentQueryString !== inputValue) {
       setInputValue(currentQueryString)
-    } else if (location.pathname !== '/search' && inputValue !== '') {
+    } else if (location.pathname !== '/books/search' && inputValue !== '') {
       // Clear the navbar box if they leave the search page completely
       setInputValue('')
     }
@@ -36,14 +36,14 @@ export default function Navbar() {
       return
     }
 
-    if (location.pathname === '/search' && currentQueryString === trimmedInput) {
+    if (location.pathname === '/books/search' && currentQueryString === trimmedInput) {
       return
     }
 
     // Single network window timer
   const handler = setTimeout(() => {
       // Redirect to dedicated search page automatically
-      navigate(`/search?query=${encodeURIComponent(trimmedInput)}`)
+      navigate(`/books/search?query=${encodeURIComponent(trimmedInput)}`)
     }, 600)
 
     // Clean-up before every single key strike

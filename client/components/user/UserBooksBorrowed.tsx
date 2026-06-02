@@ -22,7 +22,7 @@ export default function UserBooksBorrowed() {
           Explore and find books available in the neighborhood library!
         </p>
         <Link
-          to="/"
+          to="/books/search"
           className="min-h-9 inline-flex items-center gap-1 text-xs rounded-sm bg-primary px-3.5 py-1.5 font-semibold text-white transition duration-200 ease-smooth hover:opacity-90 active:scale-[0.98]"
         >
           Browse Catalog

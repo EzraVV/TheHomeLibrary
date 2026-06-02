@@ -32,6 +32,10 @@ export function normaliseBookPayload(book: any, source: 'local' | 'openlibrary' 
 
   let resolvedImage = book.cover || '';
 
+  if (source === 'local') {
+  resolvedImage = book.image || book.coverUrl || book.cover || '';
+}
+
   if (source === 'openlibrary') {
     const coverId = book.cover_i || (Array.isArray(book.covers) && book.covers[0]) || book.cover_id;
     

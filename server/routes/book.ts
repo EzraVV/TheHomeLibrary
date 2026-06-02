@@ -213,7 +213,7 @@ router.patch(`/:id/update`, async (req, res, next) => {
 })
 
 // POST /api/v1/books/add
-router.post('/ingest', async (req, res, next) => {
+router.post('/add', async (req, res, next) => {
   try {
     const activeUserId = req.headers['u-00001'] || req.body.owner_id;
     
