@@ -5,86 +5,49 @@ import { SelectableBook } from '../../models/book'
 import { normaliseBookPayload } from '../../shared/utils/normaliseBookPayload'
 
 function SafeBookCover({ src, alt }: { src?: string; alt: string }) {
-  const [imageSrc, setImageSrc] = useState<string>('/assets/default-book-cover.png')
-  const [isLoaded, setIsLoaded] = useState<boolean>(false)
+  console.log("SafeBookCover received src:", src);
+  const [hasError, setHasError] = useState(false);
+  const defaultImage = '/assets/default-book-cover.png';
 
   useEffect(() => {
-    if (!src) {
-      setImageSrc('/assets/default-book-cover.png')
-      setIsLoaded(true)
-      return
-    }
+    setHasError(false);
+  }, [src]);
 
-    // Pre-flight check the image asset in the background container
-    const img = new Image()
-    img.src = src
-    img.onload = () => {
-      setImageSrc(src)
-      setIsLoaded(true)
-    }
-    img.onerror = () => {
-      setImageSrc('/assets/default-book-cover.png')//Create basic image or default to custom styling
-      setIsLoaded(true)
-    }
-  }, [src])
-
-  return (
-    <div className={`w-full h-full bg-background-muted flex items-center justify-center transition-opacity duration-200 ${isLoaded ? 'opacity-100' : 'opacity-40'}`}>
-      <img 
-        src={imageSrc} 
-        alt={alt ?? 'No title available'} 
-        className="w-full h-full object-cover" 
+    return (
+    <div className="w-full h-full bg-background-muted flex items-center justify-center overflow-hidden">
+      <img
+        src={hasError || !src ? defaultImage : src}
+        alt={alt || 'Book cover'}
+        className="w-full h-full object-cover transition-opacity duration-300"
+        onError={() => setHasError(true)}
       />
     </div>
-  )
+  );
 }
 
-export default function SearchResultsPage() {
+interface SearchResultsData {
+  localData: any[];
+  externalData: any[];
+  externalSource?: string
+}
+
+interface SearchResultsProps {
+  data: SearchResultsData
+}
+
+export default function SearchResultsPage({ data }:  SearchResultsProps ) {
   
   const [searchParams] = useSearchParams()
   const searchQuery = searchParams.get('query') || ''
-  const [isExpanded, setIsExpanded] = useState<boolean>(false)
 
   // Fire search cascade custom react-query hook
-  const { data: searchResult, isLoading: isSearching } = useBorrowBookSearch(searchQuery)
-
-  const localMatches = Array.isArray(searchResult?.localData)
-    ? searchResult.localData.map((b: any) => {
-        const normalised = normaliseBookPayload(b, 'local');
-        return {
-          ...normalised,
-          isLocal: true, // Absolute hard-override flag
-          source: 'local' as const
-        };
-      })
-    : [];
-
-  const externalMatches = Array.isArray(searchResult?.externalData)
-    ? searchResult.externalData
-        .map((b: any) => {
-          const normalised = normaliseBookPayload(b, searchResult.externalSource || 'openlibrary');
-          return {
-            ...normalised,
-            isLocal: false,
-            source: 'external' as const
-          };
-        })
-        .filter((book) => book.isbn && book.isbn.trim().length > 0)
-    : [];
+  const localMatches = (data?.localData || []).map(b => ({ ...normaliseBookPayload(b, 'local'), isLocal: true }));
+  const externalMatches = (data?.externalData || []).map(b => ({ ...normaliseBookPayload(b, (data.externalSource as any )|| 'openlibrary'), isLocal: false }));
 
   //Default collapse external results if something matches locally
-  useEffect(() => {
-    if(localMatches.length === 0 && externalMatches.length > 0) {
-      setIsExpanded(true)
-    } else {
-      setIsExpanded(false)
-    }
-  })
-
-  
-  if (isSearching) {
-    return <div className="p-6 max-w-app mx-auto text-text-muted">Searching the library inventories...</div>
-  }
+  const [isExpanded, setIsExpanded] = useState<boolean>(() => {
+  return localMatches.length === 0 && externalMatches.length > 0;
+});
 
   return (
     <div className="p-6 max-w-app mx-auto">
@@ -99,7 +62,9 @@ export default function SearchResultsPage() {
 
       <div className="bg-surface border border-border rounded-sm p-4">
         <div className="font-semibold mb-3">Available in your library ({localMatches.length}):</div>
+          
           {localMatches.length > 0 ? (
+            console.log("Local Data received in SearchResultsPage:", localMatches),
             <ul className="divide-y divide-border">
               {localMatches.map((book: SelectableBook) => (
                 <li key={book.id} className="flex gap-4 py-3 items-center justify-between">
@@ -111,7 +76,7 @@ export default function SearchResultsPage() {
                       />
                     </div>
                   <div>
-                    <a href={`/books/item/${book.id}`} className="font-bold text-sm text-secondary hover:underline">
+                    <a href={`/books/${book.id}`} className="font-bold text-sm text-secondary hover:underline">
                       {book.title ?? 'Untitled Book'}
                       </a>
                       <p className="text-xs text-text-muted">{book.creator ?? 'Unknown Author'}</p>
@@ -140,7 +105,7 @@ export default function SearchResultsPage() {
             className="w-full flex items-center justify-between font-semibold text-sm text-text-muted hover:text-text-primary transition-colors focus:outline-none"
           >
             <span className="flex items-center gap-2">
-              Didn''t find what you wanted? Search Global Registries 
+              Not what you were after? Search Global Registries 
               <span className="text-xs bg-background border px-1.5 py-0.5 rounded text-text-muted">
                 {externalMatches.length} results
               </span>
@@ -158,12 +123,13 @@ export default function SearchResultsPage() {
               </p>
               <ul className="divide-y divide-border opacity-90">
                 {externalMatches.map((book: any, i: number) => {
+                  const uniqueKey = book.isbn || book.work_id || `external-${i}`;
                   const itemLinkUrl = book.isbn 
                     ? `https://www.worldcat.org/isbn/${book.isbn}`
                     : null;
 
                   return (
-                    <li key={`external-${book.work_id || 'no-work'}-${book.isbn || 'no-isbn'}-${i}`} 
+                    <li key={uniqueKey} 
                         className="flex gap-4 py-3 items-center justify-between grayscale-[30%] hover:grayscale-0"
                         >
                       <div className="flex gap-4 items-center">

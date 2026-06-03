@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAddBookSearch, useAddBook, useBookEditions } from '../../hooks/useBooks'
 import BookForm from './BookForm' 
-import { Book, BookFormData, SelectableBook } from '../../../models/book'
+import { Book, BookFormData, SelectableBook,BookEditionMinimal } from '../../../models/book'
 import { generateWorkId } from '../../../server/utils/generateWorkId'
 import { normaliseBookPayload } from '../../../shared/utils/normaliseBookPayload'
 import { IngestionPayload } from '../../apis/books'
@@ -11,7 +11,7 @@ export function AddBook() {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedBook, setSelectedBook] = useState<SelectableBook | null>(null)
   
-  //Track a search map when multiple isbns to choose from, track selected work.
+  //Track a search map when there are multiple isbns to choose from; track selected work.
   const [bookWithPendingIsbnChoice, setBookWithPendingIsbnChoice] = useState<SelectableBook | null>(null)
   const [activeWorkId, setActiveWorkId] = useState<string | undefined>(undefined)
 
@@ -21,7 +21,7 @@ export function AddBook() {
   const bookMutation = useAddBook()
   const isSaving = bookMutation.isPending
   
-  //Debounce
+  //Debounce to prevent excessive reloads/calls
   useEffect(() => {
     // If the input is too short, skip the API entirely
     if (inputValue.trim().length <= 2) {
@@ -44,12 +44,17 @@ export function AddBook() {
   useEffect(() => {
     if (activeWorkId && harvestedIsbns && bookWithPendingIsbnChoice) {
       if (harvestedIsbns.length > 0) {
-        setBookWithPendingIsbnChoice(prev => {
+        setBookWithPendingIsbnChoice((prev) => {
           if (!prev) return null;
+
+          const isbnStrings = harvestedIsbns.map(item => 
+            typeof item === 'string' ? item : item.isbn
+          );
+
           return {
-            ...prev, // carry over values please
-            availableIsbns: harvestedIsbns,
-            isbn: harvestedIsbns[0]
+            ...prev, // carry over values please, present to user for choice
+            availableIsbns: isbnStrings,
+            isbn: harvestedIsbns[0] as string
           };
         });
       } else {
@@ -74,7 +79,7 @@ export function AddBook() {
         normaliseBookPayload(b, searchResult?.externalSource || 'none')
       )
     : [];
-    
+      
   const lookupMatches: SelectableBook[] = [...localMatches, ...externalMatches];
 
   //Intercept list selections
@@ -97,7 +102,7 @@ export function AddBook() {
     let finalWorkId = selectedBook?.work_id || selectedBook?.googleVolumeId 
     
     if (!finalWorkId) {
-      finalWorkId = await generateWorkId(formData.title, formData.creator);
+      finalWorkId = await generateWorkId(formData.title, formData.creator);//Incorporate hash later!
     }
 
     const completeBookPayload: Partial<Book> = {
@@ -133,7 +138,16 @@ export function AddBook() {
         setSelectedBook(null)
         setSearchQuery('')
       },
-      onError: () => alert('Failed to ingest book with this ISBN. Try manual form entry.')
+      onError: (err: unknown) => {
+        const isHttpError = (err:unknown): err is { status: number } => {
+          return typeof err == 'object' && err !== null && 'status' in err;
+        }
+        if (isHttpError(err) && err.status === 401) {
+            alert('Session expired. Please log in again to ingest books.');
+          } else {
+            alert('Failed to ingest book. Check your connection or try manual entry.');
+          }
+        }
     })
 }
 

@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getAllBooks } from '../apis/books'
 import { Book } from '../../models/book'
-//import Navbar from '../components/layout/Navbar'
-//import Footer from '../components/layout/Footer'
+//import Navbar from '../components/layout/Navbar' -- Now in App Layout
+//import Footer from '../components/layout/Footer' -- Now in App layout
 import BookCard from '../components/BookCard'
 import { Library, Info, Sparkles } from 'lucide-react'
 import { useCurrentUser } from '../hooks/useCurrentUser'

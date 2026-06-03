@@ -66,9 +66,9 @@ export default function UserBooksOwned() {
           {books.map((b: Book) => (
             <div key={b.id} className="group rounded-sm border border-border/40 bg-background/30 p-2.5 transition-all hover:bg-background/60 hover:shadow-sm">
               <div className="aspect-[3/4] bg-background rounded-sm overflow-hidden border border-border/20 mb-2 shadow-sm">
-                {b.image_urls ? (
+                {b.image ? (
                   <img
-                    src={b.image_urls}
+                    src={b.image}
                     alt={b.title}
                     className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                     loading="lazy"
