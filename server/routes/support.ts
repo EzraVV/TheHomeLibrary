@@ -16,12 +16,18 @@ router.post('/', async (req, res) => {
     })
 
     await transporter.sendMail({
-      from: email,
+      from: process.env.SUPPORT_EMAIL,
       to: process.env.SUPPORT_EMAIL,
+      replyTo: email,
       subject: `Support Ticket from ${name}`,
-      text: message,
-    })
+      text: `
+Name: ${name}
+Email: ${email}
 
+Message:
+${message}
+  `,
+    })
     res.json({ success: true })
   } catch (err) {
     console.error(err)

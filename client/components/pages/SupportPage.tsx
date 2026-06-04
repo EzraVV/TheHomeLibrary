@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import LoadingSpinner from '../LoadingSpinner'
 
 export default function SupportPage() {
   const [form, setForm] = useState({
@@ -6,15 +7,19 @@ export default function SupportPage() {
     email: '',
     message: '',
   })
+  const [isSending, setIsSending] = useState(false)
 
   async function handleSubmit(e) {
     e.preventDefault()
+    setIsSending(true)
 
     const res = await fetch('/api/v1/support', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     })
+
+    setIsSending(false)
 
     if (res.ok) {
       alert('Support ticket sent successfully')
@@ -55,7 +60,9 @@ export default function SupportPage() {
           onChange={(e) => setForm({ ...form, message: e.target.value })}
         />
 
-        <button className="btn-primary w-full">Submit</button>
+        <button className="btn-primary w-full" disabled={isSending}>
+          {isSending ? <LoadingSpinner /> : 'Submit'}
+        </button>
       </form>
     </div>
   )

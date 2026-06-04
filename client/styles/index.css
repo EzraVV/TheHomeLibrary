@@ -6,13 +6,18 @@
   body {
     margin: 0;
     padding: 0;
-    background-color: #F5F1EA;
-    color: #1F1F1F;
+    background-color: #f5f1ea;
+    color: #1f1f1f;
     @apply font-body min-h-screen antialiased;
   }
 
-  h1, h2, h3, h4, h5, h6 {
-    color: #1F1F1F;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: #1f1f1f;
     @apply font-heading tracking-tight;
   }
 
@@ -34,7 +39,11 @@
     line-height: 1.2;
   }
 
-  p, span, li, button, input {
+  p,
+  span,
+  li,
+  button,
+  input {
     @apply font-body text-base;
     line-height: 1.5;
   }
