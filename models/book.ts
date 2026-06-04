@@ -42,3 +42,25 @@ type SelectableBook = Partial<Book> & {
   availableIsbns?: string[]
   redirectUrl?: string
 }
+
+export interface BookLoan {
+  id: string
+  owner_id: string
+  title: string
+  creator: string 
+  edition_name: string
+  work_id: string 
+  isbn?: string 
+  format: string
+  condition?:string
+  search_index?: string 
+  lending_terms?: string
+  status: 'Available' | 'On loan' | 'In transit' | 'Reserved'
+  current_loan?: {
+    due_at:string;
+    borrower_name: string;
+  }
+  image: string 
+  created_at: string
+  updated_at: string
+}

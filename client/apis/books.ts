@@ -45,7 +45,7 @@ export async function getBooksByOwner(ownerId: string) {
   return res.body
 }
 
-// EDIT book (draft, using short model cleanbookresult until i sort default vals,fallbacks etc.
+// EDIT book 
 export async function updateBook(book_id: string, updatedFields: Partial<Book>) {
   //TODO: Replace hardcoded user id with one from Auth context
   const currentUserId = 'u_00001';
@@ -55,7 +55,7 @@ export async function updateBook(book_id: string, updatedFields: Partial<Book>) 
   return response.body
 }
 
-// ADD book (draft, using short model cleanbookresult until i sort default vals,fallbacks etc.
+// ADD book 
 export async function createLocalBook(newBook: Book) {
   const response = await request.post('/api/v1/books').send(newBook)
   return response.body
@@ -192,7 +192,6 @@ export async function executeBorrowSearchCascade(rawQuery: string): Promise<Sear
 
 // api/books.ts
 export async function editSearchBooks(query: string) {
-  console.log("🚀 Request initiated for:", query);
   if (!query || query.length < 3) return [];
   
   const response = await request

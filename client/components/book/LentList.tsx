@@ -3,10 +3,10 @@ import { useUserBooks } from '../../hooks/useUserBooks'
 import { Book } from '../../../models/book'
 import { BookMarked, Plus, BookOpen } from 'lucide-react'
 
-import { Loan } from '../../../models/loan'
+import { Loan, LoanBook } from '../../../models/loan'
 
 interface LentListProps {
-  loans: Loan[];
+  loans: LoanBook[];
   onUpdate:(id: string, fields: Partial<Loan>)=> void
 }
 
@@ -47,36 +47,32 @@ export function LentList({loans, onUpdate}: LentListProps) {
       <div className="flex items-center justify-between border-b border-border/40 pb-3 mb-4">
         <h2 className="font-heading text-xl font-bold text-secondary flex items-center gap-2">
           <BookMarked className="w-5.5 h-5.5 text-primary" />
-          My Books
+          Current loans
         </h2>
         <span className="text-xs font-semibold text-text-muted bg-background px-2.5 py-0.5 rounded-sm">
-          {books ? `${books.length} listed` : '0 listed'}
+          {loans ? `${loans.length} listed` : '0 listed'}
         </span>
       </div>
 
       {/* Empty State */}
-      {(!books || books.length === 0) ? (
+      {(!loans || loans.length === 0) ? (
         <div className="flex-grow flex flex-col items-center justify-center text-center py-10 border border-dashed border-border/60 rounded-sm bg-background/30 px-4">
           <BookOpen className="w-10 h-10 text-text-muted/30 mb-2" />
-          <h3 className="text-sm font-bold text-secondary mb-0.5">No books uploaded yet</h3>
+          <h3 className="text-sm font-bold text-secondary mb-0.5">No active loans</h3>
           <p className="text-xs text-text-muted mb-4 max-w-[200px]">
-            Share your books with community members to unlock your home library!
+            No books currently on loan
           </p>
-          <button className="min-h-9 flex items-center gap-1 text-xs rounded-sm bg-primary px-3.5 py-1.5 font-semibold text-white transition duration-200 ease-smooth hover:opacity-90 active:scale-[0.98]">
-            <Plus className="w-3.5 h-3.5" />
-            Add First Book
-          </button>
         </div>
       ) : (
         /* Grid catalog */
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {books.map((b: Book) => (
-            <div key={b.id} className="group rounded-sm border border-border/40 bg-background/30 p-2.5 transition-all hover:bg-background/60 hover:shadow-sm">
+          {loans.map((loan: LoanBook) => (
+            <div key={loan.id} className="group rounded-sm border border-border/40 bg-background/30 p-2.5 transition-all hover:bg-background/60 hover:shadow-sm">
               <div className="aspect-[3/4] bg-background rounded-sm overflow-hidden border border-border/20 mb-2 shadow-sm">
-                {b.image ? (
+                {loan.book_image ? (
                   <img
-                    src={b.image}
-                    alt={b.title}
+                    src={loan.book_image}
+                    alt={loan.book_title}
                     className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                     loading="lazy"
                   />
@@ -87,11 +83,15 @@ export function LentList({loans, onUpdate}: LentListProps) {
                   </div>
                 )}
               </div>
-              <h4 className="text-xs font-bold text-text-primary truncate" title={b.title}>
-                {b.title}
+              <h4 className="text-xs font-bold text-text-primary truncate" title={loan.book_title}>
+                {loan.borrower_id}
               </h4>
+              <p className="text-xs font-bold text-text-primary truncate" title={loan.borrower_id}>
+                {loan.due_at}
+              </p>
+
               <div className={`inline-block text-[10px] font-bold border rounded-pill px-2 py-0.25 mt-1.5 select-none ${getStatusColor(b.status)}`}>
-                {b.status}
+                {loan.status}
               </div>
             </div>
           ))}
