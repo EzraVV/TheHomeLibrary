@@ -7,6 +7,7 @@ export interface Book {
   work_id: string //All LoTR for example; hash for 'orphan' books where ISBN not pulled from dbs
   isbn?: string // Opt, but preferred. Not all books have. String cuz 0 starts
   format: string //Eg. hardcover, graphic novel
+  description?: string
   condition?: string
   search_index?: string //Contat SQLite search vector = title+author+tags
   lending_terms?: string //User defined custom rules
@@ -40,4 +41,26 @@ type SelectableBook = Partial<Book> & {
   googleVolumeId?:string
   availableIsbns?: string[]
   redirectUrl?: string
+}
+
+export interface BookLoan {
+  id: string
+  owner_id: string
+  title: string
+  creator: string 
+  edition_name: string
+  work_id: string 
+  isbn?: string 
+  format: string
+  condition?:string
+  search_index?: string 
+  lending_terms?: string
+  status: 'Available' | 'On loan' | 'In transit' | 'Reserved'
+  current_loan?: {
+    due_at:string;
+    borrower_name: string;
+  }
+  image: string 
+  created_at: string
+  updated_at: string
 }

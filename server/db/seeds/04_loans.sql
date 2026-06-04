@@ -1,4 +1,4 @@
-INSERT INTO loan (loan_id,book_id,owner_id,borrower_id, status, due_at, returned_at, created_at, updated_at) VALUES
+INSERT INTO loan (loan_id,book_id,owner_id,borrower_id, status, due_at, returned_at, created_at, updated_at, archived_at) VALUES
 (
   'ln_00001',
   'bk_00003',
@@ -8,7 +8,8 @@ INSERT INTO loan (loan_id,book_id,owner_id,borrower_id, status, due_at, returned
   '2026-02-15 12:00:00',
   '2026-02-14 16:30:00', 
   '2026-02-01 12:00:00',
-  '2026-02-14 16:30:00'
+  '2026-02-14 16:30:00',
+  NULL
 ),
 (
   'ln_00002',
@@ -19,7 +20,8 @@ INSERT INTO loan (loan_id,book_id,owner_id,borrower_id, status, due_at, returned
   '2026-03-15 12:00:00',
   '2026-03-15 09:00:00', 
   '2026-03-01 12:00:00',
-  '2026-03-15 09:00:00'
+  '2026-03-15 09:00:00',
+  NULL
 ),
 (
   'ln_00003',
@@ -30,7 +32,8 @@ INSERT INTO loan (loan_id,book_id,owner_id,borrower_id, status, due_at, returned
   '2026-05-14 12:00:00',
   '2026-05-14 11:15:00', 
   '2026-05-01 12:00:00',
-  '2026-05-14 11:15:00'
+  '2026-05-14 11:15:00',
+  NULL
 ),
 (
   'ln_00004',
@@ -41,5 +44,18 @@ INSERT INTO loan (loan_id,book_id,owner_id,borrower_id, status, due_at, returned
   '2026-02-14 12:00:00',
   NULL,                  
   '2026-02-01 12:00:00',
-  '2026-02-14 12:00:00'  
+  '2026-02-14 12:00:00',
+  NULL  
+),
+(
+  'ln_00005',
+  'bk_00005',
+  'u_00005',
+  'u_00001',
+  'RETURNED',
+  '2026-03-14 12:00:00',
+  '2026-03-16 12:00:00',                 
+  '2026-03-01 12:00:00',
+  '2026-03-16 12:00:00',
+  '2026-04-04 12:00:00'
 );

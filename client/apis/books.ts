@@ -45,17 +45,26 @@ export async function getBooksByOwner(ownerId: string) {
   return res.body
 }
 
-// EDIT book (draft, using short model cleanbookresult until i sort default vals,fallbacks etc.
+// EDIT book 
+
 export async function updateBook(book_id: string, updatedFields: Partial<Book>) {
-  //TODO: Replace hardcoded user id with one from Auth context
+  console.log('DEBUG: Final URL being requested:', `/api/v1/books/${book_id}/update`);
+  
+  if (!book_id || book_id === 'undefined') {
+    throw new Error("CRITICAL: Attempted to PATCH with an invalid book ID");
+  }
+
   const currentUserId = 'u_00001';
-  const response = await request.patch(`/api/v1/books/${book_id}/update`)
-  .set('x-user-id', currentUserId)
-  .send(updatedFields)
-  return response.body
+  
+  const response = await request
+    .patch(`/api/v1/books/${book_id}/update`) 
+    .set('x-user-id', currentUserId)
+    .send(updatedFields);
+  
+  return response.body;
 }
 
-// ADD book (draft, using short model cleanbookresult until i sort default vals,fallbacks etc.
+// ADD book 
 export async function createLocalBook(newBook: Book) {
   const response = await request.post('/api/v1/books').send(newBook)
   return response.body
@@ -192,7 +201,6 @@ export async function executeBorrowSearchCascade(rawQuery: string): Promise<Sear
 
 // api/books.ts
 export async function editSearchBooks(query: string) {
-  console.log("🚀 Request initiated for:", query);
   if (!query || query.length < 3) return [];
   
   const response = await request
