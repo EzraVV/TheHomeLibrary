@@ -16,9 +16,10 @@ export const BookDashboard = () => {
   const queryClient = useQueryClient()
 
   const currentUserId = 'u_00001'
+  const updateLoanMutation = useUpdateLoan()
 
   const handleUpdate = async (loanId: string, fields: Partial<Loan>) => {
-    await useUpdateLoan()
+    updateLoanMutation.mutate({loan_id:loanId, fields, user_id: currentUserId})
     queryClient.invalidateQueries({queryKey:['loans']})
   }
 
@@ -31,10 +32,10 @@ export const BookDashboard = () => {
     return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Owned books component */}
-      <LentList loans ={lent} onUpdate={handleUpdate}/> 
+      <LentList loans = {lent} onUpdate={handleUpdate}/> 
       
       {/* The borrowed books component */}
-      <BorrowedList loans={borrowed} onUpdate={handleUpdate}/> 
+      <BorrowedList loans = {borrowed} onUpdate={handleUpdate}/> 
     </div>
   )
 }

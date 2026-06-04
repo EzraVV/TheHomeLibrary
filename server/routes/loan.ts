@@ -1,6 +1,5 @@
 import express from 'express'
 import * as db from '../db/loan'
-import { Loan } from '../../models/loan'
 
 const router = express.Router()
 
@@ -26,3 +25,33 @@ router.get('/search', async (req, res) => {
     res.status(500).json({ error: 'Search failed' })
   }
 })
+
+// POST /api/v1/loans
+router.post('/', async (req, res) => {
+  try {
+    const newLoan = {
+      ...req.body,
+    }
+    const created = await db.createLoan(newLoan)
+    res.status(201).json(created)
+  } catch (err) {
+    const error = err as { code?: string }
+    console.error(err)
+    res.sendStatus(500)
+  }
+})
+
+// PATCH /api/v1/users/:id
+router.patch('/:id', async (req, res) => {
+  try {
+    const userId = req.headers['x-user-id'] as string
+    const { id } = req.params;
+    const updated = await db.updateLoan(id, req.body, userId)
+    res.json(updated)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to update loan' })
+  }
+})
+
+export default router

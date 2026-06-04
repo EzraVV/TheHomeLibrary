@@ -9,4 +9,9 @@ export interface Loan {
   created_at: string
   updated_at: string
   archived_at: string | null
+  book_title?: string;
+  book_image?: string;
+  borrower_name?: string;
+  owner_name?: string;
 }
+

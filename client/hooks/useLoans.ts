@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import  { searchLoans, updateLoan }  from '../apis/loans'
+import  { searchLoans, updateLoan, createLoan }  from '../apis/loans'
 import { Loan } from '../../models/loan'
 
 export function useSearchLoans(query: string) {
@@ -23,6 +23,23 @@ export function useUpdateLoan() {
   },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['loans'] })
+    }
+  })
+}
+
+
+
+export function useAddLoan() {
+  const queryClient = useQueryClient()
+
+  return useMutation ({
+    mutationFn: async (payload: Loan) => {
+
+    return createLoan(payload) 
+  },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['loans'] })
+      queryClient.invalidateQueries({ queryKey: ['loan-search'] })
     }
   })
 }

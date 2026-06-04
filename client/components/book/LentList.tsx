@@ -3,10 +3,10 @@ import { useUserBooks } from '../../hooks/useUserBooks'
 import { Book } from '../../../models/book'
 import { BookMarked, Plus, BookOpen } from 'lucide-react'
 
-import { Loan, LoanBook } from '../../../models/loan'
+import { Loan } from '../../../models/loan'
 
 interface LentListProps {
-  loans: LoanBook[];
+  loans: Loan[];
   onUpdate:(id: string, fields: Partial<Loan>)=> void
 }
 
@@ -66,7 +66,7 @@ export function LentList({loans, onUpdate}: LentListProps) {
       ) : (
         /* Grid catalog */
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {loans.map((loan: LoanBook) => (
+          {loans.map((loan: Loan) => (
             <div key={loan.id} className="group rounded-sm border border-border/40 bg-background/30 p-2.5 transition-all hover:bg-background/60 hover:shadow-sm">
               <div className="aspect-[3/4] bg-background rounded-sm overflow-hidden border border-border/20 mb-2 shadow-sm">
                 {loan.book_image ? (
@@ -90,7 +90,7 @@ export function LentList({loans, onUpdate}: LentListProps) {
                 {loan.due_at}
               </p>
 
-              <div className={`inline-block text-[10px] font-bold border rounded-pill px-2 py-0.25 mt-1.5 select-none ${getStatusColor(b.status)}`}>
+              <div className={`inline-block text-[10px] font-bold border rounded-pill px-2 py-0.25 mt-1.5 select-none ${getStatusColor(loan.status)}`}>
                 {loan.status}
               </div>
             </div>
