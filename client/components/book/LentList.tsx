@@ -47,7 +47,7 @@ export function LentList({loans, onUpdate}: LentListProps) {
       <div className="flex items-center justify-between border-b border-border/40 pb-3 mb-4">
         <h2 className="font-heading text-xl font-bold text-secondary flex items-center gap-2">
           <BookMarked className="w-5.5 h-5.5 text-primary" />
-          Current loans
+          Your bookshelf
         </h2>
         <span className="text-xs font-semibold text-text-muted bg-background px-2.5 py-0.5 rounded-sm">
           {loans ? `${loans.length} listed` : '0 listed'}
@@ -60,7 +60,7 @@ export function LentList({loans, onUpdate}: LentListProps) {
           <BookOpen className="w-10 h-10 text-text-muted/30 mb-2" />
           <h3 className="text-sm font-bold text-secondary mb-0.5">No active loans</h3>
           <p className="text-xs text-text-muted mb-4 max-w-[200px]">
-            No books currently on loan
+            No books currently loaned out
           </p>
         </div>
       ) : (

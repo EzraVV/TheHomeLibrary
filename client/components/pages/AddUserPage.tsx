@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { createUser } from '../apis/users'
+import { createUser } from '../../apis/users'
 import { useNavigate, Link } from 'react-router-dom'
-import Navbar from '../components/layout/Navbar'
-import Footer from '../components/layout/Footer'
+import Navbar from '../../components/layout/Navbar'
+import Footer from '../../components/layout/Footer'
 import { UserPlus, Sparkles, Mail, Compass, Info, CheckCircle2, ArrowLeft } from 'lucide-react'
 
 export default function AddUserPage() {

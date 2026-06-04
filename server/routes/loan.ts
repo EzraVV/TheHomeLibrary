@@ -2,6 +2,10 @@ import express from 'express'
 import * as db from '../db/loan'
 
 const router = express.Router()
+router.use((req, res, next) => {
+  console.log(`ROUTER received: ${req.method} ${req.originalUrl}`)
+  next()
+})
 
 // GET /api/v1/loan
 router.get('/', async (req, res) => {
@@ -27,7 +31,7 @@ router.get('/search', async (req, res) => {
 })
 
 // POST /api/v1/loans
-router.post('/', async (req, res) => {
+router.post('/add', async (req, res) => {
   try {
     const newLoan = {
       ...req.body,
@@ -41,7 +45,7 @@ router.post('/', async (req, res) => {
   }
 })
 
-// PATCH /api/v1/users/:id
+// PATCH /api/v1/loans/:id
 router.patch('/:id', async (req, res) => {
   try {
     const userId = req.headers['x-user-id'] as string

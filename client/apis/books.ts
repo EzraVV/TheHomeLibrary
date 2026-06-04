@@ -46,13 +46,22 @@ export async function getBooksByOwner(ownerId: string) {
 }
 
 // EDIT book 
+
 export async function updateBook(book_id: string, updatedFields: Partial<Book>) {
-  //TODO: Replace hardcoded user id with one from Auth context
+  console.log('DEBUG: Final URL being requested:', `/api/v1/books/${book_id}/update`);
+  
+  if (!book_id || book_id === 'undefined') {
+    throw new Error("CRITICAL: Attempted to PATCH with an invalid book ID");
+  }
+
   const currentUserId = 'u_00001';
-  const response = await request.patch(`/api/v1/books/${book_id}/update`)
-  .set('x-user-id', currentUserId)
-  .send(updatedFields)
-  return response.body
+  
+  const response = await request
+    .patch(`/api/v1/books/${book_id}/update`) 
+    .set('x-user-id', currentUserId)
+    .send(updatedFields);
+  
+  return response.body;
 }
 
 // ADD book 

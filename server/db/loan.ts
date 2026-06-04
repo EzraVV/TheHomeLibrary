@@ -22,18 +22,23 @@ export async function getLastLoanId(): Promise<string | null> {
 }
 
 export async function searchLoans(query: string) {
-  return await connection('loan')
+  const q = query.trim()
+
+  let queryBuilder = connection('loan')
     .select('loan.*', 'book.title', 'book.image', 'borrower.user_name as borrower_name',
       'owner.user_name as owner_name' )
     .leftJoin('book', 'loan.book_id', 'book.book_id')
     .leftJoin('user as borrower', 'loan.borrower_id', 'borrower.user_id')
     .leftJoin('user as owner', 'loan.owner_id', 'owner.user_id')
-    .where(builder => {
-      builder.where('book.title', 'like', `%${query}%`)
-       .orWhere('borrower.user_name', 'like', `%${query}%`)
-       .orWhere('owner.user_name', 'like', `%${query}%`);
+    .where(activeOnly)
+      if (q.length > 0) {
+        queryBuilder = queryBuilder.andWhere(builder => {
+          builder.where('book.title', 'like', `%${q}%`)
+             .orWhere('borrower.user_name', 'like', `%${q}%`)
+             .orWhere('owner.user_name', 'like', `%${q}%`)
     })
-  .where(activeOnly)
+  }
+  return await queryBuilder
 }
 
 // services/dashboardService.ts

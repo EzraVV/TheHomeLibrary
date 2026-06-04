@@ -11,7 +11,7 @@ import { useUpdateLoan } from "../../hooks/useLoans"
 
 export const BookDashboard = () => {
   const [ searchQuery, setSearchQuery] = useState('')
-  const { data: allLoans, isLoading, error } = useSearchLoans(searchQuery)
+  const { data: allLoans, isLoading, error } = useSearchLoans(searchQuery, true)
 
   const queryClient = useQueryClient()
 

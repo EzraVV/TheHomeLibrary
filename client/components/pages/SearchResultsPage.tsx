@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useBorrowBookSearch } from '../../hooks/useBooks'
 import { SelectableBook } from '../../../models/book'
 import { normaliseBookPayload } from '../../../shared/utils/normaliseBookPayload'
+import { normaliseAuthorName } from '../../../shared/utils/formatters'
 
 function SafeBookCover({ src, alt }: { src?: string; alt: string }) {
   console.log("SafeBookCover received src:", src);
@@ -67,7 +68,7 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
             console.log("Local Data received in SearchResultsPage:", localMatches),
             <ul className="divide-y divide-border">
               {localMatches.map((book: SelectableBook) => (
-                <li key={book.id} className="flex gap-4 py-3 items-center justify-between">
+                <li key={book.id ?? book.work_id ?? `fallback-${book.title}`} className="flex gap-4 py-3 items-center justify-between">
                   <div className="flex gap-4 items-center">
                     <div className="w-12 h-16 bg-background border border-border flex-shrink-0 rounded-sm overflow-hidden">
                       <SafeBookCover 
@@ -79,7 +80,9 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
                     <a href={`/books/${book.id}`} className="font-bold text-sm text-secondary hover:underline">
                       {book.title ?? 'Untitled Book'}
                       </a>
-                      <p className="text-xs text-text-muted">{book.creator ?? 'Unknown Author'}</p>
+                      <p className="text-xs text-text-muted">
+                          {book.creator ? normaliseAuthorName(book.creator) : 'Unknown Author'}
+                        </p>
                     </div>
                   </div>
                   <span className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-emerald-50 text-emerald-700 border-emerald-200">

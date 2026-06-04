@@ -2,13 +2,13 @@ import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
 import  { searchLoans, updateLoan, createLoan }  from '../apis/loans'
 import { Loan } from '../../models/loan'
 
-export function useSearchLoans(query: string) {
+export function useSearchLoans(query: string, enabled: boolean = true) {
   const searchQuery = query.trim()
 
   return useQuery<Loan[]>({
     
     queryKey: ['loans', searchQuery],
-    enabled: searchQuery.length > 2, 
+    enabled: enabled, // pivot from auto search to explicit searc command by user
     queryFn: () => searchLoans(searchQuery),
     staleTime: 1000 * 60,
   });

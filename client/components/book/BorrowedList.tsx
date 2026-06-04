@@ -11,11 +11,11 @@ export function BorrowedList({loans, onUpdate}: BorrowedListProps) {
     <section className="rounded-md bg-surface p-6 shadow-card border border-border/40 text-left w-full h-full flex flex-col">
       <div className="flex items-center justify-between border-b border-border/40 pb-3 mb-4">
         <h2 className="font-heading text-xl font-bold text-secondary flex items-center gap-2">
-          Books you've borrowed
+          Your requests and loans
         </h2>
         {/*Add hook to display users books already on loan, iterate through, flag actions for each*/}
         <span className="text-xs font-semibold text-text-muted bg-background px-2.5 py-0.5 rounded-sm">
-          0 borrowed
+          0 borrowed, 0 requests
         </span>
       </div>
 

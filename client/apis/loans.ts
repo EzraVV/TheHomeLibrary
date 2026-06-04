@@ -1,10 +1,10 @@
 import request from 'superagent'
 import { Loan } from '../../models/loan'
 
-const baseUrl = '/api/v1/loan'
+const baseUrl = '/api/v1/loans'
 
 export async function searchLoans(query: string): Promise<Loan[]> {
-  const response = await request.get(`/api/v1/loan?search=${encodeURIComponent(query)}`)
+  const response = await request.get(`/api/v1/loans?search=${encodeURIComponent(query)}`)
 
   if(!response.ok) {
     throw new Error('Network response was not ok')

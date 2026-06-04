@@ -5,6 +5,15 @@ import { fetchEditionsForWorkBackend, fetchFromGoogleBooksBackend, fetchFromOpen
 
 const router = express.Router()
 
+router.use((req, res, next) => {
+  console.log(`--- [ROUTER DEBUG] ---`);
+  console.log(`Method: ${req.method}`);
+  console.log(`Path: ${req.path}`);
+  console.log(`Headers:`, req.headers);
+  console.log(`----------------------`);
+  next();
+});
+
 // GET /api/v1/book
 router.get('/', async (req, res) => {
   try {
@@ -141,23 +150,6 @@ router.get('/owner/:id', async (req, res) => {
   }
 })
 
-// GET /api/v1/books/:title
-router.get('/:title', async (req, res) => {
-  try {
-    const book = await db.getBookByTitle(req.params.title)
-
-    if (!book) {
-      return res.status(404).json({ error: 'Book not found' })
-    }
-
-    res.json(book)
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: 'Failed to fetch book' })
-  }
-})
-export default router
-
 
 //MUTATIONS AND ACCESS CONTROL
 
@@ -188,12 +180,16 @@ router.patch(`/:id/update`, async (req, res, next) => {
   try {
     const {id} = req.params
     //TODO sort out user_id from Auth
-    const user_id = 'x-user-id'
-    const requestorUserId = req.headers['x-user-id'] || req.body.owner_id || 'anonymous'
+    const user_id = 'u_00001'
+    const requestorUserId = req.headers['x-user-id'] || req.body.owner_id || 'anonymous';
 
     const book = await db.getBookById(id)
       if (!book) { return res.status(404).json({error: 'Book not found'})
     }
+
+    console.log(`[AUTH DEBUG] Book ID: ${id}`);
+    console.log(`[AUTH DEBUG] DB Owner ID: ${book.owner_id} (Type: ${typeof book.owner_id})`);
+    console.log(`[AUTH DEBUG] Requestor ID: ${requestorUserId} (Type: ${typeof requestorUserId})`);
 
     if (String(book.owner_id) !== String(requestorUserId)) {
       console.warn(`⚠️ Access Denied: User ${requestorUserId} attempted to modify Book ${id} owned by ${book.owner_id}`)
@@ -260,3 +256,20 @@ router.get('/search/metadata', async (req, res) => {
     res.status(500).json({ error: 'Proxy failed' });
   }
 });
+
+// GET /api/v1/books/:title
+router.get('/:title', async (req, res) => {
+  try {
+    const book = await db.getBookByTitle(req.params.title)
+
+    if (!book) {
+      return res.status(404).json({ error: 'Book not found' })
+    }
+
+    res.json(book)
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to fetch book' })
+  }
+})
+export default router

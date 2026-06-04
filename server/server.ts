@@ -10,7 +10,7 @@ server.use(express.json())
 // ADD YOUR API ROUTES HERE
 server.use('/api/v1/books', booksRoutes)
 server.use('/api/v1/users', users)
-server.use('api/v1/loans', loanRoutes)
+server.use('/api/v1/loans', loanRoutes)
 
 if (process.env.NODE_ENV === 'production') {
   server.use(express.static(Path.resolve('public')))
