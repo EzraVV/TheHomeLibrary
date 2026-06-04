@@ -12,18 +12,12 @@ export default function Footer() {
           >
             About
           </Link>
-          <a
-            href="#help"
-            className="hover:text-primary transition-colors font-medium"
-          >
-            Help
-          </a>
-          <a
-            href="#support"
+          <Link
+            to="/support"
             className="hover:text-primary transition-colors font-medium"
           >
             Support
-          </a>
+          </Link>
         </div>
 
         {/* Brand Copyright */}
@@ -33,8 +27,6 @@ export default function Footer() {
 
         {/* Extra Actions */}
         <div className="flex gap-4 opacity-80">
-          <span>Report Issue</span>
-          <span>•</span>
           <span>Terms</span>
         </div>
       </div>

@@ -13,6 +13,7 @@ import { EditBook } from './book/EditBook'
 import AppLayout from './layout/AppLayout'
 import BookDetail from './book/BookDetail'
 import AboutPage from './pages/AboutPage'
+import SupportPage from './pages/SupportPage'
 
 // Cozy placeholder page for My Books
 function MyBooksPlaceholder() {
@@ -81,6 +82,7 @@ export default function App() {
         <Route path="/books/:id/" element={<BookDetail />} />
         <Route path="/books/search" element={<SearchPage />} />
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/support" element={<SupportPage />} />
       </Route>
     </Routes>
   )
