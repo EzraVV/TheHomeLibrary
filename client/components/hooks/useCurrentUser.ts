@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getUserById } from '../apis/users'
+import { getUserById } from '../../apis/users'
 
 export function useCurrentUser() {
   const storedUser = localStorage.getItem('active_user_id')

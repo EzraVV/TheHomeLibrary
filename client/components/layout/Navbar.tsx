@@ -1,7 +1,15 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { BookOpen, User, BookMarked, Layers, Search, LogOut, LogIn } from 'lucide-react'
-import { useCurrentUser } from '../../hooks/useCurrentUser'
+import {
+  BookOpen,
+  User,
+  BookMarked,
+  Layers,
+  Search,
+  LogOut,
+  LogIn,
+} from 'lucide-react'
+import { useCurrentUser } from '../hooks/useCurrentUser'
 import { useQueryClient } from '@tanstack/react-query'
 
 export default function Navbar() {
@@ -36,12 +44,15 @@ export default function Navbar() {
       return
     }
 
-    if (location.pathname === '/search' && currentQueryString === trimmedInput) {
+    if (
+      location.pathname === '/search' &&
+      currentQueryString === trimmedInput
+    ) {
       return
     }
 
     // Single network window timer
-  const handler = setTimeout(() => {
+    const handler = setTimeout(() => {
       // Redirect to dedicated search page automatically
       navigate(`/search?query=${encodeURIComponent(trimmedInput)}`)
     }, 600)
@@ -75,9 +86,11 @@ export default function Navbar() {
   return (
     <nav className="border-b border-border bg-surface sticky top-0 z-50 shadow-sm px-4 py-3 md:px-6">
       <div className="max-w-app mx-auto flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        
         {/* Logo and Brand */}
-        <Link to="/" className="flex items-center gap-2 text-primary hover:opacity-90">
+        <Link
+          to="/"
+          className="flex items-center gap-2 text-primary hover:opacity-90"
+        >
           <BookOpen className="w-6 h-6 stroke-[2.5]" />
           <span className="font-heading text-xl font-bold tracking-tight text-secondary">
             The Home Library
@@ -116,8 +129,8 @@ export default function Navbar() {
               className="w-full min-h-11 rounded-sm border border-border bg-background/50 pl-9 pr-3 py-2 text-sm focus:bg-surface focus:outline focus:outline-2 focus:outline-primary transition-all"
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted opacity-60" />
-          </div>          
-          
+          </div>
+
           {/* Action button */}
           <button
             onClick={handleAuthAction}

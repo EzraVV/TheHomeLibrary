@@ -1,4 +1,4 @@
-import { useCurrentUser } from '../../hooks/useCurrentUser'
+import { useCurrentUser } from '../hooks/useCurrentUser'
 import { Sparkles, FileText, Heart } from 'lucide-react'
 
 export default function UserAbout() {
@@ -18,7 +18,6 @@ export default function UserAbout() {
 
   return (
     <section className="rounded-md bg-surface p-6 shadow-card border border-border/40 text-left space-y-6">
-      
       {/* Bio section */}
       <div>
         <h2 className="font-heading text-xl font-bold text-secondary mb-3 flex items-center gap-2">
@@ -26,7 +25,8 @@ export default function UserAbout() {
           About Me
         </h2>
         <p className="text-text-muted text-base leading-relaxed leading-6 whitespace-pre-line">
-          {user.about || 'This member hasn\'t written a bio yet. Keep checking back for updates!'}
+          {user.about ||
+            "This member hasn't written a bio yet. Keep checking back for updates!"}
         </p>
       </div>
 
@@ -55,7 +55,6 @@ export default function UserAbout() {
           </div>
         </div>
       )}
-
     </section>
   )
 }

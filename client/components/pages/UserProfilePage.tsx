@@ -1,9 +1,9 @@
-import Navbar from '../components/layout/Navbar'
-import Footer from '../components/layout/Footer'
-import UserHeader from '../components/user/UserHeader'
-import UserAbout from '../components/user/UserAbout'
-import UserBooksOwned from '../components/user/UserBooksOwned'
-import UserBooksBorrowed from '../components/user/UserBooksBorrowed'
+import Navbar from '../layout/Navbar'
+import Footer from '../layout/Footer'
+import UserHeader from '../user/UserHeader'
+import UserAbout from '../user/UserAbout'
+import UserBooksOwned from '../user/UserBooksOwned'
+import UserBooksBorrowed from '../user/UserBooksBorrowed'
 import { useCurrentUser } from '../hooks/useCurrentUser'
 import { useNavigate } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
@@ -32,7 +32,7 @@ export default function UserProfilePage() {
   if (!user) {
     return (
       <div className="min-h-screen bg-background text-text-primary font-body flex flex-col">
-        <Navbar />
+        {/* <Navbar /> */}
         <main className="flex-grow max-w-app w-full mx-auto px-4 py-12 text-center flex flex-col items-center justify-center gap-4">
           <div className="p-8 bg-surface rounded-md shadow-card border border-border/40 max-w-md w-full py-12">
             <LogIn className="w-12 h-12 text-text-muted/40 mx-auto mb-3" />
@@ -51,7 +51,7 @@ export default function UserProfilePage() {
             </button>
           </div>
         </main>
-        <Footer />
+        {/* <Footer /> */}
       </div>
     )
   }
@@ -74,7 +74,7 @@ export default function UserProfilePage() {
         </div>
       </main>
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useCurrentUser } from '../../hooks/useCurrentUser'
+import { useCurrentUser } from '../hooks/useCurrentUser'
 import { Sparkles } from 'lucide-react'
 
 export default function UserHeader() {

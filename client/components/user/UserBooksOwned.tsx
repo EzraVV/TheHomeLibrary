@@ -1,11 +1,13 @@
-import { useCurrentUser } from '../../hooks/useCurrentUser'
-import { useUserBooks } from '../../hooks/useUserBooks'
+import { useCurrentUser } from '../hooks/useCurrentUser'
+import { useUserBooks } from '../hooks/useUserBooks'
 import { Book } from '../../../models/book'
 import { BookMarked, Plus, BookOpen } from 'lucide-react'
 
 export default function UserBooksOwned() {
   const { data: user, isLoading: isUserLoading } = useCurrentUser()
-  const { data: books, isLoading: isBooksLoading } = useUserBooks(user?.user_id || '')
+  const { data: books, isLoading: isBooksLoading } = useUserBooks(
+    user?.user_id || '',
+  )
 
   const isLoading = isUserLoading || isBooksLoading
 
@@ -15,7 +17,10 @@ export default function UserBooksOwned() {
         <div className="h-6 bg-background/80 rounded-sm w-1/3 mb-6"></div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="aspect-[3/4] bg-background/80 rounded-sm"></div>
+            <div
+              key={i}
+              className="aspect-[3/4] bg-background/80 rounded-sm"
+            ></div>
           ))}
         </div>
       </section>
@@ -48,10 +53,12 @@ export default function UserBooksOwned() {
       </div>
 
       {/* Empty State */}
-      {(!books || books.length === 0) ? (
+      {!books || books.length === 0 ? (
         <div className="flex-grow flex flex-col items-center justify-center text-center py-10 border border-dashed border-border/60 rounded-sm bg-background/30 px-4">
           <BookOpen className="w-10 h-10 text-text-muted/30 mb-2" />
-          <h3 className="text-sm font-bold text-secondary mb-0.5">No books uploaded yet</h3>
+          <h3 className="text-sm font-bold text-secondary mb-0.5">
+            No books uploaded yet
+          </h3>
           <p className="text-xs text-text-muted mb-4 max-w-[200px]">
             Share your books with community members to unlock your home library!
           </p>
@@ -64,11 +71,14 @@ export default function UserBooksOwned() {
         /* Grid catalog */
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {books.map((b: Book) => (
-            <div key={b.id} className="group rounded-sm border border-border/40 bg-background/30 p-2.5 transition-all hover:bg-background/60 hover:shadow-sm">
+            <div
+              key={b.id}
+              className="group rounded-sm border border-border/40 bg-background/30 p-2.5 transition-all hover:bg-background/60 hover:shadow-sm"
+            >
               <div className="aspect-[3/4] bg-background rounded-sm overflow-hidden border border-border/20 mb-2 shadow-sm">
-                {b.image_urls ? (
+                {b.image ? (
                   <img
-                    src={b.image_urls}
+                    src={b.image}
                     alt={b.title}
                     className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                     loading="lazy"
@@ -80,10 +90,15 @@ export default function UserBooksOwned() {
                   </div>
                 )}
               </div>
-              <h4 className="text-xs font-bold text-text-primary truncate" title={b.title}>
+              <h4
+                className="text-xs font-bold text-text-primary truncate"
+                title={b.title}
+              >
                 {b.title}
               </h4>
-              <div className={`inline-block text-[10px] font-bold border rounded-pill px-2 py-0.25 mt-1.5 select-none ${getStatusColor(b.status)}`}>
+              <div
+                className={`inline-block text-[10px] font-bold border rounded-pill px-2 py-0.25 mt-1.5 select-none ${getStatusColor(b.status)}`}
+              >
                 {b.status}
               </div>
             </div>

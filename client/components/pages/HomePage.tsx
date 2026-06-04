@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { getAllBooks } from '../apis/books'
-import { Book } from '../../models/book'
+import { getAllBooks } from '../../apis/books'
+import { Book } from '../../../models/book'
 //import Navbar from '../components/layout/Navbar'
 //import Footer from '../components/layout/Footer'
-import BookCard from '../components/BookCard'
+import BookCard from '../BookCard'
 import { Library, Info, Sparkles } from 'lucide-react'
 import { useCurrentUser } from '../hooks/useCurrentUser'
 
@@ -146,7 +146,7 @@ export default function HomePage() {
         </div>
       </main>
 
-    {/*  <Footer /> */}
+      {/*  <Footer /> */}
     </div>
   )
 }
