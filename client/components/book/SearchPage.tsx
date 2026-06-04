@@ -13,12 +13,10 @@ export default function SearchPage() {
   const userLat = parseFloat(searchParams.get('lat') || '0');
   const userLon = parseFloat(searchParams.get('lon') || '0');
 
-
   const [postcode, setPostcode] = useState('')
   const [radius, setRadius] = useState(5); //Default 5km; TODO - no distance limit?
 
   //const {userProfile } = useAuth() 
-
 
   const { data, isLoading } = useBorrowBookSearch(query);
 
