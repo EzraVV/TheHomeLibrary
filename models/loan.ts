@@ -8,4 +8,5 @@ export interface Loan {
   returned_at: string
   created_at: string
   updated_at: string
+  archived_at: string | null
 }
