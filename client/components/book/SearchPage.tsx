@@ -1,4 +1,4 @@
-import SearchResultsPage from "../../pages/SearchResultsPage";
+import SearchResultsPage from "../pages/SearchResultsPage";
 import { useNavigate, useSearchParams } from "react-router";
 import { useState } from "react";
 import { useBorrowBookSearch } from "../../hooks/useBooks";
@@ -38,6 +38,7 @@ export default function SearchPage() {
   //This needs to connect book owner postcode via book, then compare with borrower postcode
   const processedLocal = (data?.localData || []).map(book => ({
     ...book,
+    //Calculate book lat and long by owner look up
     distance: userLat && userLon ? getDistanceKM(userLat, userLon, book.lat, book.lon) : null
   }));
 

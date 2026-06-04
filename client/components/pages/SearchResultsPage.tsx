@@ -1,8 +1,8 @@
 import { useSearchParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { useBorrowBookSearch } from '../hooks/useBooks'
-import { SelectableBook } from '../../models/book'
-import { normaliseBookPayload } from '../../shared/utils/normaliseBookPayload'
+import { useBorrowBookSearch } from '../../hooks/useBooks'
+import { SelectableBook } from '../../../models/book'
+import { normaliseBookPayload } from '../../../shared/utils/normaliseBookPayload'
 
 function SafeBookCover({ src, alt }: { src?: string; alt: string }) {
   console.log("SafeBookCover received src:", src);

@@ -4,7 +4,7 @@ import UserHeader from '../components/user/UserHeader'
 import UserAbout from '../components/user/UserAbout'
 import UserBooksOwned from '../components/user/UserBooksOwned'
 import UserBooksBorrowed from '../components/user/UserBooksBorrowed'
-import { useCurrentUser } from '../hooks/useCurrentUser'
+import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { useNavigate } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
 

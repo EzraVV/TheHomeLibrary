@@ -7,6 +7,7 @@ export interface Book {
   work_id: string //All LoTR for example; hash for 'orphan' books where ISBN not pulled from dbs
   isbn?: string // Opt, but preferred. Not all books have. String cuz 0 starts
   format: string //Eg. hardcover, graphic novel
+  description?: string
   condition?: string
   search_index?: string //Contat SQLite search vector = title+author+tags
   lending_terms?: string //User defined custom rules
