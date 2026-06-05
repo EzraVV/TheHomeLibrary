@@ -1,25 +1,22 @@
 import request from 'superagent'
-import { Book } from '../../models/book' //Aspirations
+import { Book, SelectableBook } from '../../models/book'
 import { normaliseBookPayload } from '../../shared/utils/normaliseBookPayload';
 import { isValidISBN } from '../../shared/utils/isbnCheck'
 
 
 export interface SearchQueryResponse {
   source: 'local' | 'openlibrary' | 'google' | 'mixed' | 'none' | 'worldcat';
-  data?: any[];          // Kept for borrow search compatibility
-  localData?: any[];     // New structure for catalog search
-  externalData?: any[];  // New structure for catalog search
+  data?: unknown[]
+  localData?: unknown[]
+  externalData?: unknown[]
   externalSource?: 'openlibrary' | 'google' | 'none' | 'mixed';
   redirectUrl?: string;
 }
 
-export interface IngestionPayload {
-  type: 'isbn' | 'openlibrary' | 'google';
-  identifier: string; // This could be an ISBN-13 string, an OL Work Key ("OL27479W"), or a Google Vol ID
-}
-
 const baseUrl = '/api/v1/books'
-console.log("🔥 API file loaded!");
+function getActiveUserId() {
+  return localStorage.getItem('active_user_id') || 'u_00001'
+}
 
 // GET all books
 export async function getAllBooks() {
@@ -48,44 +45,30 @@ export async function getBooksByOwner(ownerId: string) {
 // EDIT book 
 
 export async function updateBook(book_id: string, updatedFields: Partial<Book>) {
-  console.log('DEBUG: Final URL being requested:', `/api/v1/books/${book_id}/update`);
-  
   if (!book_id || book_id === 'undefined') {
     throw new Error("CRITICAL: Attempted to PATCH with an invalid book ID");
   }
 
-  const currentUserId = 'u_00001';
-  
   const response = await request
     .patch(`/api/v1/books/${book_id}/update`) 
-    .set('x-user-id', currentUserId)
+    .set('x-user-id', getActiveUserId())
     .send(updatedFields);
   
   return response.body;
 }
 
 // ADD book 
-export async function createLocalBook(newBook: Book) {
-  const response = await request.post('/api/v1/books').send(newBook)
-  return response.body
-}
-
-// ADD book (exotic external book)
-export async function ingestExternalBook(payload: IngestionPayload) {
-  const token = localStorage.getItem('token'); 
+export async function createLocalBook(newBook: Partial<Book>) {
   const response = await request
-  .post(`${baseUrl}/ingest`)
-  .set('Authorization', `Bearer ${token}`)
-  .send(payload)
-
+    .post(`${baseUrl}/add`)
+    .set('x-user-id', getActiveUserId())
+    .send(newBook)
   return response.body
 }
 
 // SEARCH books,local and external
 export async function executeCatalogSearchCascade(query: string): Promise<SearchQueryResponse> {
   try {
-    console.log(`Sending single aggregated lookup request for: "${query}"`);
-    
     const response = await request
       .get('/api/v1/books/search/registries')
       .query({ query });
@@ -108,10 +91,10 @@ export async function executeCatalogSearchCascade(query: string): Promise<Search
 
 // SEARCH Peer Borrowing Cascade
 export async function executeBorrowSearchCascade(rawQuery: string): Promise<SearchQueryResponse> {
-  let query = rawQuery.trim()
+  const query = rawQuery.trim()
 
-  let localDataResult: any[] = []
-  let externalDataResult: any[] = []
+  let localDataResult: unknown[] = []
+  let externalDataResult: unknown[] = []
   let sourceResult: 'local' | 'openlibrary' | 'google' | 'mixed' | 'none' | 'worldcat' = 'none'
   let redirectUrlResult: string | undefined = undefined
 
@@ -130,7 +113,6 @@ export async function executeBorrowSearchCascade(rawQuery: string): Promise<Sear
 
   // Aggregate External Repositories via Shared Gate
   try {
-    console.log(`Running background registry lookup to aggregate listings for: "${query}"`);
     const registryResult = await executeCatalogSearchCascade(query);
   
     if (registryResult && registryResult.externalData && registryResult.externalData.length > 0) {
@@ -139,8 +121,9 @@ export async function executeBorrowSearchCascade(rawQuery: string): Promise<Sear
     
     // Combine hidden db records safely
     if (registryResult && registryResult.localData && registryResult.localData.length > 0) {
-      registryResult.localData.forEach((item: any) => {
-        if (!localDataResult.some(existing => (existing.id || existing._id) === (item.id || item._id))) {
+      registryResult.localData.forEach((item) => {
+        const candidate = item as SelectableBook
+        if (!localDataResult.some(existing => (existing as SelectableBook).book_id === candidate.book_id)) {
           localDataResult.push(item);
         }
       });
@@ -158,7 +141,7 @@ export async function executeBorrowSearchCascade(rawQuery: string): Promise<Sear
     // Try to extract an ISBN from the top match if none yet exists
     const rawTopMatch = externalDataResult?.[0];
     if (!targetIsbn && rawTopMatch) {
-      const topMatch = normaliseBookPayload(rawTopMatch, registryResult.source as any);
+      const topMatch = normaliseBookPayload(rawTopMatch, registryResult.source);
       if (topMatch && topMatch.isbn) {
         targetIsbn = topMatch.isbn;
       }
@@ -183,13 +166,6 @@ export async function executeBorrowSearchCascade(rawQuery: string): Promise<Sear
   if (localDataResult && localDataResult.length > 0) {
     redirectUrlResult = undefined;
   }
-
-  console.log(" CASCADE FINAL RETURN SNAPSHOT:", {
-    source: sourceResult,
-    localCount: localDataResult?.length,
-    externalCount: externalDataResult?.length,
-    hasRedirect: !!redirectUrlResult
-  });
 
   return { 
     source: sourceResult, 

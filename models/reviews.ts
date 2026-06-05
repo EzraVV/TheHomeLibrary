@@ -11,7 +11,7 @@ export interface BookReview {
 
 export interface UserReview {
   id: string
-  lender_id: string
+  owner_id: string
   borrower_id: string
   loan_id: string //What kicked this all off?
   rating: number
@@ -20,4 +20,3 @@ export interface UserReview {
   updated: string
 
 }
-

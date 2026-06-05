@@ -6,7 +6,7 @@ export async function fetchFromOpenLibrary(query: string): Promise<Book[]> {
   try {
     // Express server
     const response = await request
-      .get('/api/v1/book/search/registries')
+      .get('/api/v1/books/search/registries')
       .query({ query, provider: 'openlibrary' }); 
     
     return response.body.externalData || [];
@@ -22,7 +22,7 @@ export async function fetchFromGoogleBooks(query: string): Promise<Book[]> {
   try {
     // Talk to your own Express server route
     const response = await request
-      .get('/api/v1/book/search/registries')
+      .get('/api/v1/books/search/registries')
       .query({ query, provider: 'google' });
     
     return response.body.externalData || [];
@@ -37,7 +37,7 @@ export async function fetchEditionsForWork(work_id: string): Promise<BookEdition
   try {
     const cleanId = work_id.replace('/works/', '');
     
-    const response = await request.get(`/api/v1/book/work/${cleanId}/editions`);
+    const response = await request.get(`/api/v1/books/work/${cleanId}/editions`);
     
     return response.body || [];
   } catch (err) {

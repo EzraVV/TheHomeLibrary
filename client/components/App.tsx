@@ -1,76 +1,31 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
-import HomePage from './pages/HomePage'
-import UserProfilePage from './pages/UserProfilePage'
-//import Navbar from './layout/Navbar'
-//import Footer from './layout/Footer'
-import { AddBook } from './book/AddBook'
-import SearchPage from './book/SearchPage'
-import SearchResultsPage from './pages/SearchResultsPage'
-import { BookDashboard } from './book/BookDashboard'
-import { BookOpen, Library } from 'lucide-react'
-import AddUserPage from './pages/AddUserPage'
-import { EditBook } from './book/EditBook'
-import AppLayout from './layout/AppLayout'
-import BookDetail from './book/BookDetail'
-import AboutPage from './pages/AboutPage'
-import SupportPage from './pages/SupportPage'
+import { lazy, Suspense } from 'react'
+import { Routes, Route } from 'react-router-dom'
 
-// Cozy placeholder page for My Books
-function MyBooksPlaceholder() {
-  return (
-    <div className="min-h-screen bg-background text-text-primary font-body flex flex-col">
-      <main className="flex-grow max-w-app w-full mx-auto px-4 py-12 text-center flex flex-col items-center justify-center gap-4">
-        <div className="p-4 bg-surface rounded-md shadow-card border border-border/40 max-w-md w-full py-12">
-          <BookOpen className="w-12 h-12 text-text-muted/40 mx-auto mb-3" />
-          <h2 className="font-heading text-2xl font-bold text-secondary mb-1">
-            No books uploaded yet
-          </h2>
-          <p className="text-text-muted text-sm mb-6 max-w-xs mx-auto">
-            You haven&apos;t listed any books in your personal library yet.
-            Share a book with your community!
-          </p>
-          <Link
-            to="/books"
-            className="min-h-11 rounded-sm bg-primary px-6 py-2 font-semibold text-white transition duration-200 ease-smooth hover:opacity-90"
-          >
-            Add to My Library
-          </Link>
-        </div>
-      </main>
-    </div>
-  )
-}
-
-// Cozy placeholder page for Borrowed Books
-function BorrowedPlaceholder() {
-  return (
-    <div className="min-h-screen bg-background text-text-primary font-body flex flex-col">
-      <main className="flex-grow max-w-app w-full mx-auto px-4 py-12 text-center flex flex-col items-center justify-center gap-4">
-        <div className="p-4 bg-surface rounded-md shadow-card border border-border/40 max-w-md w-full py-12">
-          <Library className="w-12 h-12 text-text-muted/40 mx-auto mb-3" />
-          <h2 className="font-heading text-2xl font-bold text-secondary mb-1">
-            You haven’t borrowed any books yet
-          </h2>
-          <p className="text-text-muted text-sm mb-6 max-w-xs mx-auto">
-            Explore our community catalogue to discover, request, and borrow
-            books from other members.
-          </p>
-          <Link
-            to="/"
-            className="inline-flex min-h-11 items-center justify-center rounded-sm bg-primary px-6 py-2 font-semibold text-white transition duration-200 ease-smooth hover:opacity-90"
-          >
-            Browse Catalog
-          </Link>
-        </div>
-      </main>
-    </div>
-  )
-}
+const HomePage = lazy(() => import('./pages/HomePage'))
+const UserProfilePage = lazy(() => import('./pages/UserProfilePage'))
+const SearchPage = lazy(() => import('./book/SearchPage'))
+const AddUserPage = lazy(() => import('./pages/AddUserPage'))
+const AppLayout = lazy(() => import('./layout/AppLayout'))
+const BookDetail = lazy(() => import('./book/BookDetail'))
+const AboutPage = lazy(() => import('./pages/AboutPage'))
+const SupportPage = lazy(() => import('./pages/SupportPage'))
+const AddBook = lazy(() =>
+  import('./book/AddBook').then((module) => ({ default: module.AddBook })),
+)
+const BookDashboard = lazy(() =>
+  import('./book/BookDashboard').then((module) => ({
+    default: module.BookDashboard,
+  })),
+)
+const EditBook = lazy(() =>
+  import('./book/EditBook').then((module) => ({ default: module.EditBook })),
+)
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<AppLayout />}>
+    <Suspense fallback={<div className="p-6 text-center">Loading...</div>}>
+      <Routes>
+        <Route path="/" element={<AppLayout />}>
         <Route index element={<HomePage />} />
         <Route path="/profile" element={<UserProfilePage />} />
         {/* <Route path="/my-books" element={<MyBooksPlaceholder />} />
@@ -83,7 +38,8 @@ export default function App() {
         <Route path="/books/search" element={<SearchPage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/support" element={<SupportPage />} />
-      </Route>
-    </Routes>
+        </Route>
+      </Routes>
+    </Suspense>
   )
 }

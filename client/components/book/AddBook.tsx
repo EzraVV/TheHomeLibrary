@@ -1,10 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useAddBookSearch, useAddBook, useBookEditions } from '../../hooks/useBooks'
 import BookForm from './BookForm' 
-import { Book, BookFormData, SelectableBook,BookEditionMinimal } from '../../../models/book'
+import { Book, BookFormData, SelectableBook } from '../../../models/book'
 import { generateWorkId } from '../../../server/utils/generateWorkId'
 import { normaliseBookPayload } from '../../../shared/utils/normaliseBookPayload'
-import { IngestionPayload } from '../../apis/books'
 
 export function AddBook() {
   const [inputValue, setInputValue] = useState('')
@@ -17,7 +16,7 @@ export function AddBook() {
 
   //Join query and mutation hooks
   const { data: searchResult, isLoading: isSearching } = useAddBookSearch(searchQuery)
-  const { data: harvestedIsbns, isLoading: isHarvesting } = useBookEditions(activeWorkId);
+  const { data: harvestedIsbns } = useBookEditions(activeWorkId);
   const bookMutation = useAddBook()
   const isSaving = bookMutation.isPending
   
@@ -71,11 +70,11 @@ export function AddBook() {
   }, [harvestedIsbns, activeWorkId, bookWithPendingIsbnChoice]);
 
   const localMatches = Array.isArray(searchResult?.localData)
-    ? searchResult.localData.map((b: any) => normaliseBookPayload(b, 'local'))
+    ? searchResult.localData.map((b) => normaliseBookPayload(b, 'local'))
     : [];
 
   const externalMatches = Array.isArray(searchResult?.externalData)
-    ? searchResult.externalData.map((b: any) => 
+    ? searchResult.externalData.map((b) =>
         normaliseBookPayload(b, searchResult?.externalSource || 'none')
       )
     : [];
@@ -107,7 +106,6 @@ export function AddBook() {
 
     const completeBookPayload: Partial<Book> = {
       ...formData,
-      owner_id: 'u_00001', //Pull from auth
       work_id: finalWorkId,
       condition: formData.condition|| 'Good',
       search_index: `${formData.title.toLowerCase()} ${formData.creator.toLowerCase()}`,
@@ -117,7 +115,7 @@ export function AddBook() {
     }
 
     bookMutation.mutate(
-      {mode: 'manual', payload: completeBookPayload },
+      completeBookPayload,
     {
       onSuccess: () => {
         alert('Book listed in library manually')
@@ -128,51 +126,9 @@ export function AddBook() {
     })
 }
 
-  const handleIngestRecord = (payload: IngestionPayload) => {
-    
-    bookMutation.mutate(
-      {mode: 'ingest', payload: payload },
-    {
-      onSuccess: () => {
-        alert('Book ingested from external registry')
-        setSelectedBook(null)
-        setSearchQuery('')
-      },
-      onError: (err: unknown) => {
-        const isHttpError = (err:unknown): err is { status: number } => {
-          return typeof err == 'object' && err !== null && 'status' in err;
-        }
-        if (isHttpError(err) && err.status === 401) {
-            alert('Session expired. Please log in again to ingest books.');
-          } else {
-            alert('Failed to ingest book. Check your connection or try manual entry.');
-          }
-        }
-    })
-}
-
 const formSubmitHandler = (formData: BookFormData) => {
-  const source = selectedBook?.source 
-  const cleanIsbn = formData.isbn ? formData.isbn.trim() : ''
-  const isMissingIsbn = !cleanIsbn || cleanIsbn === 'No ISBN determined' || cleanIsbn === 'No ISBN'
-  
-  if ((source ==='openlibrary' || source === 'google') && !formData.edition_name) {
-    if (!isMissingIsbn) {
-        return handleIngestRecord({ type: 'isbn', identifier: cleanIsbn })
-      } else if (selectedBook?.work_id) {
-        return handleIngestRecord({ type: 'openlibrary', identifier: selectedBook.work_id })
-      } else if (source === 'google' && selectedBook?.googleVolumeId) {
-        return handleIngestRecord({ type: 'google', identifier: selectedBook.googleVolumeId })
-      }
-    }
-    return handleCreateRecord(formData)
+  return handleCreateRecord(formData)
   }
-
-console.log("=== API CASCADE STREAM DEBUG ===", {
-  rawSearchResult: searchResult,
-  computedLookupMatches: lookupMatches,
-  currentlySelectedBook: selectedBook
-});
 
 //Some badly formatted content, sorry!
 return (
@@ -221,7 +177,7 @@ return (
                     <span style={{ fontWeight: 'bold' }}>{book.title}</span>
                     
                     {/* Badge appears if the aggregated book lives in the local catalogue */}
-                    {book.availableIsbns && book.availableIsbns.length > 0 && (book.source === 'local' || book.id) && (
+                    {book.availableIsbns && book.availableIsbns.length > 0 && (book.source === 'local' || book.book_id) && (
                       <span style={{ 
                         fontSize: '9px', 
                         textTransform: 'uppercase', 

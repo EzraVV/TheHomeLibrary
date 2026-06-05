@@ -87,13 +87,13 @@ describe ('Prepare for search index', () => {
 
 describe('Formatter edge cases', () => {
   it('should handle falsy values elegantly', () => {
-    // @ts-ignore
+    // @ts-expect-error - exercising invalid runtime input
     expect(flattenText(null)).toBe('')
-    // @ts-ignore
+    // @ts-expect-error - exercising invalid runtime input
     expect(cleanBookTitle(null)).toBe('')
-    // @ts-ignore
+    // @ts-expect-error - exercising invalid runtime input
     expect(normaliseAuthorName(null)).toBe('')
-    // @ts-ignore
+    // @ts-expect-error - exercising invalid runtime input
     expect(generateSortTitle(null)).toBe('')
   })
 

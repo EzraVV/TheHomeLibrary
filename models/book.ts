@@ -1,5 +1,5 @@
 export interface Book {
-  id: string
+  book_id: string
   owner_id: string
   title: string
   creator: string //Can include multiple names sep by comma, e.g. Divine comedy translated by Longfellow
@@ -17,7 +17,7 @@ export interface Book {
   updated_at: string
 }
 
-export type BookFormData = Omit<Book, 'id' | 'owner_id' | 'search_index' | 'created_at' | 'updated_at'>;
+export type BookFormData = Omit<Book, 'book_id' | 'owner_id' | 'search_index' | 'created_at' | 'updated_at'>;
 
 export interface BookFormProps {
   initialValues?: Partial<Book> | null
@@ -36,7 +36,7 @@ export type Status = 'Available' | 'On loan' | 'In transit' | 'Reserved';
 
 export 
 type SelectableBook = Partial<Book> & {
-  source?: 'local' | 'openlibrary' | 'google' | 'none' | 'mixed'
+  source?: 'local' | 'openlibrary' | 'google' | 'worldcat' | 'none' | 'mixed'
   isLocal?: boolean,
   googleVolumeId?:string
   availableIsbns?: string[]
@@ -44,7 +44,7 @@ type SelectableBook = Partial<Book> & {
 }
 
 export interface BookLoan {
-  id: string
+  book_id: string
   owner_id: string
   title: string
   creator: string 

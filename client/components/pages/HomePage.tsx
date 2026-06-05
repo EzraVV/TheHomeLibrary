@@ -133,12 +133,12 @@ export default function HomePage() {
             availableBooks &&
             availableBooks.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {availableBooks.map((book: any, i: number) => (
+                {availableBooks.map((book) => (
                   <BookCard
-                    key={book.id || book.isbn || `catalogue-${i}`}
+                    key={book.book_id}
                     book={book}
                     onBorrow={handleBorrow}
-                    isLoading={borrowingId === book.id}
+                    isLoading={borrowingId === book.book_id}
                   />
                 ))}
               </div>

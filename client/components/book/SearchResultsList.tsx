@@ -16,12 +16,14 @@ export const SearchResultsList = ({
   return (
     <ul className="divide-y border">
       {results.map((book) => (
-        <li 
-          key={book.work_id || book.id} // Ensure a fallback key exists
-          className="p-2 cursor-pointer hover:bg-gray-100"
-          onClick={() => onSelect?.(book)}
-        >
-          {book.title} - {book.creator}
+        <li key={book.work_id || book.book_id}>
+          <button
+            type="button"
+            className="p-2 cursor-pointer hover:bg-gray-100 w-full text-left"
+            onClick={() => onSelect?.(book)}
+          >
+            {book.title} - {book.creator}
+          </button>
         </li>
       ))}
     </ul>

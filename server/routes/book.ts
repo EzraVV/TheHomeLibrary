@@ -1,20 +1,11 @@
 import express from 'express'
 import * as db from '../db/book'
-import { Book, SelectableBook } from '../../models/book'
+import { Book } from '../../models/book'
 import { fetchEditionsForWorkBackend, fetchFromGoogleBooksBackend, fetchFromOpenLibraryBackend, queryWorldCatBackend } from '../services/externalApis'
 
 const router = express.Router()
 
-router.use((req, res, next) => {
-  console.log(`--- [ROUTER DEBUG] ---`);
-  console.log(`Method: ${req.method}`);
-  console.log(`Path: ${req.path}`);
-  console.log(`Headers:`, req.headers);
-  console.log(`----------------------`);
-  next();
-});
-
-// GET /api/v1/book
+// GET /api/v1/books
 router.get('/', async (req, res) => {
   try {
     const books = await db.getAllBooks()
@@ -40,32 +31,30 @@ router.get('/search', async (req, res) => {
 //Cataloguing search - cascade to OpenLibrary, Google Books
 //Get /api/v1/books/search/registries?query=foo
 router.get(`/search/registries`, async (req, res, next) => {
-  console.log("🔥 HIT: Registry Cascade Search");
   try {
     const query = (req.query.query || req.query.q || '') as string
-    let localMatches: any = []
+    let localMatches: Book[] = []
     try {
       localMatches = await db.searchBook(query) || []
-    } catch (dbErr) {
-      console.error("Local database search failed:", dbErr)
+    } catch {
+      localMatches = []
     }
 
-    console.log(`Cascading registry search for: ${query}`)
     let openLibraryResults = []
     let googleResults = []
 
     // Safe OpenLibrary Fetch
     try {
       openLibraryResults = await fetchFromOpenLibraryBackend(query) || []
-    } catch (olErr: any) {
-      console.warn("⚠️ OpenLibrary backend fetch skipped or failed:", olErr.message)
+    } catch {
+      openLibraryResults = []
     }
 
     // Safe Google Books Fetch (Damn 429 Quota Limits)
     try {
       googleResults = await fetchFromGoogleBooksBackend(query) || []
-    } catch (googleErr) {
-      console.warn("⚠️ Google Books backend rate-limited or failed (429/Resource Exhausted). Falling back gracefully.")
+    } catch {
+      googleResults = []
     }
 
     // Combine registries that survived the network request
@@ -112,8 +101,6 @@ router.get('/work/:work_id/editions', async (req, res, next) => {
 router.get('/search/network', async (req, res, next) => {
   try {
     const query = (req.query.query || '') as string
-    console.log(`Querying WorldCat shared network collections for: ${query}`)
-    
     const networkMatches = await queryWorldCatBackend(query)
     
       return res.json(networkMatches) 
@@ -122,7 +109,7 @@ router.get('/search/network', async (req, res, next) => {
   }
 })
 
-// GET /api/v1/book/:id
+// GET /api/v1/books/item/:id
 router.get('/item/:id', async (req, res) => {
   try {
     const book = await db.getBookById(req.params.id)
@@ -154,12 +141,12 @@ router.get('/owner/:id', async (req, res) => {
 //MUTATIONS AND ACCESS CONTROL
 
 //Shared between update and add: Sanitise book data
-type NewBookInput = Omit<Book, 'id' | 'book_id'>
+type NewBookInput = Omit<Book, 'book_id'>
 
-function sanitiseBookPayload(body: any): NewBookInput {
+function sanitiseBookPayload(body: Record<string, unknown>): Partial<NewBookInput> {
   const forbidden = ['owner_id', 'id', 'book_id', 'created_at'];
     
-  const sanitised: any = {};
+  const sanitised: Record<string, unknown> = {}
 
     Object.keys(body).forEach(key => {
       if (!forbidden.includes(key)) {
@@ -175,33 +162,28 @@ function sanitiseBookPayload(body: any): NewBookInput {
 }
 
 
-// PATCH /api/v1/book/update
+// PATCH /api/v1/books/:id/update
 router.patch(`/:id/update`, async (req, res, next) => {
   try {
     const {id} = req.params
     //TODO sort out user_id from Auth
-    const user_id = 'u_00001'
-    const requestorUserId = req.headers['x-user-id'] || req.body.owner_id || 'anonymous';
+    const requestorUserId = req.headers['x-user-id']
+    if (typeof requestorUserId !== 'string') {
+      return res.status(401).json({ error: 'Authentication required' })
+    }
 
     const book = await db.getBookById(id)
       if (!book) { return res.status(404).json({error: 'Book not found'})
     }
 
-    console.log(`[AUTH DEBUG] Book ID: ${id}`);
-    console.log(`[AUTH DEBUG] DB Owner ID: ${book.owner_id} (Type: ${typeof book.owner_id})`);
-    console.log(`[AUTH DEBUG] Requestor ID: ${requestorUserId} (Type: ${typeof requestorUserId})`);
-
     if (String(book.owner_id) !== String(requestorUserId)) {
-      console.warn(`⚠️ Access Denied: User ${requestorUserId} attempted to modify Book ${id} owned by ${book.owner_id}`)
       return res.status(403).json({ error: 'Access Denied: You do not have editing clearance for this inventory asset.' })
     }
 
     const fieldsToUpdate = sanitiseBookPayload(req.body)
 
     //You don't get to sign away ownership
-    delete (fieldsToUpdate as any).owner_id;
-
-    const updatedBook = await db.updateBook(id, user_id, fieldsToUpdate)
+    const updatedBook = await db.updateBook(id, requestorUserId, fieldsToUpdate)
     return res.status(200).json(updatedBook)
   } catch (e) {
     next(e)
@@ -211,9 +193,9 @@ router.patch(`/:id/update`, async (req, res, next) => {
 // POST /api/v1/books/add
 router.post('/add', async (req, res, next) => {
   try {
-    const activeUserId = req.headers['u-00001'] || req.body.owner_id;
+    const activeUserId = req.headers['x-user-id']
     
-    if (!activeUserId) {
+    if (typeof activeUserId !== 'string') {
       return res.status(401).json({ error: 'Authentication required: Missing owner context assignment.' })
     }
 
@@ -222,22 +204,14 @@ router.post('/add', async (req, res, next) => {
       owner_id: activeUserId // Forces explicit ownership injection
     }
 
-    const newBookData = sanitiseBookPayload(payload)
-    if (!newBookData.status) newBookData.status='Available'
+    const newBookData = {
+      ...sanitiseBookPayload(payload),
+      owner_id: activeUserId,
+    } as Omit<Book, 'book_id'>
     const savedBook = await db.addBook(newBookData)
     return res.status(201).json(savedBook)
   } catch (e) {
     next(e)
-  }
-})
-
-router.get (`/work/:workId/editions`, async (req, res) => {
-  try {
-    const {workId} = req.params;
-    const editions = await fetchEditionsForWorkBackend(workId)
-    res.json(editions)
-  } catch (error) {
-    res.status(500).json({error: 'Failed to fetch editions'})
   }
 })
 
@@ -250,7 +224,6 @@ router.get('/search/metadata', async (req, res) => {
     }
 
     const results = await fetchFromOpenLibraryBackend(q);
-    console.log("DEBUG: Backend returning items:", results);
     res.json(results);
   } catch (error) {
     res.status(500).json({ error: 'Proxy failed' });

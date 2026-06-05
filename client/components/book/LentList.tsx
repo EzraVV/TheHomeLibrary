@@ -1,7 +1,4 @@
-import { useCurrentUser } from '../../hooks/useCurrentUser'
-import { useUserBooks } from '../../hooks/useUserBooks'
-import { Book } from '../../../models/book'
-import { BookMarked, Plus, BookOpen } from 'lucide-react'
+import { BookMarked, BookOpen } from 'lucide-react'
 
 import { Loan } from '../../../models/loan'
 
@@ -10,25 +7,7 @@ interface LentListProps {
   onUpdate:(id: string, fields: Partial<Loan>)=> void
 }
 
-export function LentList({loans, onUpdate}: LentListProps) {
-  const { data: user, isLoading: isUserLoading } = useCurrentUser()
-  const { data: books, isLoading: isBooksLoading } = useUserBooks(user?.user_id || '')
-
-  const isLoading = isUserLoading || isBooksLoading
-
-  if (isLoading) {
-    return (
-      <section className="rounded-md bg-surface p-6 shadow-card border border-border/40 text-left animate-pulse">
-        <div className="h-6 bg-background/80 rounded-sm w-1/3 mb-6"></div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="aspect-[3/4] bg-background/80 rounded-sm"></div>
-          ))}
-        </div>
-      </section>
-    )
-  }
-
+export function LentList({loans}: LentListProps) {
   // Get status pill color
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -67,7 +46,7 @@ export function LentList({loans, onUpdate}: LentListProps) {
         /* Grid catalog */
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {loans.map((loan: Loan) => (
-            <div key={loan.id} className="group rounded-sm border border-border/40 bg-background/30 p-2.5 transition-all hover:bg-background/60 hover:shadow-sm">
+            <div key={loan.loan_id} className="group rounded-sm border border-border/40 bg-background/30 p-2.5 transition-all hover:bg-background/60 hover:shadow-sm">
               <div className="aspect-[3/4] bg-background rounded-sm overflow-hidden border border-border/20 mb-2 shadow-sm">
                 {loan.book_image ? (
                   <img

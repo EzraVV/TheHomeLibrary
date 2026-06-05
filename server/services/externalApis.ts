@@ -1,4 +1,5 @@
 import request from 'superagent';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 // Proxies cataloguing searches to OpenLibrary securely from the server
 
@@ -9,8 +10,6 @@ export async function fetchFromOpenLibraryBackend(query: string): Promise<any[]>
     const cleanQuery = query.trim();
     const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(cleanQuery)}+language:eng&limit=20&fields=${fields}`;
     
-    console.log(`📡 Sending Language-Strict Target URL: ${url}`);
-
     const response = await request.get(url);
     const items = response.body.docs || [];
 
@@ -58,7 +57,7 @@ export async function fetchFromOpenLibraryBackend(query: string): Promise<any[]>
 export async function fetchEditionsForWorkBackend(work_id:string): Promise<any[]> {
   try {
     const cleanId = work_id.replace('/works/', '')
-    const url =  `https://openLibrary.org/works${cleanId}/editions.json?Limit=10`;
+    const url = `https://openlibrary.org/works/${cleanId}/editions.json?limit=10`
 
     const response = await request.get(url)
     const data = await response.body
@@ -78,7 +77,7 @@ export async function fetchEditionsForWorkBackend(work_id:string): Promise<any[]
           edition_name: edit.publish_name || edit.title || 'Standard Edition',
           isbn: exactIsbn,
           format: formatText,
-          image: separationKey ? `https://covers.openlibrary.org/b/olid${separationKey}-M.jpg`:''
+          image: separationKey ? `https://covers.openlibrary.org/b/olid/${separationKey}-M.jpg`:''
         }
       }) 
     } catch (err) {

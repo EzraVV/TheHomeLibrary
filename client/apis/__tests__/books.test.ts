@@ -1,93 +1,101 @@
-import app from "../../components/App"
-import connection from "../../../server/db/connection"
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
-import request from "supertest"
-import nock from 'nock'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import request from 'supertest'
+import server from '../../../server/server'
+import connection from '../../../server/db/connection'
+import { createUser, getUserById } from '../../../server/db/users'
 
-vi.mock('superagent', () => {
-  const mockResponse = { body: [] }
-  const mockQuery = vi.fn().mockReturnThis()
-  const mockGet = vi.fn().mockImplementation(() => ({
-    query: mockQuery,
-    body: mockResponse.body,
-    then: vi.fn().mockImplementation((callback) => callback(mockResponse))
-  }))
+const user = {
+  user_id: 'u_test01',
+  user_name: 'test_owner',
+  email: 'owner@example.com',
+  postcode: '1010',
+  about: null,
+  interests: ['science fiction', 'classics'],
+  status: 'ACTIVE' as const,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  is_deleted: false,
+  deleted_at: null,
+}
 
-  return {
-    default: {
-      get: mockGet
-    }
-  }
+describe('MVP API contracts', () => {
+  beforeAll(async () => {
+    await connection.migrate.latest()
+    await createUser(user)
+    await createUser({
+      ...user,
+      user_id: 'u_test02',
+      user_name: 'test_borrower',
+      email: 'borrower@example.com',
+    })
+  })
+
+  afterAll(async () => {
+    await connection.destroy()
+  })
+
+  it('serializes signup interests and maps them back to an array', async () => {
+    const stored = await connection('user').where({ user_id: user.user_id }).first()
+    const mapped = await getUserById(user.user_id)
+
+    expect(stored.interests).toBe('science fiction,classics')
+    expect(mapped?.interests).toEqual(['science fiction', 'classics'])
+  })
+
+  it('assigns book ownership from x-user-id and ignores spoofed ownership', async () => {
+    const response = await request(server)
+      .post('/api/v1/books/add')
+      .set('x-user-id', user.user_id)
+      .send({
+        owner_id: 'u_test02',
+        title: 'Owned by the requestor',
+        creator: 'A Writer',
+        work_id: 'work_test',
+        format: 'Paperback',
+        status: 'Available',
+        image: '',
+      })
+
+    expect(response.status).toBe(201)
+    expect(response.body.book_id).toMatch(/^bk_/)
+    expect(response.body.owner_id).toBe(user.user_id)
+  })
+
+  it('supports loan search/create/update and rejects unauthorized updates', async () => {
+    const book = await connection('book').first()
+    const created = await request(server)
+      .post('/api/v1/loans/add')
+      .set('x-user-id', user.user_id)
+      .send({
+        book_id: book.book_id,
+        borrower_id: 'u_test02',
+        status: 'Pending',
+        due_at: '2026-07-01T00:00:00.000Z',
+        returned_at: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        archived_at: null,
+        is_deleted: false,
+      })
+
+    expect(created.status).toBe(201)
+    expect(created.body.owner_id).toBe(user.user_id)
+
+    const search = await request(server).get('/api/v1/loans/search').query({ query: 'Owned' })
+    expect(search.status).toBe(200)
+    expect(search.body).toHaveLength(1)
+
+    const denied = await request(server)
+      .patch(`/api/v1/loans/${created.body.loan_id}`)
+      .set('x-user-id', 'u_test02')
+      .send({ status: 'Active' })
+    expect(denied.status).toBe(403)
+
+    const updated = await request(server)
+      .patch(`/api/v1/loans/${created.body.loan_id}`)
+      .set('x-user-id', user.user_id)
+      .send({ status: 'Active' })
+    expect(updated.status).toBe(200)
+    expect(updated.body.status).toBe('Active')
+  })
 })
-
-describe('POST /api/books/ingest', () => {
-  const db = connection
-  // Migrate test database
-  beforeEach(async () => {
-    await db.migrate.latest();
-  });
-
-  // Rollback after each test
-  afterEach(async () => {
-    await db.migrate.rollback();
-    nock.cleanAll(); // Clear network mocks
-  });
-
-  it('should take an ISBN, fetch from OpenLibrary, normalise strings, and save a clean record', async () => {
-    const targetIsbn = '9780439139601';
-
-    // Intercept the outbound call to OpenLibrary and return fake dirty data
-    nock('https://openlibrary.org')
-      .get(`/api/volumes/brief/isbn/${targetIsbn}.json`)
-      .reply(200, {
-        records: {
-          "/books/OL123M": {
-            data: {
-              title: "HARRY POTTER AND THE GOBLET OF FIRE (PAPERBACK) ", // Dirty text
-              authors: [{ name: "Rowling, J.K." }]                     // Dirty text
-            }
-          }
-        }
-      });
-
-
-    // Simulate the frontend hitting backend route
-    const response = await request(app)
-      .post('/api/books/add')
-      .send({ isbn: targetIsbn });
-
-    // Check the HTTP response shape
-    expect(response.status).toBe(201);
-    expect(response.body.book).toHaveProperty('book_id');
-    expect(response.body.book.work_id).toMatch(/^wrk_/); // Proves hashing layer activated
-
-    // Query the real database to see what actually saved
-    const savedBook = await db('book').where({ isbn: targetIsbn }).first();
-    
-    expect(savedBook).toBeDefined();
-    expect(savedBook.title).toBe("HARRY POTTER AND THE GOBLET OF FIRE (PAPERBACK) "); // Kept raw original entry
-    
-    // Proves normalisation helpers cleaned the background search index
-    expect(savedBook.search_index).toContain("harry potter and the goblet of fire");
-    expect(savedBook.search_index).toContain("jk rowling");
-  });
-});
-
-// Edge-Case Integration Tests
-/*
-Test 1: The API Cascade Fallback
-Scenario: OpenLibrary returns a 404 Not Found. Google Books returns a successful object.
-
-What it proves: Your service layer successfully catches the first failure and cascades to the secondary provider without crashing the user's request.
-
-Test 2: The Double-Ingest Prevention (Deduplication)
-Scenario: Hit the endpoint with the exact same ISBN twice in a row.
-
-What it proves: The second request returns a 200 OK (Existing) or blocks it, rather than throwing a catastrophic SQLITE_CONSTRAINT: UNIQUE crash because it tried to double-insert the primary key.
-
-Test 3: The Malformed Payload Input
-Scenario: Hit the endpoint with an invalid 7-digit ISBN string or a missing body.
-
-What it proves: Your route-level validation layer catches the junk input instantly and rejects it with a 400 Bad Request before wasting time spinning up network connections.
-
-*/
