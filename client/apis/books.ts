@@ -169,7 +169,7 @@ export async function executeBorrowSearchCascade(rawQuery: string): Promise<Sear
   };
 }
 
-// api/books.ts
+// Search api/books.ts
 export async function editSearchBooks(query: string) {
   if (!query || query.length < 3) return [];
   
@@ -179,3 +179,10 @@ export async function editSearchBooks(query: string) {
     
   return response.body || [];
 }
+
+
+// DELETE (soft delete)
+export async function deleteBooks(id: string) {
+  await withAccessToken(request.delete(`${baseUrl}/${id}`))
+}
+
