@@ -1,11 +1,12 @@
 import express from 'express'
 import * as db from '../db/loan'
+import { requireAuth } from '../auth/middleware'
 
 const router = express.Router()
 // GET /api/v1/loans
-router.get('/', async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
   try {
-    const loans = await db.getAllLoans()
+    const loans = await db.getAllLoans(req.auth!.userId)
     res.json(loans)
   } catch (err) {
     console.error(err)
@@ -14,10 +15,10 @@ router.get('/', async (req, res) => {
 })
 
 // GET /api/v1/loans/search?query=foo
-router.get('/search', async (req, res) => {
+router.get('/search', requireAuth, async (req, res) => {
   const q = (req.query.query || req.query.q || '') as string
   try {
-    const loans = await db.searchLoans(q)
+    const loans = await db.searchLoans(q, req.auth!.userId)
     res.json(loans)
   } catch (err) {
     console.error(err)
@@ -26,14 +27,16 @@ router.get('/search', async (req, res) => {
 })
 
 // POST /api/v1/loans
-router.post('/add', async (req, res) => {
+router.post('/add', requireAuth, async (req, res) => {
   try {
-    const ownerId = req.headers['x-user-id']
-    if (typeof ownerId !== 'string') {
-      return res.status(401).json({ error: 'Authentication required' })
-    }
+    const ownerId = req.auth!.userId
+    const loanFields = { ...req.body }
+    delete loanFields.loan_id
+    delete loanFields.owner_id
+    delete loanFields.created_at
+    delete loanFields.updated_at
     const newLoan = {
-      ...req.body,
+      ...loanFields,
       owner_id: ownerId,
     }
     const created = await db.createLoan(newLoan)
@@ -45,14 +48,17 @@ router.post('/add', async (req, res) => {
 })
 
 // PATCH /api/v1/loans/:id
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', requireAuth, async (req, res) => {
   try {
-    const userId = req.headers['x-user-id']
-    if (typeof userId !== 'string') {
-      return res.status(401).json({ error: 'Authentication required' })
-    }
+    const userId = req.auth!.userId
     const { id } = req.params;
-    const updated = await db.updateLoan(id, req.body, userId)
+    const updates = { ...req.body }
+    delete updates.loan_id
+    delete updates.book_id
+    delete updates.owner_id
+    delete updates.borrower_id
+    delete updates.created_at
+    const updated = await db.updateLoan(id, updates, userId)
     res.json(updated)
   } catch {
     res.status(403).json({ error: 'Unauthorised or loan not found' })

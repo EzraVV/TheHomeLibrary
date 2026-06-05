@@ -4,25 +4,26 @@ import { Loan } from "../../../models/loan"
 import { useQueryClient } from "@tanstack/react-query"
 import { useSearchLoans } from "../../hooks/useLoans"
 import { useUpdateLoan } from "../../hooks/useLoans"
+import { useCurrentUser } from "../../hooks/useCurrentUser"
 
 //TO DO - expand from base book components pilfered from User - loan information, edit options, shortcuts to set lending parameters
 //Due dates, recent reviews? Plus books near me to borrow?
 
 export const BookDashboard = () => {
   const { data: allLoans, isLoading, error } = useSearchLoans('', true)
+  const { data: currentUser } = useCurrentUser()
 
   const queryClient = useQueryClient()
 
-  const currentUserId = 'u_00001'
   const updateLoanMutation = useUpdateLoan()
 
   const handleUpdate = async (loanId: string, fields: Partial<Loan>) => {
-    updateLoanMutation.mutate({loan_id:loanId, fields, user_id: currentUserId})
+    updateLoanMutation.mutate({loan_id:loanId, fields})
     queryClient.invalidateQueries({queryKey:['loans']})
   }
 
-  const lent = allLoans?.filter((l)=> l.owner_id === currentUserId) || [];
-  const borrowed = allLoans?.filter((l)=> l.borrower_id === currentUserId) || [];
+  const lent = allLoans?.filter((l)=> l.owner_id === currentUser?.user_id) || [];
+  const borrowed = allLoans?.filter((l)=> l.borrower_id === currentUser?.user_id) || [];
   
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading dashboard.</div>;

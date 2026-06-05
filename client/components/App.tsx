@@ -9,6 +9,8 @@ const AppLayout = lazy(() => import('./layout/AppLayout'))
 const BookDetail = lazy(() => import('./book/BookDetail'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const SupportPage = lazy(() => import('./pages/SupportPage'))
+const AuthConfirmPage = lazy(() => import('./pages/AuthConfirmPage'))
+const ProtectedRoute = lazy(() => import('./auth/ProtectedRoute'))
 const AddBook = lazy(() =>
   import('./book/AddBook').then((module) => ({ default: module.AddBook })),
 )
@@ -27,13 +29,16 @@ export default function App() {
       <Routes>
         <Route path="/" element={<AppLayout />}>
         <Route index element={<HomePage />} />
-        <Route path="/profile" element={<UserProfilePage />} />
+        <Route path="/auth/confirm" element={<AuthConfirmPage />} />
         {/* <Route path="/my-books" element={<MyBooksPlaceholder />} />
         <Route path="/borrowed" element={<BorrowedPlaceholder />} />*/}
         <Route path="/signup" element={<AddUserPage />} />
-        <Route path="/books/dashboard" element={<BookDashboard />} />
-        <Route path="/books/add" element={<AddBook />} />
-        <Route path="/books/:id/update" element={<EditBook />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/profile" element={<UserProfilePage />} />
+          <Route path="/books/dashboard" element={<BookDashboard />} />
+          <Route path="/books/add" element={<AddBook />} />
+          <Route path="/books/:id/update" element={<EditBook />} />
+        </Route>
         <Route path="/books/:id/" element={<BookDetail />} />
         <Route path="/books/search" element={<SearchPage />} />
         <Route path="/about" element={<AboutPage />} />

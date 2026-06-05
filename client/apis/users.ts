@@ -1,5 +1,6 @@
 import request from 'superagent'
 import { User } from '../../models/user'
+import { withAccessToken } from '../lib/authenticatedRequest'
 
 const baseUrl = '/api/v1/users'
 
@@ -10,8 +11,8 @@ export async function getAllUsers() {
 }
 
 // GET one user by ID
-export async function getUserById(id: string) {
-  const res = await request.get(`${baseUrl}/${id}`)
+export async function getUserById() {
+  const res = await withAccessToken(request.get(`${baseUrl}/me`))
   return res.body
 }
 
@@ -29,11 +30,11 @@ export async function createUser(newUser: Partial<User>) {
 
 // UPDATE user
 export async function updateUser(id: string, updates: Partial<User>) {
-  const res = await request.patch(`${baseUrl}/${id}`).send(updates)
+  const res = await withAccessToken(request.patch(`${baseUrl}/${id}`).send(updates))
   return res.body
 }
 
 // DELETE (soft delete)
 export async function deleteUser(id: string) {
-  await request.delete(`${baseUrl}/${id}`)
+  await withAccessToken(request.delete(`${baseUrl}/${id}`))
 }

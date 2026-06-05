@@ -1,15 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
 import { getUserById } from '../apis/users'
+import { useAuth } from '../contexts/AuthContext'
 
 export function useCurrentUser() {
-  const storedUser = localStorage.getItem('active_user_id')
-  const userId = storedUser === 'none' ? null : (storedUser || 'u_00001')
+  const { session, isLoading } = useAuth()
 
   return useQuery({
-    queryKey: ['current-user', userId],
-    queryFn: async () => {
-      if (!userId) return null
-      return getUserById(userId)
-    },
+    queryKey: ['current-user', session?.user.id],
+    queryFn: getUserById,
+    enabled: !isLoading && !!session,
   })
 }

@@ -16,7 +16,9 @@ coverage
 # Dotenv env settings
 .env
 
+# Supabase CLI generated project metadata
+supabase/.temp/
+
 # Promptkit repository
 promptkit
 .antigravitycli
-
