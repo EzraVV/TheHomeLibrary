@@ -3,15 +3,13 @@ import { BorrowedList }from "./BorrowedList"
 import { Loan } from "../../../models/loan"
 import { useQueryClient } from "@tanstack/react-query"
 import { useSearchLoans } from "../../hooks/useLoans"
-import { useState } from "react"
 import { useUpdateLoan } from "../../hooks/useLoans"
 
 //TO DO - expand from base book components pilfered from User - loan information, edit options, shortcuts to set lending parameters
 //Due dates, recent reviews? Plus books near me to borrow?
 
 export const BookDashboard = () => {
-  const [ searchQuery, setSearchQuery] = useState('')
-  const { data: allLoans, isLoading, error } = useSearchLoans(searchQuery, true)
+  const { data: allLoans, isLoading, error } = useSearchLoans('', true)
 
   const queryClient = useQueryClient()
 
@@ -23,7 +21,7 @@ export const BookDashboard = () => {
     queryClient.invalidateQueries({queryKey:['loans']})
   }
 
-  const lent = allLoans?.filter((l)=> l.lender_id === currentUserId) || [];
+  const lent = allLoans?.filter((l)=> l.owner_id === currentUserId) || [];
   const borrowed = allLoans?.filter((l)=> l.borrower_id === currentUserId) || [];
   
   if (isLoading) return <div>Loading...</div>;

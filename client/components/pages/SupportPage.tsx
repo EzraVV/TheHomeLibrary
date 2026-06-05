@@ -8,30 +8,32 @@ export default function SupportPage() {
     message: '',
   })
   const [isSending, setIsSending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  async function handleSubmit(e) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setIsSending(true)
+    setError(null)
 
-    const res = await fetch('/api/v1/support', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
-    })
-
-    setIsSending(false)
-
-    if (res.ok) {
-      alert('Support ticket sent successfully')
+    try {
+      const res = await fetch('/api/v1/support', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (!res.ok) throw new Error('Support request failed')
       setForm({ name: '', email: '', message: '' })
-    } else {
-      alert('Failed to send support ticket')
+    } catch {
+      setError('Failed to send support ticket. Please try again.')
+    } finally {
+      setIsSending(false)
     }
   }
 
   return (
     <div className="max-w-app mx-auto py-12 px-4">
       <h1 className="text-3xl font-bold mb-8 text-center">Support</h1>
+      {error && <p role="alert" className="text-danger text-center mb-4">{error}</p>}
 
       <form
         onSubmit={handleSubmit}

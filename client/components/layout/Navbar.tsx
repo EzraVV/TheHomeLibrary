@@ -26,7 +26,7 @@ export default function Navbar() {
       // Clear the navbar box if they leave the search page completely
       setInputValue('')
     }
-  }, [location.pathname, currentQueryString])
+  }, [location.pathname, currentQueryString, inputValue])
 
   //Debounce to reduce external calls
   useEffect(() => {

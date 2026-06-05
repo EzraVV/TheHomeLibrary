@@ -2,12 +2,7 @@ import express from 'express'
 import * as db from '../db/loan'
 
 const router = express.Router()
-router.use((req, res, next) => {
-  console.log(`ROUTER received: ${req.method} ${req.originalUrl}`)
-  next()
-})
-
-// GET /api/v1/loan
+// GET /api/v1/loans
 router.get('/', async (req, res) => {
   try {
     const loans = await db.getAllLoans()
@@ -33,13 +28,17 @@ router.get('/search', async (req, res) => {
 // POST /api/v1/loans
 router.post('/add', async (req, res) => {
   try {
+    const ownerId = req.headers['x-user-id']
+    if (typeof ownerId !== 'string') {
+      return res.status(401).json({ error: 'Authentication required' })
+    }
     const newLoan = {
       ...req.body,
+      owner_id: ownerId,
     }
     const created = await db.createLoan(newLoan)
     res.status(201).json(created)
   } catch (err) {
-    const error = err as { code?: string }
     console.error(err)
     res.sendStatus(500)
   }
@@ -48,13 +47,15 @@ router.post('/add', async (req, res) => {
 // PATCH /api/v1/loans/:id
 router.patch('/:id', async (req, res) => {
   try {
-    const userId = req.headers['x-user-id'] as string
+    const userId = req.headers['x-user-id']
+    if (typeof userId !== 'string') {
+      return res.status(401).json({ error: 'Authentication required' })
+    }
     const { id } = req.params;
     const updated = await db.updateLoan(id, req.body, userId)
     res.json(updated)
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: 'Failed to update loan' })
+  } catch {
+    res.status(403).json({ error: 'Unauthorised or loan not found' })
   }
 })
 

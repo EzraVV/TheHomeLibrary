@@ -33,9 +33,8 @@ export function useAddLoan() {
   const queryClient = useQueryClient()
 
   return useMutation ({
-    mutationFn: async (payload: Loan) => {
-
-    return createLoan(payload) 
+    mutationFn: async ({ payload, ownerId }: { payload: Omit<Loan, 'loan_id' | 'owner_id'>, ownerId: string }) => {
+    return createLoan(payload, ownerId)
   },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['loans'] })
@@ -43,5 +42,4 @@ export function useAddLoan() {
     }
   })
 }
-
 

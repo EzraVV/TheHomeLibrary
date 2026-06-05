@@ -30,9 +30,9 @@ describe ('Atomise interests', () => {
 
 describe('Stringify interests edge cases', () => {
   it('should return empty string if input is not an array', () => {
-    // @ts-ignore
+    // @ts-expect-error - exercising invalid runtime input
     expect(stringifyInterests(null)).toBe('')
-    // @ts-ignore
+    // @ts-expect-error - exercising invalid runtime input
     expect(stringifyInterests('not-an-array')).toBe('')
   })
 })

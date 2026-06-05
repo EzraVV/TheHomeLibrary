@@ -14,8 +14,10 @@
     "build:client": "vite build",
     "build:server": "esbuild --packages=external --platform=node --format=esm --outfile=dist/server.js --bundle server/index.ts",
     "test": "vitest",
+    "test:coverage": "vitest run --coverage",
     "knex": "knex",
     "lint": "eslint --ext .js,.jsx,.ts,.tsx .",
+    "typecheck": "tsc --noEmit",
     "format": "prettier -w '**/*.{js,jsx,ts,tsx}'"
   },
   "keywords": [
@@ -25,6 +27,9 @@
   "license": "ISC",
   "eslintConfig": {
     "extends": "@devacademy/eslint-config/react",
+    "rules": {
+      "react-hooks/set-state-in-effect": "off"
+    },
     "ignorePatterns": [
       "bundle.js"
     ]

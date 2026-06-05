@@ -1,5 +1,6 @@
 import connection from './connection'
 import { User } from '../../models/user'
+import { atomiseInterests, stringifyInterests } from '../../shared/utils/interestProcessing'
 
 type UserRow = Omit<User, 'interests'> & {
   interests: string | null
@@ -9,9 +10,7 @@ type UserRow = Omit<User, 'interests'> & {
 function mapUser(row: UserRow): User {
   return {
     ...row,
-    interests: row.interests
-      ? row.interests.split(',').map((s: string) => s.trim())
-      : [],
+    interests: atomiseInterests(row.interests),
   }
 }
 
@@ -37,7 +36,9 @@ export async function searchUsers(query: string) {
 }
 
 export async function createUser(newUser: User): Promise<User> {
-  const rows = await connection('user').insert(newUser).returning('*')
+  const rows = await connection('user')
+    .insert({ ...newUser, interests: stringifyInterests(newUser.interests) })
+    .returning('*')
 
   return mapUser(rows[0])
 }
@@ -64,12 +65,17 @@ export async function updateUser(
   updates: Partial<User>,
 ): Promise<User> {
   // Update
+  const storedUpdates = {
+    ...updates,
+    ...(updates.interests
+      ? { interests: stringifyInterests(updates.interests) }
+      : {}),
+    updated_at: new Date().toISOString(),
+  }
+
   await connection('user')
     .where({ user_id: id })
-    .update({
-      ...updates,
-      updated_at: new Date().toISOString(),
-    })
+    .update(storedUpdates)
 
   // Fetch
   const updated = await connection('user').where({ user_id: id }).first()
