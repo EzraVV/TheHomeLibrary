@@ -41,10 +41,41 @@ export const BookDashboard = () => {
 }
 
 /*
-const updateMutation = useUpdateLoan();
+export function useUpdateLoan() {
+  const queryClient = useQueryClient();
 
-// Inside button click or event handler
-updateMutation.mutate({ 
-  loan_id: 'l_123', 
-  fields: { status: 'returned', returned_at: new Date().toISOString() } 
-});*/
+  return useMutation({
+    mutationFn: (args: { loan_id: string; fields: Partial<Loan>; user_id: string }) => 
+      updateLoan(args.loan_id, args.fields),
+    
+    // Invalidate inside the hook, not the component
+    onSuccess: () => {
+      // Ensure this key matches exactly what you use in useSearchLoans
+      queryClient.invalidateQueries({ queryKey: ['loans'] });
+    }
+  });
+}
+  
+export const BookDashboard = () => {
+  const { data: allLoans } = useSearchLoans(searchQuery, true);
+  const [viewMode, setViewMode] = useState<'all' | 'mine'>('mine');
+
+  const filteredLoans = useMemo(() => {
+    if (viewMode === 'all') return allLoans || [];
+    
+    // Role-based logic
+    return (allLoans || []).filter(l => 
+      l.lender_id === currentUserId || l.borrower_id === currentUserId
+    );
+  }, [allLoans, viewMode, currentUserId]);
+
+  // Now categorize the resulting list by status
+  const sections = {
+    requested: filteredLoans.filter(l => l.status === 'Requested'),
+    borrowed: filteredLoans.filter(l => l.status === 'Borrowed'),
+    // ...
+  };
+  
+  // ...
+}
+*/
