@@ -2,6 +2,7 @@ import request from 'superagent'
 import { Book, SelectableBook } from '../../models/book'
 import { normaliseBookPayload } from '../../shared/utils/normaliseBookPayload';
 import { isValidISBN } from '../../shared/utils/isbnCheck'
+import { withAccessToken } from '../lib/authenticatedRequest'
 
 
 export interface SearchQueryResponse {
@@ -14,9 +15,6 @@ export interface SearchQueryResponse {
 }
 
 const baseUrl = '/api/v1/books'
-function getActiveUserId() {
-  return localStorage.getItem('active_user_id') || 'u_00001'
-}
 
 // GET all books
 export async function getAllBooks() {
@@ -49,20 +47,16 @@ export async function updateBook(book_id: string, updatedFields: Partial<Book>) 
     throw new Error("CRITICAL: Attempted to PATCH with an invalid book ID");
   }
 
-  const response = await request
-    .patch(`/api/v1/books/${book_id}/update`) 
-    .set('x-user-id', getActiveUserId())
-    .send(updatedFields);
+  const response = await withAccessToken(
+    request.patch(`/api/v1/books/${book_id}/update`).send(updatedFields),
+  )
   
   return response.body;
 }
 
 // ADD book 
 export async function createLocalBook(newBook: Partial<Book>) {
-  const response = await request
-    .post(`${baseUrl}/add`)
-    .set('x-user-id', getActiveUserId())
-    .send(newBook)
+  const response = await withAccessToken(request.post(`${baseUrl}/add`).send(newBook))
   return response.body
 }
 

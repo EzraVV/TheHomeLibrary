@@ -1,16 +1,8 @@
 import { Outlet } from 'react-router-dom'
 import Navbar from './Navbar'
 import Footer from './Footer'
-import { useEffect } from 'react'
 
 export default function AppLayout() {
-  useEffect(() => {
-    const stored = localStorage.getItem('active_user_id')
-
-    if (!stored || stored === 'none') {
-      localStorage.setItem('active_user_id', 'u_00001')
-    }
-  }, [])
   return (
     <div className="flex flex-col min-h-screen bg-background text-text">
       <Navbar />

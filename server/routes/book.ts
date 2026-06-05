@@ -2,6 +2,7 @@ import express from 'express'
 import * as db from '../db/book'
 import { Book } from '../../models/book'
 import { fetchEditionsForWorkBackend, fetchFromGoogleBooksBackend, fetchFromOpenLibraryBackend, queryWorldCatBackend } from '../services/externalApis'
+import { requireAuth } from '../auth/middleware'
 
 const router = express.Router()
 
@@ -163,14 +164,10 @@ function sanitiseBookPayload(body: Record<string, unknown>): Partial<NewBookInpu
 
 
 // PATCH /api/v1/books/:id/update
-router.patch(`/:id/update`, async (req, res, next) => {
+router.patch(`/:id/update`, requireAuth, async (req, res, next) => {
   try {
     const {id} = req.params
-    //TODO sort out user_id from Auth
-    const requestorUserId = req.headers['x-user-id']
-    if (typeof requestorUserId !== 'string') {
-      return res.status(401).json({ error: 'Authentication required' })
-    }
+    const requestorUserId = req.auth!.userId
 
     const book = await db.getBookById(id)
       if (!book) { return res.status(404).json({error: 'Book not found'})
@@ -191,13 +188,9 @@ router.patch(`/:id/update`, async (req, res, next) => {
 })
 
 // POST /api/v1/books/add
-router.post('/add', async (req, res, next) => {
+router.post('/add', requireAuth, async (req, res, next) => {
   try {
-    const activeUserId = req.headers['x-user-id']
-    
-    if (typeof activeUserId !== 'string') {
-      return res.status(401).json({ error: 'Authentication required: Missing owner context assignment.' })
-    }
+    const activeUserId = req.auth!.userId
 
     const payload = {
       ...req.body,

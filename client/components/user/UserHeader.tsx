@@ -37,9 +37,9 @@ export default function UserHeader() {
           <h1 className="font-heading text-3xl font-bold text-secondary">
             {user.user_name}
           </h1>
-          {user.prounouns && (
+          {user.pronouns && (
             <span className="inline-block text-xs font-semibold text-text-muted bg-background px-2.5 py-0.5 rounded-sm w-fit mx-auto sm:mx-0">
-              {user.prounouns}
+              {user.pronouns}
             </span>
           )}
         </div>

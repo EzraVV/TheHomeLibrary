@@ -42,10 +42,10 @@ describe('MVP API contracts', () => {
     expect(mapped?.interests).toEqual(['science fiction', 'classics'])
   })
 
-  it('assigns book ownership from x-user-id and ignores spoofed ownership', async () => {
+  it('assigns book ownership from the authenticated user and ignores spoofed ownership', async () => {
     const response = await request(server)
       .post('/api/v1/books/add')
-      .set('x-user-id', user.user_id)
+      .set('x-test-user-id', user.user_id)
       .send({
         owner_id: 'u_test02',
         title: 'Owned by the requestor',
@@ -61,11 +61,37 @@ describe('MVP API contracts', () => {
     expect(response.body.owner_id).toBe(user.user_id)
   })
 
+  it('rejects protected mutations without an authenticated user', async () => {
+    const response = await request(server).post('/api/v1/books/add').send({
+      title: 'Unauthenticated book',
+      creator: 'Unknown',
+    })
+
+    expect(response.status).toBe(401)
+    expect(response.body.error).toBe('Authentication required')
+  })
+
+  it('returns the private current profile only to its authenticated user', async () => {
+    const current = await request(server)
+      .get('/api/v1/users/me')
+      .set('x-test-user-id', user.user_id)
+
+    expect(current.status).toBe(200)
+    expect(current.body.email).toBe(user.email)
+
+    const publicResponse = await request(server).get(
+      `/api/v1/users/${user.user_id}`,
+    )
+    expect(publicResponse.status).toBe(200)
+    expect(publicResponse.body.email).toBeUndefined()
+    expect(publicResponse.body.postcode).toBeUndefined()
+  })
+
   it('supports loan search/create/update and rejects unauthorized updates', async () => {
     const book = await connection('book').first()
     const created = await request(server)
       .post('/api/v1/loans/add')
-      .set('x-user-id', user.user_id)
+      .set('x-test-user-id', user.user_id)
       .send({
         book_id: book.book_id,
         borrower_id: 'u_test02',
@@ -81,19 +107,22 @@ describe('MVP API contracts', () => {
     expect(created.status).toBe(201)
     expect(created.body.owner_id).toBe(user.user_id)
 
-    const search = await request(server).get('/api/v1/loans/search').query({ query: 'Owned' })
+    const search = await request(server)
+      .get('/api/v1/loans/search')
+      .set('x-test-user-id', user.user_id)
+      .query({ query: 'Owned' })
     expect(search.status).toBe(200)
     expect(search.body).toHaveLength(1)
 
     const denied = await request(server)
       .patch(`/api/v1/loans/${created.body.loan_id}`)
-      .set('x-user-id', 'u_test02')
+      .set('x-test-user-id', 'u_test02')
       .send({ status: 'Active' })
     expect(denied.status).toBe(403)
 
     const updated = await request(server)
       .patch(`/api/v1/loans/${created.body.loan_id}`)
-      .set('x-user-id', user.user_id)
+      .set('x-test-user-id', user.user_id)
       .send({ status: 'Active' })
     expect(updated.status).toBe(200)
     expect(updated.body.status).toBe('Active')

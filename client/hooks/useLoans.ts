@@ -18,8 +18,8 @@ export function useUpdateLoan() {
   const queryClient = useQueryClient()
 
   return useMutation ({
-    mutationFn: (variables: {loan_id: string; fields: Partial<Loan>, user_id: string }) => {
-      return updateLoan(variables.loan_id, variables.fields, variables.user_id) 
+    mutationFn: (variables: {loan_id: string; fields: Partial<Loan> }) => {
+      return updateLoan(variables.loan_id, variables.fields)
   },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['loans'] })
@@ -33,8 +33,8 @@ export function useAddLoan() {
   const queryClient = useQueryClient()
 
   return useMutation ({
-    mutationFn: async ({ payload, ownerId }: { payload: Omit<Loan, 'loan_id' | 'owner_id'>, ownerId: string }) => {
-    return createLoan(payload, ownerId)
+    mutationFn: async (payload: Omit<Loan, 'loan_id' | 'owner_id'>) => {
+    return createLoan(payload)
   },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['loans'] })
@@ -42,4 +42,3 @@ export function useAddLoan() {
     }
   })
 }
-

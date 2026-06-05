@@ -1,6 +1,8 @@
 import connection from './connection'
 import { Loan } from '../../models/loan'
 
+const userTable = process.env.NODE_ENV === 'test' ? 'user' : 'profiles'
+
 function generateNextLoanId(lastId: string | null): string {
   if (!lastId) {
     return 'ln_00001'
@@ -16,16 +18,19 @@ export async function getLastLoanId(): Promise<string | null> {
   return row ? row.loan_id : null
 }
 
-export async function searchLoans(query: string) {
+export async function searchLoans(query: string, userId: string) {
   const q = query.trim()
 
   let queryBuilder = connection('loan')
     .select('loan.*', 'book.title', 'book.image', 'borrower.user_name as borrower_name',
       'owner.user_name as owner_name' )
     .leftJoin('book', 'loan.book_id', 'book.book_id')
-    .leftJoin('user as borrower', 'loan.borrower_id', 'borrower.user_id')
-    .leftJoin('user as owner', 'loan.owner_id', 'owner.user_id')
+    .leftJoin(`${userTable} as borrower`, 'loan.borrower_id', 'borrower.user_id')
+    .leftJoin(`${userTable} as owner`, 'loan.owner_id', 'owner.user_id')
     .where('loan.is_deleted', false)
+    .andWhere((builder) => {
+      builder.where('loan.owner_id', userId).orWhere('loan.borrower_id', userId)
+    })
       if (q.length > 0) {
         queryBuilder = queryBuilder.andWhere(builder => {
           builder.where('book.title', 'like', `%${q}%`)
@@ -38,6 +43,11 @@ export async function searchLoans(query: string) {
 
 // Create loan
 export async function createLoan(newLoanData: Omit<Loan, 'loan_id'>): Promise<Loan> {
+  if (process.env.NODE_ENV !== 'test') {
+    const rows = await connection('loan').insert(newLoanData).returning('*')
+    return rows[0]
+  }
+
   return await connection.transaction(async (loan) => {
     const lastRow = await loan('loan').orderBy('loan_id', 'desc').first();
     const lastId = lastRow ? lastRow.loan_id : null;
@@ -73,7 +83,9 @@ export async function updateLoan(
 
 
 //Admin access to view complete loan history (could limit).
-export async function getAllLoans() {
+export async function getAllLoans(userId: string) {
   const loans = await connection('loan')
+    .where({ owner_id: userId })
+    .orWhere({ borrower_id: userId })
   return loans
 }

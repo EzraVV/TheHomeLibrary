@@ -41,7 +41,12 @@ export async function updateBook(book_id: string, owner_id: string, updatedField
   return bookData[0] ?? null
  }
 
- export async function addBook(newBookData: Omit<Book, 'book_id'>): Promise<Book> {
+export async function addBook(newBookData: Omit<Book, 'book_id'>): Promise<Book> {
+  if (process.env.NODE_ENV !== 'test') {
+    const rows = await connection('book').insert(newBookData).returning('*')
+    return rows[0]
+  }
+
   const lastBook = await connection('book').orderBy('book_id', 'desc').first()
   const lastId = lastBook ? lastBook.book_id : null
 
