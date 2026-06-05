@@ -27,7 +27,7 @@ describe('ISBN validation', () => {
   })
 
   it('should reject non-string input types with custom error objects', () => {
-    // @ts-ignore
+    // @ts-expect-error - exercising invalid runtime input
     const result = isValidISBN(1234567890)
     expect(result).toEqual({ isValid: false, error: 'Input must be a string' })
   })

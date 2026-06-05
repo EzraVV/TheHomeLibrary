@@ -23,6 +23,11 @@ export const BookDashboard = () => {
     queryClient.invalidateQueries({queryKey:['loans']})
   }
 
+  // Inside your dashboard
+const incomingRequests = filteredLoans.filter(l => l.lender_id === currentUserId && l.status === 'Requested');
+const myActiveBorrows = filteredLoans.filter(l => l.borrower_id === currentUserId && l.status === 'Borrowed');
+// ...etc
+
   const lent = allLoans?.filter((l)=> l.lender_id === currentUserId) || [];
   const borrowed = allLoans?.filter((l)=> l.borrower_id === currentUserId) || [];
   
@@ -78,4 +83,13 @@ export const BookDashboard = () => {
   
   // ...
 }
+
+const filteredLoans = useMemo(() => {
+  const loans = allLoans || [];
+  
+  return loans.filter(l => 
+    l.lender_id === currentUserId || 
+    l.borrower_id === currentUserId
+  );
+}, [allLoans, currentUserId]);
 */

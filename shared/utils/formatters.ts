@@ -67,7 +67,7 @@ export function generateSortTitle(title:string) {
   const match = cleanTitle.match(articleRegex)
 
   if (match) {
-    const [_,article, restOfTitle] = match;
+    const [, article, restOfTitle] = match;
     return`${restOfTitle}, ${article}`
   }
 

@@ -64,7 +64,7 @@ export default function UserBooksOwned() {
         /* Grid catalog */
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {books.map((b: Book) => (
-            <div key={b.id} className="group rounded-sm border border-border/40 bg-background/30 p-2.5 transition-all hover:bg-background/60 hover:shadow-sm">
+            <div key={b.book_id} className="group rounded-sm border border-border/40 bg-background/30 p-2.5 transition-all hover:bg-background/60 hover:shadow-sm">
               <div className="aspect-[3/4] bg-background rounded-sm overflow-hidden border border-border/20 mb-2 shadow-sm">
                 {b.image ? (
                   <img

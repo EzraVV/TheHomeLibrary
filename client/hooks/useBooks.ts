@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getBookById, createLocalBook, updateBook, executeBorrowSearchCascade, executeCatalogSearchCascade, ingestExternalBook, SearchQueryResponse, editSearchBooks } from '../apis/books';
+import { getBookById, createLocalBook, updateBook, executeBorrowSearchCascade, executeCatalogSearchCascade, SearchQueryResponse, editSearchBooks } from '../apis/books';
 import { fetchEditionsForWork } from '../apis/externalBooks';
-import { isValidISBN } from '../../shared/utils/isbnCheck'
 import { Book } from '../../models/book';
 
 export function useAddBookSearch(query: string) {
@@ -46,12 +45,7 @@ export function useAddBook() {
   const queryClient = useQueryClient()
 
   return useMutation ({
-    mutationFn: async ({mode, payload}: {mode: 'manual' | 'ingest'; payload: any}) => {
-    if (mode === 'ingest') {
-      return ingestExternalBook(payload) //Payload = ISBN
-    }
-    return createLocalBook(payload) //Payload = BookResult object
-  },
+    mutationFn: (payload: Partial<Book>) => createLocalBook(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-books'] })
       queryClient.invalidateQueries({ queryKey: ['catalog-search'] })
@@ -67,7 +61,7 @@ export function useEditBook() {
     mutationFn: ({ id, payload }: { id: string; payload: Partial<Book> }) => 
       updateBook(id, payload),
     
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-books'] })
       queryClient.invalidateQueries({ queryKey: ['catalog-search'] })
       queryClient.invalidateQueries({ queryKey: ['borrow-search'] })

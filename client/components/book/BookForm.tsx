@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Book, BookFormProps, Status } from '../../../models/book'
+import { BookFormProps, Status } from '../../../models/book'
 //Component just takes metadata and maps to state, then fires submission call back
  
 
@@ -48,7 +48,6 @@ if (initialValues) {
     onSubmit({title, creator, isbn: isbn ||undefined, status, edition_name, work_id, format, image})
   }
 
-  console.log("👉 Form rendered with initialValues:", initialValues, "Current local ISBN State:", isbn);
   return (
     <form onSubmit={handleFormSubmit} className="book-form-layout">
       {image && (
@@ -57,8 +56,9 @@ if (initialValues) {
         </div>
       )}
     <div>
-    <label>Book Title *</label>
+    <label htmlFor="book-title">Book Title *</label>
     <input 
+      id="book-title"
       type="text"
       value={title}
       onChange={(e) => setTitle(e.target.value)}
@@ -67,8 +67,9 @@ if (initialValues) {
     </div>
 
       <div>
-    <label>Author/Creator *</label>
+    <label htmlFor="book-creator">Author/Creator *</label>
     <input 
+      id="book-creator"
       type="text"
       value={creator}
       onChange={(e) => setCreator(e.target.value)}
@@ -76,8 +77,9 @@ if (initialValues) {
     </div>
 
     <div>
-        <label>ISBN</label>
+        <label htmlFor="book-isbn">ISBN</label>
     <input 
+      id="book-isbn"
       type="text"
       value={isbn}
       onChange={(e) => setIsbn(e.target.value)}
@@ -86,8 +88,9 @@ if (initialValues) {
   
 
     <div>
-      <label>Edition</label>
+      <label htmlFor="book-edition">Edition</label>
       <input 
+        id="book-edition"
         type="text"
         placeholder="e.g. Deluxe, Standard, Abridged"
         value={edition_name}
@@ -96,8 +99,8 @@ if (initialValues) {
     </div>
 
     <div>
-      <label>Format</label>
-      <select value={format} onChange={(e) => setFormat(e.target.value)}>
+      <label htmlFor="book-format">Format</label>
+      <select id="book-format" value={format} onChange={(e) => setFormat(e.target.value)}>
         <option value="Paperback">Paperback</option>
         <option value="Hardcover">Hardcover</option>
         <option value="Graphic Novel">Graphic Novel</option>
@@ -106,8 +109,8 @@ if (initialValues) {
     </div>  
 
     <div>
-        <label>Status</label>
-        <select value={status} onChange={(e) => setStatus(e.target.value as Status)}>
+        <label htmlFor="book-status">Status</label>
+        <select id="book-status" value={status} onChange={(e) => setStatus(e.target.value as Status)}>
           <option value="Available">Available</option>
           <option value="On loan">On loan</option>
           <option value="In transit">In transit</option>
@@ -116,8 +119,9 @@ if (initialValues) {
       </div>
 
       <div>
-        <label>Cover Image URL</label>
+        <label htmlFor="book-image">Cover Image URL</label>
         <input 
+          id="book-image"
           type="text"
           value={image}
           onChange={(e) => setImageUrls(e.target.value)}
@@ -134,4 +138,3 @@ if (initialValues) {
     </form>
   )
 }
-

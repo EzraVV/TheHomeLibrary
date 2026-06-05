@@ -3,12 +3,14 @@ import { useState, useEffect } from 'react'
 import { BookOpen, User, BookMarked, Layers, Search, LogOut, LogIn } from 'lucide-react'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '../../contexts/AuthContext'
 
 export default function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { data: user } = useCurrentUser()
+  const { signOut } = useAuth()
 
   const isActive = (path: string) => {
     return location.pathname === path
@@ -26,7 +28,7 @@ export default function Navbar() {
       // Clear the navbar box if they leave the search page completely
       setInputValue('')
     }
-  }, [location.pathname, currentQueryString])
+  }, [location.pathname, currentQueryString, inputValue])
 
   //Debounce to reduce external calls
   useEffect(() => {
@@ -60,14 +62,12 @@ export default function Navbar() {
     }`
   }
 
-  const handleAuthAction = () => {
+  const handleAuthAction = async () => {
     if (user) {
-      // Simulate Logout
-      localStorage.setItem('active_user_id', 'none')
-      queryClient.invalidateQueries({ queryKey: ['current-user'] })
+      await signOut()
+      queryClient.clear()
       navigate('/signup')
     } else {
-      // Redirect to simulated Login/Signup
       navigate('/signup')
     }
   }

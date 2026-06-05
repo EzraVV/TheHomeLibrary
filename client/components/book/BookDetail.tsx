@@ -1,13 +1,12 @@
 import { useGetBookById } from "../../hooks/useBooks";
 import { useParams } from "react-router";
-import { Book } from "../../../models/book";
 import { atomiseInterests } from "../../../shared/utils/interestProcessing";
 
 export default function BookDetail() {
   const { id } = useParams<{ id: string }>()
 
   const { data: book, isLoading, error } = useGetBookById(id || '')
-  const tags = book?.subject_index ? atomiseInterests(book.subject_index) : [];
+  const tags = book?.search_index ? atomiseInterests(book.search_index) : [];
   const creators = book?.creator ? atomiseInterests(book.creator) : [];
 
   
@@ -15,6 +14,7 @@ export default function BookDetail() {
       return <section>Loading...</section>;
     }
 
+  if (error) return <div role="alert">Unable to load this book.</div>
   if (!book) return <div>Book not found.</div>
 
 
@@ -30,6 +30,11 @@ export default function BookDetail() {
         <p className="text-text-muted text-base leading-relaxed leading-6 whitespace-pre-line">
           {book.title}
         </p>
+        {book.description && (
+          <p className="text-text-muted text-base leading-relaxed whitespace-pre-line">
+            {book.description}
+          </p>
+        )}
           {book.image ? (
             <img src={book.image} alt={book.title} className="w-16 h-24 object-cover mr-4" />
           ) : (
@@ -85,7 +90,7 @@ export default function BookDetail() {
         </p>
         )}
 
-      {book.subject_index && (
+      {book.search_index && (
         <div className="border-t border-border/40 my-4"></div>
       )}
         
@@ -130,4 +135,3 @@ export default function BookDetail() {
     
   )
 }
-

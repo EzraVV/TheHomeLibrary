@@ -6,7 +6,7 @@ interface BorrowedListProps {
   onUpdate:(id: string, fields: Partial<Loan>)=> void
 }
 
-export function BorrowedList({loans, onUpdate}: BorrowedListProps) {
+export function BorrowedList({loans}: BorrowedListProps) {
   return (
     <section className="rounded-md bg-surface p-6 shadow-card border border-border/40 text-left w-full h-full flex flex-col">
       <div className="flex items-center justify-between border-b border-border/40 pb-3 mb-4">
@@ -15,7 +15,7 @@ export function BorrowedList({loans, onUpdate}: BorrowedListProps) {
         </h2>
         {/*Add hook to display users books already on loan, iterate through, flag actions for each*/}
         <span className="text-xs font-semibold text-text-muted bg-background px-2.5 py-0.5 rounded-sm">
-          0 borrowed, 0 requests
+          {loans.length} borrowed or requested
         </span>
       </div>
 
