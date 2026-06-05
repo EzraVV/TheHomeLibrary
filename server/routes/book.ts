@@ -1,6 +1,6 @@
 import express from 'express'
 import * as db from '../db/book'
-import { Book } from '../../models/book'
+import { Book, BookPayload } from '../../models/book'
 import { fetchEditionsForWorkBackend, fetchFromGoogleBooksBackend, fetchFromOpenLibraryBackend, queryWorldCatBackend } from '../services/externalApis'
 import { requireAuth } from '../auth/middleware'
 
@@ -98,7 +98,7 @@ router.get('/work/:work_id/editions', async (req, res, next) => {
   }
 });
 
-// GET /api/v1/books/search/network?query=foo
+// GET /api/v1/books/search/network?query=foo - WorldCat
 router.get('/search/network', async (req, res, next) => {
   try {
     const query = (req.query.query || '') as string
@@ -141,28 +141,6 @@ router.get('/owner/:id', async (req, res) => {
 
 //MUTATIONS AND ACCESS CONTROL
 
-//Shared between update and add: Sanitise book data
-type NewBookInput = Omit<Book, 'book_id'>
-
-function sanitiseBookPayload(body: Record<string, unknown>): Partial<NewBookInput> {
-  const forbidden = ['owner_id', 'id', 'book_id', 'created_at'];
-    
-  const sanitised: Record<string, unknown> = {}
-
-    Object.keys(body).forEach(key => {
-      if (!forbidden.includes(key)) {
-        sanitised[key] = body[key];
-      }
-    });
-
-    sanitised.status = body.status || 'Available';
-    sanitised.condition = body.condition || 'Good';
-    sanitised.updated_at = new Date().toISOString();
-
-  return sanitised;
-}
-
-
 // PATCH /api/v1/books/:id/update
 router.patch(`/:id/update`, requireAuth, async (req, res, next) => {
   try {
@@ -177,7 +155,7 @@ router.patch(`/:id/update`, requireAuth, async (req, res, next) => {
       return res.status(403).json({ error: 'Access Denied: You do not have editing clearance for this inventory asset.' })
     }
 
-    const fieldsToUpdate = sanitiseBookPayload(req.body)
+    const fieldsToUpdate = getBookUpdateFields(req.body)
 
     //You don't get to sign away ownership
     const updatedBook = await db.updateBook(id, requestorUserId, fieldsToUpdate)
@@ -187,20 +165,28 @@ router.patch(`/:id/update`, requireAuth, async (req, res, next) => {
   }
 })
 
+
 // POST /api/v1/books/add
 router.post('/add', requireAuth, async (req, res, next) => {
   try {
-    const activeUserId = req.auth!.userId
-
-    const payload = {
-      ...req.body,
-      owner_id: activeUserId // Forces explicit ownership injection
-    }
-
+    const { title, creator, isbn, format, edition_name, description, condition, search_index, lending_terms, status, image } = req.body as BookPayload
+    const owner_id:  req.auth!.userId, // Forces explicit ownership injection
+    
     const newBookData = {
-      ...sanitiseBookPayload(payload),
+      title,
+      creator,
+      isbn,
+      format, 
+      edition_name,
+      description,
+      condition,
+      search_index,
+      lending_terms,
+      status, 
+      image,
       owner_id: activeUserId,
-    } as Omit<Book, 'book_id'>
+    } 
+
     const savedBook = await db.addBook(newBookData)
     return res.status(201).json(savedBook)
   } catch (e) {

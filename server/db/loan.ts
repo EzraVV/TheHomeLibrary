@@ -1,22 +1,6 @@
 import connection from './connection'
 import { Loan } from '../../models/loan'
 
-const userTable = process.env.NODE_ENV === 'test' ? 'user' : 'profiles'
-
-function generateNextLoanId(lastId: string | null): string {
-  if (!lastId) {
-    return 'ln_00001'
-  }
-  const num = parseInt(lastId.replace('ln_', ''), 10)
-  const next = num + 1
-  return `ln_${next.toString().padStart(5, '0')}`
-}
-
-export async function getLastLoanId(): Promise<string | null> {
-  const row = await connection('loan').orderBy('loan_id', 'desc').first()
-
-  return row ? row.loan_id : null
-}
 
 export async function searchLoans(query: string, userId: string) {
   const q = query.trim()
@@ -42,23 +26,11 @@ export async function searchLoans(query: string, userId: string) {
 }
 
 // Create loan
-export async function createLoan(newLoanData: Omit<Loan, 'loan_id'>): Promise<Loan> {
-  if (process.env.NODE_ENV !== 'test') {
-    const rows = await connection('loan').insert(newLoanData).returning('*')
-    return rows[0]
-  }
-
-  return await connection.transaction(async (loan) => {
-    const lastRow = await loan('loan').orderBy('loan_id', 'desc').first();
-    const lastId = lastRow ? lastRow.loan_id : null;
-
-    const nextId = generateNextLoanId(lastId);
-    
-    const newLoan = { ...newLoanData, loan_id: nextId };
-    await loan('loan').insert(newLoan);
-    
-    return newLoan;
-  });
+export async function createLoan(newLoanData: any): Promise<Loan> {
+  const [createdLoan] = await connection('loan')
+    .insert(newLoanData)
+    .returning('*');
+  return createdLoan;
 }
 
 // Update loan

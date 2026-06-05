@@ -64,3 +64,18 @@ export interface BookLoan {
   created_at: string
   updated_at: string
 }
+
+export interface BookPayload {
+  title: string
+  creator: string  
+  edition_name: string 
+  isbn?: string 
+  format: string 
+  work_id: string
+  description?: string
+  condition?: string
+  search_index?: string 
+  lending_terms?: string //User defined custom rules
+  status: 'Available' | 'On loan' | 'In transit' | 'Reserved'
+  image: string
+}
