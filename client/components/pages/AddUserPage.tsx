@@ -1,9 +1,17 @@
 import { useState } from 'react'
 import { createUser } from '../../apis/users'
 import { useNavigate, Link } from 'react-router-dom'
-import Navbar from '../../components/layout/Navbar'
-import Footer from '../../components/layout/Footer'
-import { UserPlus, Sparkles, Mail, Compass, Info, CheckCircle2, ArrowLeft } from 'lucide-react'
+// import Navbar from '../../components/layout/Navbar'
+// import Footer from '../../components/layout/Footer'
+import {
+  UserPlus,
+  Sparkles,
+  Mail,
+  Compass,
+  Info,
+  CheckCircle2,
+  ArrowLeft,
+} from 'lucide-react'
 
 export default function AddUserPage() {
   const navigate = useNavigate()
@@ -50,7 +58,10 @@ export default function AddUserPage() {
 
     try {
       const interestsArray = form.interests
-        ? form.interests.split(',').map((s) => s.trim()).filter(Boolean)
+        ? form.interests
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean)
         : []
 
       const createdUser = await createUser({
@@ -69,12 +80,11 @@ export default function AddUserPage() {
 
       setSuccess(true)
       setIsSubmitting(false)
-      
+
       // Auto redirect to profile page after 2 seconds
       setTimeout(() => {
         navigate('/profile')
       }, 2000)
-
     } catch (err) {
       setIsSubmitting(false)
       const error = err as { response?: { body?: { error?: string } } }
@@ -89,7 +99,7 @@ export default function AddUserPage() {
 
   return (
     <div className="min-h-screen bg-background text-text-primary font-body flex flex-col">
-      <Navbar />
+      {/* <Navbar /> */}
 
       <main className="flex-grow max-w-md w-full mx-auto px-4 py-12 flex flex-col justify-center items-center">
         {success ? (
@@ -103,7 +113,8 @@ export default function AddUserPage() {
               Welcome to the Library!
             </h2>
             <p className="text-text-muted text-sm mb-6 max-w-xs mx-auto">
-              Your account has been created successfully. We are redirecting you to your cozy new profile...
+              Your account has been created successfully. We are redirecting you
+              to your cozy new profile...
             </p>
             <div className="flex items-center justify-center gap-1.5 text-xs text-primary font-semibold">
               <Sparkles className="w-4 h-4 text-accent" />
@@ -114,10 +125,13 @@ export default function AddUserPage() {
           /* Cozy Form Card */
           <div className="bg-surface rounded-md p-6 md:p-8 shadow-card border border-border/40 w-full relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-primary"></div>
-            
+
             {/* Header info */}
             <div className="mb-6">
-              <Link to="/" className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-primary mb-4 transition-colors">
+              <Link
+                to="/"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-text-muted hover:text-primary mb-4 transition-colors"
+              >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 Back to catalog
               </Link>
@@ -138,16 +152,23 @@ export default function AddUserPage() {
             {error && (
               <div className="bg-danger/10 border border-danger/20 text-danger rounded-sm p-3 mb-6 text-sm flex gap-2 items-start">
                 <Info className="w-5 h-5 flex-shrink-0 stroke-[2.5]" />
-                <p className="font-semibold leading-relaxed text-left">{error}</p>
+                <p className="font-semibold leading-relaxed text-left">
+                  {error}
+                </p>
               </div>
             )}
 
             {/* Registration Form */}
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-left">
-              
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col gap-4 text-left"
+            >
               {/* Username Input */}
               <div className="flex flex-col">
-                <label htmlFor="user_name" className="text-sm font-semibold text-text-muted mb-1.5">
+                <label
+                  htmlFor="user_name"
+                  className="text-sm font-semibold text-text-muted mb-1.5"
+                >
                   Username *
                 </label>
                 <input
@@ -164,7 +185,10 @@ export default function AddUserPage() {
 
               {/* Pronouns Input */}
               <div className="flex flex-col">
-                <label htmlFor="prounouns" className="text-sm font-semibold text-text-muted mb-1.5">
+                <label
+                  htmlFor="prounouns"
+                  className="text-sm font-semibold text-text-muted mb-1.5"
+                >
                   Pronouns
                 </label>
                 <input
@@ -180,7 +204,10 @@ export default function AddUserPage() {
 
               {/* Email Input */}
               <div className="flex flex-col">
-                <label htmlFor="email" className="text-sm font-semibold text-text-muted mb-1.5">
+                <label
+                  htmlFor="email"
+                  className="text-sm font-semibold text-text-muted mb-1.5"
+                >
                   Email Address *
                 </label>
                 <div className="relative">
@@ -200,7 +227,10 @@ export default function AddUserPage() {
 
               {/* Postcode Input */}
               <div className="flex flex-col">
-                <label htmlFor="postcode" className="text-sm font-semibold text-text-muted mb-1.5">
+                <label
+                  htmlFor="postcode"
+                  className="text-sm font-semibold text-text-muted mb-1.5"
+                >
                   NZ Postcode *
                 </label>
                 <div className="relative">
@@ -220,7 +250,10 @@ export default function AddUserPage() {
 
               {/* About Textarea */}
               <div className="flex flex-col">
-                <label htmlFor="about" className="text-sm font-semibold text-text-muted mb-1.5">
+                <label
+                  htmlFor="about"
+                  className="text-sm font-semibold text-text-muted mb-1.5"
+                >
                   About Me
                 </label>
                 <textarea
@@ -236,8 +269,14 @@ export default function AddUserPage() {
 
               {/* Interests Input */}
               <div className="flex flex-col">
-                <label htmlFor="interests" className="text-sm font-semibold text-text-muted mb-1.5">
-                  Interests <span className="text-xs font-normal text-text-muted/65">(comma separated)</span>
+                <label
+                  htmlFor="interests"
+                  className="text-sm font-semibold text-text-muted mb-1.5"
+                >
+                  Interests{' '}
+                  <span className="text-xs font-normal text-text-muted/65">
+                    (comma separated)
+                  </span>
                 </label>
                 <input
                   id="interests"
@@ -273,7 +312,7 @@ export default function AddUserPage() {
         )}
       </main>
 
-      <Footer />
+      {/* <Footer /> */}
     </div>
   )
 }
