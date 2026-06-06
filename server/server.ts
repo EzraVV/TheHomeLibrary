@@ -1,3 +1,6 @@
+import dotenv from 'dotenv'
+dotenv.config({ path: './.env' })
+
 import * as Path from 'node:path'
 import express from 'express'
 import users from './routes/users'
