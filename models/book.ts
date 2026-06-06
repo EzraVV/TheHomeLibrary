@@ -17,7 +17,10 @@ export interface Book {
   updated_at: string
 }
 
-export type BookFormData = Omit<Book, 'book_id' | 'owner_id' | 'search_index' | 'created_at' | 'updated_at'>;
+export type BookFormData = Omit<
+  Book,
+  'book_id' | 'owner_id' | 'search_index' | 'created_at' | 'updated_at'
+>
 
 export interface BookFormProps {
   initialValues?: Partial<Book> | null
@@ -27,18 +30,17 @@ export interface BookFormProps {
 
 export interface BookEditionMinimal {
   edition_name: string
-  isbn:string
+  isbn: string
   image: string
   format: string
 }
 
-export type Status = 'Available' | 'On loan' | 'In transit' | 'Reserved';
+export type Status = 'Available' | 'On loan' | 'In transit' | 'Reserved'
 
-export 
-type SelectableBook = Partial<Book> & {
+export type SelectableBook = Partial<Book> & {
   source?: 'local' | 'google' | 'none' | 'mixed'
-  isLocal?: boolean,
-  googleVolumeId?:string
+  isLocal?: boolean
+  googleVolumeId?: string
   availableIsbns?: string[]
 }
 
@@ -46,20 +48,20 @@ export interface BookLoan {
   book_id: string
   owner_id: string
   title: string
-  creator: string 
+  creator: string
   edition_name: string
-  work_id: string 
-  isbn?: string 
+  work_id: string
+  isbn?: string
   format: string
-  condition?:string
-  search_index?: string 
+  condition?: string
+  search_index?: string
   lending_terms?: string
   status: 'Available' | 'On loan' | 'In transit' | 'Reserved'
   current_loan?: {
-    due_at:string;
-    borrower_name: string;
+    due_at: string
+    borrower_name: string
   }
-  image: string 
+  image: string
   created_at: string
   updated_at: string
 }
