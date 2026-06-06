@@ -1,5 +1,6 @@
 import connection from './connection'
 import type { Book } from '../../models/book'
+import generateWorkId from '../utils/generateWorkId'
 
 
 export async function getAllBooks(): Promise<Book[]> {

@@ -3,8 +3,9 @@ import { BorrowedList }from "./BorrowedList"
 import { Loan } from "../../../models/loan"
 import { useQueryClient } from "@tanstack/react-query"
 import { useSearchLoans } from "../../hooks/useLoans"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useUpdateLoan } from "../../hooks/useLoans"
+import { useAuth } from '../../contexts/AuthContext'
 
 //TO DO - expand from base book components pilfered from User - loan information, edit options, shortcuts to set lending parameters
 //Due dates, recent reviews? Plus books near me to borrow?
@@ -13,34 +14,51 @@ export const BookDashboard = () => {
   const [ searchQuery, setSearchQuery] = useState('')
   const { data: allLoans, isLoading, error } = useSearchLoans(searchQuery, true)
 
-  const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const currentUserId = user?.id
 
-  const currentUserId = 'u_00001'
-  const updateLoanMutation = useUpdateLoan()
+  const queryClient = useQueryClient();
+  const updateLoanMutation = useUpdateLoan();
 
   const handleUpdate = async (loanId: string, fields: Partial<Loan>) => {
-    updateLoanMutation.mutate({loan_id:loanId, fields, user_id: currentUserId})
-    queryClient.invalidateQueries({queryKey:['loans']})
+    updateLoanMutation.mutate({loan_id:loanId, fields, user_id: currentUserId!})
   }
 
-  // Inside your dashboard
-const incomingRequests = filteredLoans.filter(l => l.lender_id === currentUserId && l.status === 'Requested');
-const myActiveBorrows = filteredLoans.filter(l => l.borrower_id === currentUserId && l.status === 'Borrowed');
-// ...etc
-
-  const lent = allLoans?.filter((l)=> l.lender_id === currentUserId) || [];
-  const borrowed = allLoans?.filter((l)=> l.borrower_id === currentUserId) || [];
+  const sections = useMemo(() => {
+  const loans = allLoans || [];
   
+  return {
+    // Lender actions
+    incomingRequests: loans.filter(l => l.lender_id === currentUserId && l.status === 'Requested'),
+    
+    // Lent items
+    lentOut: loans.filter(l => l.lender_id === currentUserId && l.status === 'Borrowed'),
+    
+    // Borrowing actions
+    pendingApprovals: loans.filter(l => l.borrower_id === currentUserId && l.status === 'Requested'),
+    
+    // Currently borrowed
+    activeBorrows: loans.filter(l => l.borrower_id === currentUserId && l.status === 'Borrowed'),
+    
+    // Terminal states
+    history: loans.filter(l => ['Returned', 'Cancelled', 'Declined'].includes(l.status!))
+  };
+}, [allLoans, currentUserId]);
+  const borrowed = useMemo(() => 
+    allLoans?.filter((l) => l.borrower_id === currentUserId) || [], 
+    [allLoans, currentUserId]
+  );
+
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading dashboard.</div>;
 
     return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Owned books component */}
-      <LentList loans = {lent} onUpdate={handleUpdate}/> 
+      <LentList loans = {sections.lentOut} onUpdate={handleUpdate}/> 
       
       {/* The borrowed books component */}
-      <BorrowedList loans = {borrowed} onUpdate={handleUpdate}/> 
+      <BorrowedList loans = {sections.activeBorrows} onUpdate={handleUpdate}/> 
     </div>
   )
 }

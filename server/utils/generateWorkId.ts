@@ -1,22 +1,23 @@
-import { normaliseAuthorName, prepareForHash,  } from '../../shared/utils/formatters';
+import { normaliseAuthorName, prepareForHash } from '../../shared/utils/formatters';
+import crypto from 'node:crypto'; // Use Node's built-in crypto
 
-export async function generateWorkId(title: string, author: string) {
+export function generateWorkId(title: string, author: string): string {
   if (!title) return 'wrk_unknown';
 
-  const cleanTitle = prepareForHash(title)
-  if (!cleanTitle) return 'wrk_unknown'
-  //Strips spaces, stops for hash match step
+  const cleanTitle = prepareForHash(title);
+  if (!cleanTitle) return 'wrk_unknown';
 
   const cleanAuthor = author ? normaliseAuthorName(author) : 'unknown';
   const hashAuthor = cleanAuthor.replace(/[^a-z0-9]/g, '');
   
-  const signature = `${cleanTitle}|${hashAuthor}`
-  const msgUint8 = new TextEncoder().encode(signature);
+  const signature = `${cleanTitle}|${hashAuthor}`;
 
-  const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgUint8);
-  
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  // Use Node's synchronous hashing
+  const hashHex = crypto
+    .createHash('sha256')
+    .update(signature)
+    .digest('hex');
 
   return `wrk_${hashHex.substring(0, 16)}`;
 }
+

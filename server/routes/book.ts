@@ -170,8 +170,7 @@ router.patch(`/:id/update`, requireAuth, async (req, res, next) => {
 router.post('/add', requireAuth, async (req, res, next) => {
   try {
     const { title, creator, isbn, format, edition_name, description, condition, search_index, lending_terms, status, image } = req.body as BookPayload
-    const owner_id:  req.auth!.userId, // Forces explicit ownership injection
-    
+
     const newBookData = {
       title,
       creator,
@@ -184,7 +183,7 @@ router.post('/add', requireAuth, async (req, res, next) => {
       lending_terms,
       status, 
       image,
-      owner_id: activeUserId,
+      owner_id: req.auth!.userId, // Forces explicit ownership injection
     } 
 
     const savedBook = await db.addBook(newBookData)

@@ -27,9 +27,12 @@ export function prepareForSearchIndex(title: string, creator?: string | null, is
     .trim();
 }
 
-export function cleanBookTitle(title:string) {
-  if(!title) return '';
-
+export function cleanBookTitle(title:any):string {
+  if (typeof title !== 'string') {
+    console.warn('cleanBookTitle received non-string:', title);
+    return ''; 
+  }
+  
   let cleanTitle = title
 
   const leadingPattern = /\b\d*(?:st|nd|rd|th)?\s*(paperback|hardcover|edition|volume|vol|copy)\b/gi;
