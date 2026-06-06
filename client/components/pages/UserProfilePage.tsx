@@ -15,7 +15,7 @@ export default function UserProfilePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background text-text-primary font-body flex flex-col">
-        <Navbar />
+        {/* <Navbar /> */}
         <main className="flex-grow max-w-app w-full mx-auto px-4 py-12 flex justify-center items-center">
           <div className="animate-pulse flex flex-col items-center gap-4">
             <div className="w-12 h-12 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
@@ -24,7 +24,7 @@ export default function UserProfilePage() {
             </p>
           </div>
         </main>
-        <Footer />
+        {/* <Footer /> */}
       </div>
     )
   }
