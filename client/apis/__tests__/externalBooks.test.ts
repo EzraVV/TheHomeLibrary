@@ -18,17 +18,7 @@ describe('normaliseBookPayload', () => {
     expect(book.image).toBe('/cover.jpg')
   })
 
-  it('maps OpenLibrary and Google payloads', () => {
-    const openLibrary = normaliseBookPayload(
-      {
-        key: '/works/OL1W',
-        title: 'Open Book',
-        author_name: ['One', 'Two'],
-        isbn: ['978-0-123456-47-2'],
-        cover_i: 42,
-      },
-      'openlibrary',
-    )
+  it('maps Google Books metadata used by the add-book confirmation form', () => {
     const google = normaliseBookPayload(
       {
         id: 'google-id',
@@ -36,17 +26,17 @@ describe('normaliseBookPayload', () => {
           title: 'Google Book',
           authors: ['Google Author'],
           industryIdentifiers: [{ identifier: '0123456479' }],
-          imageLinks: { thumbnail: '/google.jpg' },
+          imageLinks: { thumbnail: 'http://example.com/google.jpg' },
+          description: 'A Google Books description.',
         },
       },
       'google',
     )
 
-    expect(openLibrary.work_id).toBe('OL1W')
-    expect(openLibrary.creator).toBe('One, Two')
-    expect(openLibrary.isbn).toBe('9780123456472')
     expect(google.googleVolumeId).toBe('google-id')
     expect(google.creator).toBe('Google Author')
+    expect(google.image).toBe('https://example.com/google.jpg')
+    expect(google.description).toBe('A Google Books description.')
   })
 
   it('returns safe defaults for malformed input', () => {

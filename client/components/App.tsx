@@ -10,6 +10,7 @@ const BookDetail = lazy(() => import('./book/BookDetail'))
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const SupportPage = lazy(() => import('./pages/SupportPage'))
 const AuthConfirmPage = lazy(() => import('./pages/AuthConfirmPage'))
+const MyBooksPage = lazy(() => import('./pages/MyBooksPage'))
 const ProtectedRoute = lazy(() => import('./auth/ProtectedRoute'))
 const AddBook = lazy(() =>
   import('./book/AddBook').then((module) => ({ default: module.AddBook })),
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/signup" element={<AddUserPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<UserProfilePage />} />
+          <Route path="/my-books" element={<MyBooksPage />} />
           <Route path="/books/dashboard" element={<BookDashboard />} />
           <Route path="/books/add" element={<AddBook />} />
           <Route path="/books/:id/update" element={<EditBook />} />

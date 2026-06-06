@@ -6,6 +6,9 @@ type BookPayload = Record<string, unknown> & {
     imageLinks?: { thumbnail?: string; smallThumbnail?: string }
     industryIdentifiers?: unknown
     title?: string
+    description?: string
+    publishedDate?: string
+    printType?: string
   }
 }
 
@@ -49,25 +52,14 @@ export function normaliseBookPayload(
     resolvedImage = String(book.image || book.coverUrl || book.cover || '')
 }
 
-  if (source === 'openlibrary') {
-    const coverId = book.cover_i || (Array.isArray(book.covers) && book.covers[0]) || book.cover_id;
-    
-    if (coverId) {
-      resolvedImage = `https://covers.openlibrary.org/b/id/${coverId}-M.jpg`;
-    } 
-    // If the record has no cover ID but has an ISBN, build an ISBN image path!
-    else if (coreIsbn) {
-      resolvedImage = `https://covers.openlibrary.org/b/isbn/${coreIsbn}-M.jpg`;
-    }
-  } else if (source === 'google' && book.volumeInfo?.imageLinks) {
+  if (source === 'google' && book.volumeInfo?.imageLinks) {
     resolvedImage = book.volumeInfo.imageLinks.thumbnail || book.volumeInfo.imageLinks.smallThumbnail || '';
+    resolvedImage = resolvedImage.replace(/^http:/, 'https:')
   }
 
   let resolvedCreator = 'Unknown';
   if (source === 'local' && book.creator) {
     resolvedCreator = String(book.creator)
-  } else if (Array.isArray(book.author_name)) {
-    resolvedCreator = book.author_name.join(', ');
   } else if (Array.isArray(book.volumeInfo?.authors)) {
     resolvedCreator = book.volumeInfo.authors.join(', ');
   } else if (typeof book.creator === 'string') {
@@ -85,9 +77,6 @@ export function normaliseBookPayload(
   let computedRedirectUrl = undefined;
   if (coreIsbn) {
     computedRedirectUrl = `https://www.worldcat.org/isbn/${coreIsbn}`;
-  } else if (source === 'openlibrary' && cleanWorkId) {
-    // If no ISBN exists, point to the OpenLibrary Work Page so they can browse editions!
-    computedRedirectUrl = `https://openlibrary.org/works/${cleanWorkId}`;
   }
 
   return {
@@ -103,6 +92,7 @@ export function normaliseBookPayload(
     edition_name: String(book.edition_name || '').trim(),
     format: String(book.format || 'Paperback'),
     image: resolvedImage,
+    description: String(book.description || book.volumeInfo?.description || '').trim(),
     redirectUrl: computedRedirectUrl
   };
 }
