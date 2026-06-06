@@ -41,9 +41,7 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
 
   // Fire search cascade custom react-query hook
   const localMatches = (data?.localData || []).map(b => ({ ...normaliseBookPayload(b, 'local'), isLocal: true }));
-  const externalSource =
-    data.externalSource === 'google' ? 'google' : 'openlibrary'
-  const externalMatches = (data?.externalData || []).map(b => ({ ...normaliseBookPayload(b, externalSource), isLocal: false }));
+  const externalMatches = (data?.externalData || []).map(b => ({ ...normaliseBookPayload(b, 'google'), isLocal: false }));
 
   //Default collapse external results if something matches locally
   const [isExpanded, setIsExpanded] = useState<boolean>(() => {
@@ -107,7 +105,7 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
             className="w-full flex items-center justify-between font-semibold text-sm text-text-muted hover:text-text-primary transition-colors focus:outline-none"
           >
             <span className="flex items-center gap-2">
-              Not what you were after? Search Global Registries 
+              Not what you were after? Search Google Books
               <span className="text-xs bg-background border px-1.5 py-0.5 rounded text-text-muted">
                 {externalMatches.length} results
               </span>
@@ -126,8 +124,8 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
               <ul className="divide-y divide-border opacity-90">
                 {externalMatches.map((book, i: number) => {
                   const uniqueKey = book.isbn || book.work_id || `external-${i}`;
-                  const itemLinkUrl = book.isbn 
-                    ? `https://www.worldcat.org/isbn/${book.isbn}`
+                  const itemLinkUrl = book.googleVolumeId
+                    ? `https://books.google.com/books?id=${book.googleVolumeId}`
                     : null;
 
                   return (

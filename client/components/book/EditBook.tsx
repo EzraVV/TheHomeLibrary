@@ -76,7 +76,7 @@ export function EditBook() {
     {/* Scrollable area for results: Keeps the form from moving */}
     <div className="flex-1 overflow-y-auto max-h-[70vh] space-y-3">
       {results.map((item, i) => {
-        const book = normaliseBookPayload(item, 'openlibrary')
+        const book = normaliseBookPayload(item, 'google')
 
   return (
         <button
