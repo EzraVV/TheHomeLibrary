@@ -4,6 +4,8 @@ import { BookFormProps, Status } from '../../../models/book'
  
 
 export default function BookForm({initialValues, onSubmit, isSaving}: BookFormProps) {
+  const fieldClass = 'min-h-11 w-full rounded-sm border border-border bg-background/40 px-3 py-2 text-sm outline-none focus:border-primary'
+  const labelClass = 'mb-1 block text-sm font-semibold text-text-primary'
 //Set up state from variables, expand these to eventually work for book fully
   const [title, setTitle] = useState('')
   const [creator, setCreator] = useState('')//One day will be able to convey illustrator, editor etc
@@ -13,6 +15,7 @@ export default function BookForm({initialValues, onSubmit, isSaving}: BookFormPr
   const [edition_name, setEdition] = useState('')
   const [format, setFormat] = useState('')
   const [image, setImageUrls] = useState('')
+  const [description, setDescription] = useState('')
 
   useEffect(() => {
 if (initialValues) {
@@ -23,6 +26,7 @@ if (initialValues) {
       setFormat(initialValues.format || 'Paperback')
       setImageUrls(initialValues.image || '')
       setStatus(initialValues.status || 'Available')
+      setDescription(initialValues.description || '')
 
       let incomingIsbn = ''
       if (Array.isArray(initialValues.isbn)) {
@@ -45,62 +49,78 @@ if (initialValues) {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit({title, creator, isbn: isbn ||undefined, status, edition_name, work_id, format, image})
+    onSubmit({title, creator, isbn: isbn ||undefined, status, edition_name, work_id, format, image, description})
   }
 
   return (
-    <form onSubmit={handleFormSubmit} className="book-form-layout">
+    <form onSubmit={handleFormSubmit} className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {image && (
-        <div className="form-image-preview">
-          <img src={image} alt="Cover layout preview" style={{ maxWidth: '100px', borderRadius: '4px' }} />
+        <div className="md:col-span-2">
+          <img src={image} alt="Cover layout preview" className="h-44 rounded-sm object-cover shadow-card" />
         </div>
       )}
     <div>
-    <label htmlFor="book-title">Book Title *</label>
+    <label htmlFor="book-title" className={labelClass}>Book Title *</label>
     <input 
       id="book-title"
       type="text"
       value={title}
       onChange={(e) => setTitle(e.target.value)}
+      className={fieldClass}
       required
       />
     </div>
 
       <div>
-    <label htmlFor="book-creator">Author/Creator *</label>
+    <label htmlFor="book-creator" className={labelClass}>Author/Creator *</label>
     <input 
       id="book-creator"
       type="text"
       value={creator}
       onChange={(e) => setCreator(e.target.value)}
+      className={fieldClass}
+      required
       />
     </div>
 
     <div>
-        <label htmlFor="book-isbn">ISBN</label>
+        <label htmlFor="book-isbn" className={labelClass}>ISBN</label>
     <input 
       id="book-isbn"
       type="text"
       value={isbn}
       onChange={(e) => setIsbn(e.target.value)}
+      className={fieldClass}
+      />
+    </div>
+
+    <div className="md:col-span-2">
+      <label htmlFor="book-description" className={labelClass}>Description</label>
+      <textarea
+        id="book-description"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        rows={5}
+        className={fieldClass}
       />
     </div>
   
 
     <div>
-      <label htmlFor="book-edition">Edition</label>
+      <label htmlFor="book-edition" className={labelClass}>Edition</label>
       <input 
         id="book-edition"
         type="text"
         placeholder="e.g. Deluxe, Standard, Abridged"
         value={edition_name}
         onChange={(e) => setEdition(e.target.value)}
+        className={fieldClass}
         />
     </div>
 
     <div>
-      <label htmlFor="book-format">Format</label>
-      <select id="book-format" value={format} onChange={(e) => setFormat(e.target.value)}>
+      <label htmlFor="book-format" className={labelClass}>Format</label>
+      <select id="book-format" value={format} onChange={(e) => setFormat(e.target.value)} className={fieldClass}>
         <option value="Paperback">Paperback</option>
         <option value="Hardcover">Hardcover</option>
         <option value="Graphic Novel">Graphic Novel</option>
@@ -109,8 +129,8 @@ if (initialValues) {
     </div>  
 
     <div>
-        <label htmlFor="book-status">Status</label>
-        <select id="book-status" value={status} onChange={(e) => setStatus(e.target.value as Status)}>
+        <label htmlFor="book-status" className={labelClass}>Status</label>
+        <select id="book-status" value={status} onChange={(e) => setStatus(e.target.value as Status)} className={fieldClass}>
           <option value="Available">Available</option>
           <option value="On loan">On loan</option>
           <option value="In transit">In transit</option>
@@ -119,18 +139,20 @@ if (initialValues) {
       </div>
 
       <div>
-        <label htmlFor="book-image">Cover Image URL</label>
+        <label htmlFor="book-image" className={labelClass}>Cover Image URL</label>
         <input 
           id="book-image"
           type="text"
           value={image}
           onChange={(e) => setImageUrls(e.target.value)}
+          className={fieldClass}
         />
       </div>
 
     <button
       type="submit"
       disabled={isSaving}
+      className="min-h-11 rounded-sm bg-primary px-4 py-2 font-semibold text-white hover:opacity-90 md:col-span-2"
       >
         {isSaving ? 'Saving to library...' : 'Save book to shelf'}
       </button>

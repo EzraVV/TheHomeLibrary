@@ -59,6 +59,19 @@ describe('MVP API contracts', () => {
     expect(response.status).toBe(201)
     expect(response.body.book_id).toMatch(/^bk_/)
     expect(response.body.owner_id).toBe(user.user_id)
+
+    const ownedBooks = await request(server).get(
+      `/api/v1/books/owner/${user.user_id}`,
+    )
+    expect(ownedBooks.status).toBe(200)
+    expect(ownedBooks.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          book_id: response.body.book_id,
+          owner_id: user.user_id,
+        }),
+      ]),
+    )
   })
 
   it('rejects protected mutations without an authenticated user', async () => {

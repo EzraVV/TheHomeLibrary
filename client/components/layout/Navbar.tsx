@@ -90,7 +90,7 @@ export default function Navbar() {
             <Layers className="w-4 h-4" />
             <span>Discover</span>
           </Link>
-          <Link to="/my-books" className={linkClass('/my-books')}>
+          <Link to={user ? '/my-books' : '/signup'} className={linkClass('/my-books')}>
             <BookMarked className="w-4 h-4" />
             <span>My Books</span>
           </Link>

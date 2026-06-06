@@ -1,7 +1,7 @@
 import express from 'express'
 import * as db from '../db/book'
 import { Book } from '../../models/book'
-import { fetchEditionsForWorkBackend, fetchFromGoogleBooksBackend, fetchFromOpenLibraryBackend, queryWorldCatBackend } from '../services/externalApis'
+import { fetchFromGoogleBooksBackend } from '../services/externalApis'
 import { requireAuth } from '../auth/middleware'
 
 const router = express.Router()
@@ -29,11 +29,15 @@ router.get('/search', async (req, res) => {
   }
 })
 
-//Cataloguing search - cascade to OpenLibrary, Google Books
+// Cataloguing search: local inventory plus server-proxied Google Books metadata.
 //Get /api/v1/books/search/registries?query=foo
 router.get(`/search/registries`, async (req, res, next) => {
   try {
     const query = (req.query.query || req.query.q || '') as string
+    if (query.trim().length < 3) {
+      return res.status(400).json({ error: 'Search query must be at least 3 characters' })
+    }
+
     let localMatches: Book[] = []
     try {
       localMatches = await db.searchBook(query) || []
@@ -41,71 +45,26 @@ router.get(`/search/registries`, async (req, res, next) => {
       localMatches = []
     }
 
-    let openLibraryResults = []
-    let googleResults = []
-
-    // Safe OpenLibrary Fetch
-    try {
-      openLibraryResults = await fetchFromOpenLibraryBackend(query) || []
-    } catch {
-      openLibraryResults = []
-    }
-
-    // Safe Google Books Fetch (Damn 429 Quota Limits)
-    try {
-      googleResults = await fetchFromGoogleBooksBackend(query) || []
-    } catch {
-      googleResults = []
-    }
-
-    // Combine registries that survived the network request
-    const externalResults = [...openLibraryResults, ...googleResults]
+    const googleResults = await fetchFromGoogleBooksBackend(query)
 
     let unifiedSource = 'none'
-    if (localMatches.length > 0 && externalResults.length > 0) {
+    if (localMatches.length > 0 && googleResults.length > 0) {
       unifiedSource = 'mixed'
     } else if (localMatches.length > 0) {
       unifiedSource = 'local'
-    } else if (externalResults.length > 0) {
-      unifiedSource = 'openlibrary' // Default fallback tag for external assets
+    } else if (googleResults.length > 0) {
+      unifiedSource = 'google'
     }
-    
-    // Determine Tracking string for frontend metadata labels
-    let primaryExternalSource = 'none'
-    if (openLibraryResults.length > 0) primaryExternalSource = 'openlibrary'
-    else if (googleResults.length > 0) primaryExternalSource = 'google'
+
     return res.json({ 
       source: unifiedSource, 
-      externalSource: primaryExternalSource,
+      externalSource: googleResults.length > 0 ? 'google' : 'none',
       localData: localMatches, 
-      externalData: externalResults,
-      data: [...localMatches, ...externalResults]
+      externalData: googleResults,
+      data: [...localMatches, ...googleResults]
     })
   } catch (e) {
     console.error("Fatal crash in registry router cascade root:", e)
-    next(e)
-  }
-})
-
-//Editions search for Open Library
-router.get('/work/:work_id/editions', async (req, res, next) => {
-  try {
-    const { work_id } = req.params;
-    const editions = await fetchEditionsForWorkBackend(work_id); 
-    return res.json(editions);
-  } catch (e) {
-    next(e);
-  }
-});
-
-// GET /api/v1/books/search/network?query=foo
-router.get('/search/network', async (req, res, next) => {
-  try {
-    const query = (req.query.query || '') as string
-    const networkMatches = await queryWorldCatBackend(query)
-    
-      return res.json(networkMatches) 
-  } catch (e) {
     next(e)
   }
 })
@@ -216,7 +175,7 @@ router.get('/search/metadata', async (req, res) => {
       return res.status(400).json({ error: 'Missing query' });
     }
 
-    const results = await fetchFromOpenLibraryBackend(q);
+    const results = await fetchFromGoogleBooksBackend(q);
     res.json(results);
   } catch (error) {
     res.status(500).json({ error: 'Proxy failed' });

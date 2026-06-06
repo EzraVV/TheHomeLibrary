@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getBookById, createLocalBook, updateBook, executeBorrowSearchCascade, executeCatalogSearchCascade, SearchQueryResponse, editSearchBooks } from '../apis/books';
-import { fetchEditionsForWork } from '../apis/externalBooks';
 import { Book } from '../../models/book';
 
 export function useAddBookSearch(query: string) {
@@ -22,25 +21,6 @@ export function useBorrowBookSearch (query: string ) {
   })
 }
 
-export function useBookEditions(workId: string | undefined, options = { selectOnlyIsbns: false }) {
-  const cleanId = workId ? workId.replace('/works/', '').trim() : '';
-
-  return useQuery({
-    queryKey: ['book-editions', cleanId],
-    enabled: cleanId.length > 0,
-    queryFn: () => fetchEditionsForWork(cleanId),
-    select: (editions) => {
-      // If we need the clean list, return only the unique metadata objects
-      const uniqueEditions = editions.filter((v, i, a) => a.findIndex(t => t.isbn === v.isbn) === i);
-      
-      if (options.selectOnlyIsbns) {
-        return uniqueEditions.map(e => e.isbn);
-      }
-      return uniqueEditions;
-    }
-  });
-}
-
 export function useAddBook() {
   const queryClient = useQueryClient()
 
@@ -50,6 +30,7 @@ export function useAddBook() {
       queryClient.invalidateQueries({ queryKey: ['all-books'] })
       queryClient.invalidateQueries({ queryKey: ['catalog-search'] })
       queryClient.invalidateQueries({ queryKey: ['borrow-search'] })
+      queryClient.invalidateQueries({ queryKey: ['user-books'] })
     }
   })
 }

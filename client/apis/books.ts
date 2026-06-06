@@ -129,7 +129,7 @@ export async function executeBorrowSearchCascade(rawQuery: string): Promise<Sear
     } else if (localDataResult.length > 0) {
       sourceResult = 'local';
     } else if (externalDataResult.length > 0) {
-      sourceResult = 'openlibrary';
+      sourceResult = 'google';
     }
 
     // Try to extract an ISBN from the top match if none yet exists
@@ -175,7 +175,7 @@ export async function editSearchBooks(query: string) {
   
   const response = await request
     .get(`/api/v1/books/search/metadata`)
-    .query({ q: encodeURIComponent(query) }); 
+    .query({ q: query });
     
   return response.body || [];
 }
