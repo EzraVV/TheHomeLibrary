@@ -7,6 +7,7 @@ import { Book } from '../../models/book'
 import BookCard from '../components/BookCard'
 import { Library, Info, Sparkles } from 'lucide-react'
 import { useCurrentUser } from '../hooks/useCurrentUser'
+import BookDetailModal from '../components/book/BookDetailModal'
 
 export default function HomePage() {
   const {
@@ -26,6 +27,7 @@ export default function HomePage() {
 
   // Simulated borrowing loading state for specific books
   const [borrowingId, setBorrowingId] = useState<string | null>(null)
+  const [selectedBookId, setSelectedBookId] = useState<string | null>(null)
 
   const handleBorrow = (bookId: string) => {
     setBorrowingId(bookId)
@@ -133,12 +135,13 @@ export default function HomePage() {
             availableBooks &&
             availableBooks.length > 0 && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {availableBooks.map((book: any, i: number) => (
+                {availableBooks.map((book: Book, i: number) => (
                   <BookCard
-                    key={book.id || book.isbn || `catalogue-${i}`}
+                    key={book.book_id || book.isbn || `catalogue-${i}`}
                     book={book}
                     onBorrow={handleBorrow}
-                    isLoading={borrowingId === book.id}
+                    onSelect={() => setSelectedBookId(book.book_id)}
+                    isLoading={borrowingId === book.book_id}
                   />
                 ))}
               </div>
@@ -146,7 +149,16 @@ export default function HomePage() {
         </div>
       </main>
 
-    {/*  <Footer /> */}
+      {selectedBookId && (
+        <BookDetailModal
+          bookId={selectedBookId}
+          onBorrow={handleBorrow}
+          isLoading={borrowingId === selectedBookId}
+          onClose={() => setSelectedBookId(null)}
+        />
+      )}
+
+      {/*  <Footer /> */}
     </div>
   )
 }
