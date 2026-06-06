@@ -14,7 +14,7 @@ type BookPayload = Record<string, unknown> & {
 
 export function normaliseBookPayload(
   input: unknown,
-  source: 'local' | 'openlibrary' | 'google' | 'worldcat' | 'none' | 'mixed',
+  source: 'local' | 'google' | 'none' | 'mixed',
 ): SelectableBook {
   const book: BookPayload =
     input && typeof input === 'object' ? (input as BookPayload) : {}
@@ -66,18 +66,12 @@ export function normaliseBookPayload(
     resolvedCreator = book.creator;
   }
 
-  // If the book lacks an OpenLibrary work key, create a safe fallback string
   const cleanWorkId =
     typeof book.key === 'string'
       ? book.key.replace('/works/', '')
       : typeof book.work_id === 'string'
         ? book.work_id
         : undefined
-
-  let computedRedirectUrl = undefined;
-  if (coreIsbn) {
-    computedRedirectUrl = `https://www.worldcat.org/isbn/${coreIsbn}`;
-  }
 
   return {
     ...book,
@@ -93,6 +87,5 @@ export function normaliseBookPayload(
     format: String(book.format || 'Paperback'),
     image: resolvedImage,
     description: String(book.description || book.volumeInfo?.description || '').trim(),
-    redirectUrl: computedRedirectUrl
   };
 }

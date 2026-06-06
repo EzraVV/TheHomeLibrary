@@ -1,5 +1,5 @@
 //Syntax validation of ISBNs (they may not have been assigned/used yet)
-//User entered ISBNs will need an additional validation check against openlib/google books data
+// User entered ISBNs can be checked against Google Books after syntax validation.
 
 export function isValidISBN(isbn: string) {
 

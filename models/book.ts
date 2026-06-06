@@ -36,11 +36,10 @@ export type Status = 'Available' | 'On loan' | 'In transit' | 'Reserved';
 
 export 
 type SelectableBook = Partial<Book> & {
-  source?: 'local' | 'openlibrary' | 'google' | 'worldcat' | 'none' | 'mixed'
+  source?: 'local' | 'google' | 'none' | 'mixed'
   isLocal?: boolean,
   googleVolumeId?:string
   availableIsbns?: string[]
-  redirectUrl?: string
 }
 
 export interface BookLoan {

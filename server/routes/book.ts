@@ -1,7 +1,11 @@
 import express from 'express'
 import * as db from '../db/book'
 import { Book } from '../../models/book'
-import { fetchFromGoogleBooksBackend } from '../services/externalApis'
+import {
+  enrichBooksWithGoogleMetadata,
+  fetchFromGoogleBooksBackend,
+  getGoogleMetadataForBook,
+} from '../services/externalApis'
 import { requireAuth } from '../auth/middleware'
 
 const router = express.Router()
@@ -10,7 +14,8 @@ const router = express.Router()
 router.get('/', async (req, res) => {
   try {
     const books = await db.getAllBooks()
-    res.json(books)
+    const enrichedBooks = await enrichBooksWithGoogleMetadata(books)
+    res.json(enrichedBooks)
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Failed to fetch books' })
@@ -22,7 +27,8 @@ router.get('/search', async (req, res) => {
   const q = (req.query.query || req.query.q || '') as string
   try {
     const books = await db.searchBook(q)
-    res.json(books)
+    const enrichedBooks = await enrichBooksWithGoogleMetadata(books)
+    res.json(enrichedBooks)
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Search failed' })
@@ -40,7 +46,8 @@ router.get(`/search/registries`, async (req, res, next) => {
 
     let localMatches: Book[] = []
     try {
-      localMatches = await db.searchBook(query) || []
+      const books = await db.searchBook(query) || []
+      localMatches = await enrichBooksWithGoogleMetadata(books)
     } catch {
       localMatches = []
     }
@@ -78,7 +85,8 @@ router.get('/item/:id', async (req, res) => {
       return res.status(404).json({ error: 'Book not found' })
     }
 
-    res.json(book)
+    const metadata = await getGoogleMetadataForBook(book)
+    res.json(metadata ? { ...book, ...metadata } : book)
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Failed to fetch book' })
@@ -90,7 +98,8 @@ router.get('/owner/:id', async (req, res) => {
   try {
     const ownerId = req.params.id
     const books = await db.getBooksByOwner(ownerId)
-    res.json(books)
+    const enrichedBooks = await enrichBooksWithGoogleMetadata(books)
+    res.json(enrichedBooks)
   } catch (err) {
     console.error(err)
     res.sendStatus(500)

@@ -1,17 +1,14 @@
 import request from 'superagent'
 import { Book, SelectableBook } from '../../models/book'
-import { normaliseBookPayload } from '../../shared/utils/normaliseBookPayload';
-import { isValidISBN } from '../../shared/utils/isbnCheck'
 import { withAccessToken } from '../lib/authenticatedRequest'
 
 
 export interface SearchQueryResponse {
-  source: 'local' | 'openlibrary' | 'google' | 'mixed' | 'none' | 'worldcat';
+  source: 'local' | 'google' | 'mixed' | 'none';
   data?: unknown[]
   localData?: unknown[]
   externalData?: unknown[]
-  externalSource?: 'openlibrary' | 'google' | 'none' | 'mixed';
-  redirectUrl?: string;
+  externalSource?: 'google' | 'none';
 }
 
 const baseUrl = '/api/v1/books'
@@ -89,8 +86,7 @@ export async function executeBorrowSearchCascade(rawQuery: string): Promise<Sear
 
   let localDataResult: unknown[] = []
   let externalDataResult: unknown[] = []
-  let sourceResult: 'local' | 'openlibrary' | 'google' | 'mixed' | 'none' | 'worldcat' = 'none'
-  let redirectUrlResult: string | undefined = undefined
+  let sourceResult: 'local' | 'google' | 'mixed' | 'none' = 'none'
 
   // Local Search Pass
   try {
@@ -102,8 +98,6 @@ export async function executeBorrowSearchCascade(rawQuery: string): Promise<Sear
   } catch (err) {
     console.error("Backend local search route failed:", err);
   }
-
-  let targetIsbn = isValidISBN(query) ? query : null;
 
   // Aggregate External Repositories via Shared Gate
   try {
@@ -132,40 +126,14 @@ export async function executeBorrowSearchCascade(rawQuery: string): Promise<Sear
       sourceResult = 'google';
     }
 
-    // Try to extract an ISBN from the top match if none yet exists
-    const rawTopMatch = externalDataResult?.[0];
-    if (!targetIsbn && rawTopMatch) {
-      const topMatch = normaliseBookPayload(rawTopMatch, registryResult.source);
-      if (topMatch && topMatch.isbn) {
-        targetIsbn = topMatch.isbn;
-      }
-    }
   } catch (err) {
     console.error('⚠️ External lookup translation step encountered an error:', err);
-  }
-
-  // Evaluate Redirect Safety Gates
-  if (targetIsbn && isValidISBN(targetIsbn)) {
-    if (localDataResult.length === 0) {
-      sourceResult = 'worldcat';
-      redirectUrlResult = `https://www.worldcat.org/isbn/${targetIsbn}`;
-    } else {
-      // Local data items! Demote source back to mixed and drop the redirect loop
-      sourceResult = 'mixed';
-      redirectUrlResult = undefined; 
-    }
-  }
-
-  // Final Emergency Safety Valve: If any local records survived, redirectUrl MUST be killed
-  if (localDataResult && localDataResult.length > 0) {
-    redirectUrlResult = undefined;
   }
 
   return { 
     source: sourceResult, 
     localData: localDataResult, 
     externalData: externalDataResult,
-    redirectUrl: redirectUrlResult
   };
 }
 

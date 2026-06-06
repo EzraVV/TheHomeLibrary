@@ -19,6 +19,7 @@ database.
 - **Profile View:** Developed the `UserProfilePage.tsx` along with responsive profile cards showing bio info, reading interests badges, and owned book lists.
 - **Authentication:** Supabase Auth provides confirmed email/password signup, login, logout, and persisted sessions.
 - **Database:** Supabase Postgres stores application data while Express verifies authenticated requests and enforces ownership.
+- **Book Metadata:** Express enriches stored catalogue records from the keyed Google Books API while preserving local ownership, condition, status, and lending terms.
 
 
 ---
@@ -38,7 +39,7 @@ This codebase is organized into logical layers, separating frontend concerns, ba
   - `book/`: `AddBook.tsx` and `BookForm.tsx` managing library ingest and updates.
   - `user/`: Header, Bio, Borrowed, and Owned lists representing segmented user profile sections.
 - **APIs & State Hooks (`client/apis/` & `client/hooks/`):** Consumes JSON API endpoints:
-  - `books.ts`, `externalBooks.ts`, and `users.ts`: Handles requests mapping to local Express routers and external search providers (OpenLibrary/Google Books).
+  - `books.ts` and `users.ts`: Handles requests mapping to local Express routers. Express proxies all external metadata lookups to the keyed Google Books API.
   - `useBooks.ts` & `useUserBooks.ts`: Dynamic React Query (TanStack Query) custom hooks for responsive query caching and mutation state.
 
 ### 2. Backend Server (`server/`)
