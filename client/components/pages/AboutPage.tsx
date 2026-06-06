@@ -1,4 +1,5 @@
 import EzraImg from '../../assests/images/ezrapfp.jpg'
+import EdenImg from '../../assests/images/edenpfp.png'
 
 export default function AboutPage() {
   const team = [
@@ -10,8 +11,9 @@ export default function AboutPage() {
     },
     {
       name: 'Eden',
-      image: '/images/eden.jpg',
-      blurb: 'aboutme2',
+      image: EdenImg,
+      blurb:
+        'I am interested in music production, painting, occultism and spirituality. I enjoy spending time with friends, gaming and deep diving niche topics. I am not particularly a big reader myself, however the reason I chose to participate in The Home Library project was to challenge myself in the development process, and to learn more about the books and interests of my cohort (and hopefully in the future, others too!)',
     },
     {
       name: 'Jen',
