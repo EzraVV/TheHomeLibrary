@@ -19,7 +19,7 @@ export default function AddUserPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { signIn, signUp } = useAuth()
-  const [mode, setMode] = useState<'signup' | 'login'>('signup')
+  const [mode, setMode] = useState<'signup' | 'login'>('login')
   const [form, setForm] = useState({
     user_name: '',
     pronouns: '',
