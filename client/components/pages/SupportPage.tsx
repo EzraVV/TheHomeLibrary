@@ -2,6 +2,9 @@ import { useState } from 'react'
 import LoadingSpinner from '../LoadingSpinner'
 
 export default function SupportPage() {
+  const fieldClass =
+    'w-full rounded-sm border-2 border-secondary/50 bg-white px-3.5 py-2.5 text-text-primary placeholder:text-text-muted/70 shadow-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/30'
+
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -12,6 +15,12 @@ export default function SupportPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+
+    if (!form.name.trim() || !form.email.trim() || !form.message.trim()) {
+      setError('Please complete all fields before submitting.')
+      return
+    }
+
     setIsSending(true)
     setError(null)
 
@@ -23,6 +32,7 @@ export default function SupportPage() {
       })
       if (!res.ok) throw new Error('Support request failed')
       setForm({ name: '', email: '', message: '' })
+      window.alert('Submitted successfully')
     } catch {
       setError('Failed to send support ticket. Please try again.')
     } finally {
@@ -39,28 +49,40 @@ export default function SupportPage() {
         onSubmit={handleSubmit}
         className="bg-surface border border-border rounded-lg p-6 shadow-sm max-w-lg mx-auto"
       >
-        <input
-          type="text"
-          placeholder="Your name"
-          className="input mb-4 w-full"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-        />
+        <label className="mb-4 block font-medium text-text-primary">
+          Your name
+          <input
+            type="text"
+            placeholder="Enter your name"
+            className={`${fieldClass} mt-2`}
+            value={form.name}
+            required
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+        </label>
 
-        <input
-          type="email"
-          placeholder="Your email"
-          className="input mb-4 w-full"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-        />
+        <label className="mb-4 block font-medium text-text-primary">
+          Your email
+          <input
+            type="email"
+            placeholder="Enter your email"
+            className={`${fieldClass} mt-2`}
+            value={form.email}
+            required
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+        </label>
 
-        <textarea
-          placeholder="Describe your issue"
-          className="input mb-4 w-full h-32"
-          value={form.message}
-          onChange={(e) => setForm({ ...form, message: e.target.value })}
-        />
+        <label className="mb-4 block font-medium text-text-primary">
+          How can we help?
+          <textarea
+            placeholder="Describe your issue"
+            className={`${fieldClass} mt-2 h-32 resize-y`}
+            value={form.message}
+            required
+            onChange={(e) => setForm({ ...form, message: e.target.value })}
+          />
+        </label>
 
         <button className="btn-primary w-full" disabled={isSending}>
           {isSending ? <LoadingSpinner /> : 'Submit'}
