@@ -8,11 +8,10 @@ interface BookDetailsProp {
   isLoading?: boolean
 }
 
-export default function BookDetail({
-  bookId,
-  onBorrow,
-  isLoading,
-}: BookDetailsProp) {
+export default function BookDetail(
+  { bookId, onBorrow, isLoading }: BookDetailsProp,
+  error: Error,
+) {
   const params = useParams<{ id: string }>()
 
   const id = bookId ?? params.id ?? ''
@@ -25,6 +24,7 @@ export default function BookDetail({
     return <section>Loading...</section>
   }
 
+  if (error) return <div role="alert">Unable to load this book.</div>
   if (!book) return <div>Book not found.</div>
 
   //TODO Thee aesthetics and also add buttons, visibility depends on user logged in. Owner (Edit, delete) Other (Request)
@@ -38,6 +38,11 @@ export default function BookDetail({
         <p className="text-text-muted text-base leading-relaxed leading-6 whitespace-pre-line">
           {book.title}
         </p>
+        {book.description && (
+          <p className="text-text-muted text-base leading-relaxed whitespace-pre-line">
+            {book.description}
+          </p>
+        )}
         {book.image ? (
           <img
             src={book.image}
@@ -110,7 +115,7 @@ export default function BookDetail({
         {isLoading ? 'Processing...' : 'Borrow Book'}
       </button>
 
-      {book.subject_index && (
+      {book.search_index && (
         <div className="border-t border-border/40 my-4"></div>
       )}
 

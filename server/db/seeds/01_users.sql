@@ -103,8 +103,7 @@ INSERT INTO user (user_id,user_name,email,postcode,about,interests,status, creat
   '2026-04-15 14:30:00', -- updated_at = deletion day
   TRUE,                  -- is_deleted is set to TRUE
   '2026-04-15 14:30:00'  -- deleted_at timestamp populated
-);
-
+),
 (
   'u_00011',
   'off-piste',

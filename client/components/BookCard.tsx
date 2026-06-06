@@ -1,5 +1,6 @@
 import { Book } from '../../models/book'
 import { BookOpen, User as UserIcon } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 interface BookCardProps {
   book: Book
@@ -81,12 +82,14 @@ export default function BookCard({
 
         {/* Book Details */}
         <div className="text-left">
-          <h3
-            className="text-lg font-bold text-text-primary line-clamp-1 mb-0.5"
-            title={book.title}
-          >
-            {book.title}
-          </h3>
+          <Link to={`/books/${book.book_id}`} className="hover:underline">
+            <h3
+              className="text-lg font-bold text-text-primary line-clamp-1 mb-0.5"
+              title={book.title}
+            >
+              {book.title}
+            </h3>
+          </Link>
           <p className="text-sm text-text-muted line-clamp-1 mb-2 font-medium">
             by {book.creator || 'Unknown Author'}
           </p>

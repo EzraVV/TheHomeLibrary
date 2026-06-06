@@ -1,136 +1,139 @@
+import 'dotenv/config'
 import request from 'superagent';
+import type { Book } from '../../models/book'
+import { normaliseBookPayload } from '../../shared/utils/normaliseBookPayload'
 
-// Proxies cataloguing searches to OpenLibrary securely from the server
-
-export async function fetchFromOpenLibraryBackend(query: string): Promise<any[]> {
-  try {
-    const fields = 'key,title,author_name,language,isbn,edition_name,ia,cover_i,cover_edition_key,edition_key';
-
-    const cleanQuery = query.trim();
-    const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(cleanQuery)}+language:eng&limit=20&fields=${fields}`;
-    
-    console.log(`📡 Sending Language-Strict Target URL: ${url}`);
-
-    const response = await request.get(url);
-    const items = response.body.docs || [];
-
-    return items.map((item: any) => {
-      const isbnList = Array.isArray(item.isbn) ? item.isbn : [];
-
-      // 1. Clean raw strings to remove hyphens, spaces, and text junk
-      const cleanIsbns = isbnList
-        .map((num: string) => num.replace(/[^0-9X]/gi, '').trim())
-        .filter((num: string) => num.length === 10 || num.length === 13);
-
-      // 2. English Group validation tests
-      const isEnglish13 = (num: string) => /^(978|979)[01]/.test(num);
-      const isEnglish10 = (num: string) => /^[01]/.test(num);
-
-      // 3. Prioritise clean English ISBN-13 or ISBN-10 first
-      const prioritisedIsbn = cleanIsbns.find((num: string) => num.length === 13 && isEnglish13(num))
-        || cleanIsbns.find((num: string) => num.length === 10 && isEnglish10(num))
-        || cleanIsbns.find((num: string) => num.length === 13) // Fallback to any standard 13-digit if no English found
-        || cleanIsbns[0];  // Absolute fallback to index zero
-
-      // 4. Assign the resulting priority token to payload object
-      const coreIsbn = prioritisedIsbn || null;
-      return {  
-        key: item.key,
-        title: item.title,
-        author_name: item.author_name || [],
-        isbn: coreIsbn || null,
-        edition_name: item.edition_name || '',
-        image: item.cover_edition_key 
-          ? `https://covers.openlibrary.org/b/olid/${item.cover_edition_key}-M.jpg`
-          : item.cover_i 
-            ? `https://covers.openlibrary.org/b/id/${item.cover_i}-M.jpg` 
-            : '',
-        ia: item.ia || []
-      }
-    });
-  } catch (err) {
-    console.error('Backend OpenLibrary proxy failed:', err);
-    return [];
-  }
+interface GoogleBooksResponse {
+  items?: unknown[]
 }
 
-//Fetch editions from open library
-export async function fetchEditionsForWorkBackend(work_id:string): Promise<any[]> {
-  try {
-    const cleanId = work_id.replace('/works/', '')
-    const url =  `https://openLibrary.org/works${cleanId}/editions.json?Limit=10`;
+const catalogueMetadataCache = new Map<
+  string,
+  { expiresAt: number; metadata: Partial<Book> | null }
+>()
+const CACHE_TTL_MS = 6 * 60 * 60 * 1000
 
-    const response = await request.get(url)
-    const data = await response.body
-    const entries = data.entries || []
-
-    return entries
-      .filter((edit: any) => edit.isbn_13?.length || edit.isbn_10?.length)
-      .map((edit: any) => {
-        const exactIsbn = (edit.isbn_13?.[0]) || (edit.isbn_10??[0])
-        const separationKey = edit.key ? edit.key.replace('/books/', ''):'';
-
-        let formatText = 'Paperback';
-        if (edit.physical_format){
-          formatText = edit.physical_format.toLowerCase().includes('hard') ? 'Hardcover' : 'Paperback';
-        }
-        return {
-          edition_name: edit.publish_name || edit.title || 'Standard Edition',
-          isbn: exactIsbn,
-          format: formatText,
-          image: separationKey ? `https://covers.openlibrary.org/b/olid${separationKey}-M.jpg`:''
-        }
-      }) 
-    } catch (err) {
-    console.error('Failed fetching specific book copies', err);
-    return []
+export async function fetchFromGoogleBooksBackend(
+  query: string,
+  maxResults = 20,
+): Promise<unknown[]> {
+  const apiKey = process.env.GOOGLE_BOOKS_API_KEY
+  if (!apiKey) {
+    throw new Error('GOOGLE_BOOKS_API_KEY is not configured')
   }
-}
 
-
-// Proxies cataloguing searches to Google securely from the server
-// Doesn't seem to solve the 429, could get API but I've already shared enough APIs for this course
-export async function fetchFromGoogleBooksBackend(query: string) : Promise<any[]> {
   try {
-    const url = `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=20`
-    const response = await request.get(url)
-    const items = response.body.items || []
-
-    return items.map((item: any) => {
-      const industryIds = item.volumeInfo.industryIdentifiers || [];
-      const extractedIsbns = industryIds.map((idObj: any) => idObj.identifier)
-
-      return {
-      title: item.volumeInfo.title,
-      creator: item.volumeInfo.authors ? item.volumeInfo.authors[0] : 'Unknown Author',
-      isbn: extractedIsbns[0] || '',
-      image: item.volumeInfo.imageLinks?.thumbnail || undefined,
-      availableIsbns:extractedIsbns,
-      id: item.id
-    }
-  })
-  } catch (err) {
-    console.error ('Google Books search failed:', err)
-    return []
-  }
-}
-
-
-//Proxies library sharing searches to WorldCat network securely from the server
-//If we ever got a luxury WorldCat API key (A Dream)
-
-export async function queryWorldCatBackend(query: string): Promise<any[]> {
-  try {
-    const WORLDCAT_API_KEY = process.env.WORLDCAT_API_KEY || 'mock-key-if-public';
     const response = await request
-      .get('https://wan.worldcat.org/v2/search/brief') // An example WorldCat endpoint
-      .query({ q: query })
-      .set('Authorization', `Bearer ${WORLDCAT_API_KEY}`)
-      .set('Accept', 'application/json');
+      .get('https://www.googleapis.com/books/v1/volumes')
+      .query({
+        q: query.trim(),
+        maxResults,
+        printType: 'books',
+        key: apiKey,
+      })
 
-    return response.body.items || [];
+    return (response.body as GoogleBooksResponse).items || []
   } catch (err) {
-    console.error('Backend WorldCat proxy failed:', err);
-    return [];
+    console.error('Google Books search failed:', err)
+    throw err
   }
+}
+
+function catalogueLookupQuery(book: Book) {
+  const isbn = book.isbn?.split(',')[0].replace(/[^0-9X]/gi, '').trim()
+  if (isbn) return `isbn:${isbn}`
+
+  return `intitle:${book.title} inauthor:${book.creator}`
+}
+
+function googleMetadataFromMatch(
+  book: Book,
+  match: unknown,
+): Partial<Book> | null {
+  const normalised = match ? normaliseBookPayload(match, 'google') : null
+  return normalised
+    ? {
+        title: normalised.title,
+        creator: normalised.creator,
+        description: normalised.description,
+        image: normalised.image,
+        work_id: normalised.googleVolumeId,
+        isbn: normalised.isbn || book.isbn,
+        search_index: `${normalised.title} ${normalised.creator}`.toLowerCase(),
+      }
+    : null
+}
+
+function metadataScore(book: Book, metadata: Partial<Book> | null) {
+  if (!metadata) return -1
+
+  const expectedTitle = book.title.toLowerCase().replace(/[^a-z0-9]/g, '')
+  const matchedTitle = metadata.title?.toLowerCase().replace(/[^a-z0-9]/g, '')
+  return (
+    (expectedTitle === matchedTitle ? 10 : 0) +
+    (metadata.image ? 3 : 0) +
+    (metadata.description ? 3 : 0) +
+    (metadata.isbn ? 1 : 0)
+  )
+}
+
+function bestGoogleMetadata(book: Book, matches: unknown[]) {
+  return matches
+    .map((match) => googleMetadataFromMatch(book, match))
+    .sort((a, b) => metadataScore(book, b) - metadataScore(book, a))[0] || null
+}
+
+export async function getGoogleMetadataForBook(
+  book: Book,
+): Promise<Partial<Book> | null> {
+  const cacheKey = `${book.book_id}:${book.isbn || book.title}`
+  const cached = catalogueMetadataCache.get(cacheKey)
+  if (cached && cached.expiresAt > Date.now()) return cached.metadata
+
+  const isbnMatches = await fetchFromGoogleBooksBackend(catalogueLookupQuery(book), 1)
+  let metadata = bestGoogleMetadata(book, isbnMatches)
+
+  if (!metadata?.image || !metadata.description) {
+    const titleMatches = await fetchFromGoogleBooksBackend(
+      `intitle:${book.title} inauthor:${book.creator}`,
+      10,
+    )
+    const titleMetadata = bestGoogleMetadata(book, titleMatches)
+    if (metadataScore(book, titleMetadata) > metadataScore(book, metadata)) {
+      metadata = titleMetadata
+    }
+  }
+
+  catalogueMetadataCache.set(cacheKey, {
+    expiresAt: Date.now() + CACHE_TTL_MS,
+    metadata,
+  })
+  return metadata
+}
+
+export async function enrichBooksWithGoogleMetadata(
+  books: Book[],
+): Promise<Book[]> {
+  if (process.env.NODE_ENV === 'test') return books
+
+  const enriched: Book[] = []
+
+  // Keep requests bounded so a catalogue load does not create a large burst.
+  for (let index = 0; index < books.length; index += 12) {
+    const batch = books.slice(index, index + 12)
+    const results = await Promise.all(
+      batch.map(async (book) => {
+        try {
+          const metadata = await getGoogleMetadataForBook(book)
+          return metadata ? { ...book, ...metadata } : book
+        } catch (error) {
+          console.error(`Google metadata enrichment failed for ${book.book_id}:`, error)
+          return book
+        }
+      }),
+    )
+    enriched.push(...results)
+  }
+
+  return enriched
 }

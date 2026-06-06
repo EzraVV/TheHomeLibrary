@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getBookById, createLocalBook, executeBorrowSearchCascade, executeCatalogSearchCascade, ingestExternalBook, SearchQueryResponse, editSearchBooks } from '../apis/books';
-import { fetchEditionsForWork } from '../apis/externalBooks';
-import { isValidISBN } from '../../shared/utils/isbnCheck'
+import { getBookById, createLocalBook, updateBook, executeBorrowSearchCascade, executeCatalogSearchCascade, SearchQueryResponse, editSearchBooks } from '../apis/books';
+import { Book } from '../../models/book';
 
 export function useAddBookSearch(query: string) {
   const searchQuery = query.trim()
@@ -22,39 +21,16 @@ export function useBorrowBookSearch (query: string ) {
   })
 }
 
-export function useBookEditions(workId: string | undefined, options = { selectOnlyIsbns: false }) {
-  const cleanId = workId ? workId.replace('/works/', '').trim() : '';
-
-  return useQuery({
-    queryKey: ['book-editions', cleanId],
-    enabled: cleanId.length > 0,
-    queryFn: () => fetchEditionsForWork(cleanId),
-    select: (editions) => {
-      // If we need the clean list, return only the unique metadata objects
-      const uniqueEditions = editions.filter((v, i, a) => a.findIndex(t => t.isbn === v.isbn) === i);
-      
-      if (options.selectOnlyIsbns) {
-        return uniqueEditions.map(e => e.isbn);
-      }
-      return uniqueEditions;
-    }
-  });
-}
-
 export function useAddBook() {
   const queryClient = useQueryClient()
 
   return useMutation ({
-    mutationFn: async ({mode, payload}: {mode: 'manual' | 'ingest'; payload: any}) => {
-    if (mode === 'ingest') {
-      return ingestExternalBook(payload) //Payload = ISBN
-    }
-    return createLocalBook(payload) //Payload = BookResult object
-  },
+    mutationFn: (payload: Partial<Book>) => createLocalBook(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-books'] })
       queryClient.invalidateQueries({ queryKey: ['catalog-search'] })
       queryClient.invalidateQueries({ queryKey: ['borrow-search'] })
+      queryClient.invalidateQueries({ queryKey: ['user-books'] })
     }
   })
 }
@@ -62,11 +38,10 @@ export function useAddBook() {
 export function useEditBook() {
   const queryClient = useQueryClient()
 
-  return useMutation ({
-    mutationFn: async (payload: any) => {
-
-    return createLocalBook(payload) //Payload = BookResult object
-  },
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<Book> }) => 
+      updateBook(id, payload),
+    
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-books'] })
       queryClient.invalidateQueries({ queryKey: ['catalog-search'] })

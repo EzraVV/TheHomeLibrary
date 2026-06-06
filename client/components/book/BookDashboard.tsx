@@ -1,16 +1,49 @@
-import UserBooksOwned from "../user/UserBooksOwned"
-import UserBooksBorrowed from "../user/UserBooksBorrowed"
+import { LentList } from "./LentList"
+import { BorrowedList }from "./BorrowedList"
+import { Loan } from "../../../models/loan"
+import { useQueryClient } from "@tanstack/react-query"
+import { useSearchLoans } from "../../hooks/useLoans"
+import { useUpdateLoan } from "../../hooks/useLoans"
+import { useCurrentUser } from "../../hooks/useCurrentUser"
 
 //TO DO - expand from base book components pilfered from User - loan information, edit options, shortcuts to set lending parameters
 //Due dates, recent reviews? Plus books near me to borrow?
-export default function BookDashboard() {
-  return (
+
+export const BookDashboard = () => {
+  const { data: allLoans, isLoading, error } = useSearchLoans('', true)
+  const { data: currentUser } = useCurrentUser()
+
+  const queryClient = useQueryClient()
+
+  const updateLoanMutation = useUpdateLoan()
+
+  const handleUpdate = async (loanId: string, fields: Partial<Loan>) => {
+    updateLoanMutation.mutate({loan_id:loanId, fields})
+    queryClient.invalidateQueries({queryKey:['loans']})
+  }
+
+  const lent = allLoans?.filter((l)=> l.owner_id === currentUser?.user_id) || [];
+  const borrowed = allLoans?.filter((l)=> l.borrower_id === currentUser?.user_id) || [];
+  
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error loading dashboard.</div>;
+
+    return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Owned books component */}
-      <UserBooksOwned /> 
+      <LentList loans = {lent} onUpdate={handleUpdate}/> 
       
       {/* The borrowed books component */}
-      <UserBooksBorrowed /> 
+      <BorrowedList loans = {borrowed} onUpdate={handleUpdate}/> 
     </div>
   )
 }
+
+/*
+const updateMutation = useUpdateLoan();
+
+// Inside button click or event handler
+updateMutation.mutate({ 
+  loan_id: 'l_123', 
+  fields: { status: 'returned', returned_at: new Date().toISOString() } 
+});*/

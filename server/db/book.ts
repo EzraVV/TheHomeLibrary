@@ -33,15 +33,20 @@ export async function getBookByTitle(title: string): Promise<Book | undefined> {
   return connection('book').where({ title }).first()
 }
 
-export async function updateBook(book_id: string, user_id: string, updatedFields: Partial<Book>): Promise<Book> {
+export async function updateBook(book_id: string, owner_id: string, updatedFields: Partial<Book>): Promise<Book | null> {
   const bookData = await connection('book')
-  .where({book_id, owner_id: user_id})
+  .where({book_id, owner_id})
   .update(updatedFields)
   .returning('*')
   return bookData[0] ?? null
  }
 
- export async function addBook(newBookData: Omit<Book, 'id'| 'book_id'>): Promise<string>{
+export async function addBook(newBookData: Omit<Book, 'book_id'>): Promise<Book> {
+  if (process.env.NODE_ENV !== 'test') {
+    const rows = await connection('book').insert(newBookData).returning('*')
+    return rows[0]
+  }
+
   const lastBook = await connection('book').orderBy('book_id', 'desc').first()
   const lastId = lastBook ? lastBook.book_id : null
 
@@ -54,9 +59,9 @@ export async function updateBook(book_id: string, user_id: string, updatedFields
     } 
     
     await connection('book').insert(bookWithId)
-    return nextBookId
+    return bookWithId
   } catch (err) {
     console.error('Database insertion error', err)
     throw err
   }
- } 
+ }

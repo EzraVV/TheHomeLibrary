@@ -1,9 +1,12 @@
-import SearchResultsPage from "../../pages/SearchResultsPage";
-import { useNavigate, useSearchParams } from "react-router";
+import SearchResultsPage from "../pages/SearchResultsPage";
+import { useSearchParams } from "react-router";
 import { useState } from "react";
 import { useBorrowBookSearch } from "../../hooks/useBooks";
 import { getCoordsByPostcode } from "../../../server/utils/geo";
 import  { getDistanceKM }  from '../../../server/utils/getDistance'
+import { SelectableBook } from '../../../models/book'
+
+type LocalBookWithLocation = SelectableBook & { lat?: number; lon?: number }
 
 
 export default function SearchPage() {
@@ -13,12 +16,10 @@ export default function SearchPage() {
   const userLat = parseFloat(searchParams.get('lat') || '0');
   const userLon = parseFloat(searchParams.get('lon') || '0');
 
-
   const [postcode, setPostcode] = useState('')
   const [radius, setRadius] = useState(5); //Default 5km; TODO - no distance limit?
 
   //const {userProfile } = useAuth() 
-
 
   const { data, isLoading } = useBorrowBookSearch(query);
 
@@ -36,10 +37,13 @@ export default function SearchPage() {
 
 
   //This needs to connect book owner postcode via book, then compare with borrower postcode
-  const processedLocal = (data?.localData || []).map(book => ({
+  const processedLocal = (data?.localData || []).map(item => {
+    const book = item as LocalBookWithLocation
+    return {
     ...book,
-    distance: userLat && userLon ? getDistanceKM(userLat, userLon, book.lat, book.lon) : null
-  }));
+    //Calculate book lat and long by owner look up
+    distance: userLat && userLon && book.lat && book.lon ? getDistanceKM(userLat, userLon, book.lat, book.lon) : null
+  }});
 
 
 return (
@@ -71,4 +75,3 @@ return (
     </>
   );
 }
-  

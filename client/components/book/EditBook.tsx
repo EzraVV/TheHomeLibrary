@@ -1,62 +1,59 @@
 import { useEditBook, useGetBookById } from '../../hooks/useBooks'
 import BookForm from './BookForm' 
 import { Book, BookFormData } from '../../../models/book'
-import { useState, useEffect } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { editSearchBooks } from '../../apis/books'
 import { useParams } from 'react-router'
-import { atomiseInterests } from '../../../shared/utils/interestProcessing'
+import { normaliseBookPayload } from '../../../shared/utils/normaliseBookPayload'
 
 
 export function EditBook() {
   const { id } = useParams<{ id: string }>(); // Pulling ID from URL
-  const { data: selectedBook, error } = useGetBookById(id || '');
+  const { data: selectedBook, error, isLoading } = useGetBookById(id || '');
+
 
   const bookMutation = useEditBook();
 
   const [searchQuery, setSearchQuery] = useState('');
-  console.log("EditBook rendering, searchQuery is:", searchQuery);
+  const [results, setResults] = useState<unknown[]>([]);
   const [stagedBook, setStagedBook] = useState<Book | null>(null);
   const currentFormData = stagedBook || selectedBook;
 
-  const tags = currentFormData?.subject_index 
-    ? atomiseInterests(currentFormData.subject_index) 
-    : [];
+  const handleManualSearch = async () => {
+  if (searchQuery.length < 3) return;
   
-  const [debouncedQuery, setDebouncedQuery] = useState(searchQuery);
-
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedQuery(searchQuery), 500);
-    return () => clearTimeout(handler);
-  }, [searchQuery]);
-
-  console.log("Current Debounced Query:", debouncedQuery);
-  const { data: searchResults = [], isFetching } = useQuery({
-  queryKey: ['book-search', debouncedQuery],
-  queryFn: async () => {
-    const response = await fetch(`/api/v1/books/search/metadata?q=${encodeURIComponent(debouncedQuery)}`);
-    if (!response.ok) throw new Error('Network response was not ok');
-    return response.json();
-  },
-  enabled: debouncedQuery.length >= 3,
-  placeholderData: (previousData) => previousData, 
-});
+  try {
+    // Call the service function directly, not the mutation hook
+    const data = await editSearchBooks(searchQuery); 
+    setResults(data);
+  } catch (err) {
+    console.error("Search failed", err);
+  }
+};
 
   const handleSelectCandidate = (book: Book) => {
-      setStagedBook({ ...book, id: selectedBook?.id, owner_id: selectedBook?.owner_id });
+      setStagedBook({ ...book, book_id: selectedBook?.book_id, owner_id: selectedBook?.owner_id });
     };
 
   const formSubmitHandler = async (formData: BookFormData) => {
-      await bookMutation.mutateAsync({ 
-        mode: 'manual', 
-        payload: { ...formData, id: currentFormData?.id, owner_id: currentFormData?.owner_id } 
-      });
-    };
+  // Use the ID from the URL (useParams) as the definitive source
+  const targetId = id || currentFormData?.book_id;
+
+  if (!targetId || targetId === 'undefined') {
+    console.error("❌ CRITICAL: Cannot save - no valid ID found.");
+    return;
+  }
+    await bookMutation.mutateAsync({ 
+      id: targetId, 
+      payload: formData 
+    });
+  };
 
 
+  if (isLoading) return <div>Loading book data...</div>;
 
   if (error) return <div>Error loading book.</div>;
 
-console.log("Search Result Data:", searchResults);
   return (
 
     <div className="flex gap-8 items-start p-6">
@@ -71,20 +68,22 @@ console.log("Search Result Data:", searchResults);
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)} 
       />
+      <button type="button" onClick={handleManualSearch}>
+    Search Metadata
+      </button>
     </div>
 
     {/* Scrollable area for results: Keeps the form from moving */}
     <div className="flex-1 overflow-y-auto max-h-[70vh] space-y-3">
-      {searchResults.map((book: any, i: any) => {
-        const creatorDisplay = Array.isArray(book.author_name) 
-    ? book.author_name.join(', ') 
-    : (book.author_name || book.creator || 'Unknown');
+      {results.map((item, i) => {
+        const book = normaliseBookPayload(item, 'google')
 
   return (
-        <div 
+        <button
+          type="button"
           key={book.isbn || i} 
-          onClick={() => handleSelectCandidate({...book, creator: creatorDisplay})}
-          className="flex border p-3 rounded shadow-sm hover:bg-blue-50 cursor-pointer transition-colors"
+          onClick={() => handleSelectCandidate(book as Book)}
+          className="flex border p-3 rounded shadow-sm hover:bg-blue-50 cursor-pointer transition-colors w-full text-left"
         >
           {book.image ? (
             <img src={book.image} alt={book.title} className="w-16 h-24 object-cover mr-4" />
@@ -95,14 +94,12 @@ console.log("Search Result Data:", searchResults);
           <div>
             <h4 className="font-bold">{book.title}</h4>
             <p className="text-sm text-gray-600">
-              Author: {Array.isArray(book.author_name) 
-                ? book.author_name.join(', ') 
-                : (book.creator || 'No Author Listed')}
+              Author: {book.creator || 'No Author Listed'}
             </p>
             <p className="text-sm text-gray-600">Edition: {book.edition_name || 'N/A'}</p>
             <p className="text-sm text-gray-500">ISBN: {book.isbn}</p>
           </div>
-        </div>
+        </button>
       )
     })}
     </div>
@@ -112,24 +109,13 @@ console.log("Search Result Data:", searchResults);
   <div className="w-1/2">
     <div className="sticky top-4">
       <BookForm 
+        key={currentFormData?.book_id || 'new'}
         initialValues={currentFormData} 
         onSubmit={formSubmitHandler}
         isSaving={bookMutation.isPending}
       />
     </div>
   </div>
-<section>
-       {/* UI uses the already-calculated tags */}
-       {tags.length > 0 && (
-         <div className="flex flex-wrap gap-2">
-           {tags.map((tag) => (
-             <span key={tag} className="...">
-               {tag}
-             </span>
-           ))}
-         </div>
-       )}
-    </section>
 </div>
   );
 }

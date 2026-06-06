@@ -1,6 +1,6 @@
 # Project Overview
 
-This is a full-stack TypeScript project for creating a "collection" application. It uses React for the frontend and Node.js with Express for the backend. The database is managed with Knex.js and SQLite.
+This is a full-stack TypeScript project for creating a "Home Library" application. It uses React for the frontend and Node.js with Express for the backend. The database is managed with Knex.js and SQLite.
 
 ## Building and Running
 
@@ -50,14 +50,15 @@ npm run knex seed:run
 
 ## Development Conventions
 
-*   **Linting:** The project uses ESLint for linting. To run the linter, use the command `npm run lint`.
-*   **Formatting:** The project uses Prettier for code formatting. To format the code, use the command `npm run format`.
-*   **API Routes:** API routes should be added in `server/server.ts`.
-*   **Frontend Components:** React components are located in the `client/components` directory.
-*   **Data Fetching:** The frontend uses React Query for data fetching. API client functions are intended to be placed in the `client/apis` directory.
-*   **Styling:** The project uses CSS for styling. The main stylesheet is located at `client/styles/index.css`.
+- **Linting:** The project uses ESLint for linting. To run the linter, use the command `npm run lint`.
+- **Formatting:** The project uses Prettier for code formatting. To format the code, use the command `npm run format`.
+- **API Routes:** API routes should be added in `server/server.ts`.
+- **Frontend Components:** React components are located in the `client/components` directory.
+- **Data Fetching:** The frontend uses React Query for data fetching. API client functions are intended to be placed in the `client/apis` directory.
+- **Styling:** The project uses CSS for styling. The main stylesheet is located at `client/styles/index.css`.
 
 ## PromptKit Quick Reference
+
 - Review the available artefacts when the student requests them:
   - Protocol: `promptkit/protocols/setup.md` — instructions for updating these CLI briefings.
   - Workflow: `promptkit/workflows/tutor.md` — guide for tutoring/explanation sessions.

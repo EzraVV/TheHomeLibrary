@@ -6,15 +6,20 @@ This is a group project developed by **Jen**, **Eden**, **Brannan**, and **Ezra*
 
 ---
 
-## Project Status: MVP 1 (Styling & Navigation)
+## Project Status: MVP 2
 
-We are currently in **MVP 1 (Styling & Navigation Complete)**. The core design tokens, colors, custom typography, reusable catalog elements, and page layouts have been established using **Tailwind CSS**.
+The project now includes catalogue browsing, profiles, book and loan
+management, Supabase email/password authentication, and a Supabase Postgres
+database.
 
-### Key Achievements in MVP 1:
+### Key Achievements:
 - **Consistent Design System:** Tailored warm, trustworthy color scheme (`primary`, `secondary`, `accent`, `background`, `surface`), Merriweather headings, Inter body text, and customized card elevations.
 - **Book Discovery Catalog:** Built the cozy main page (`HomePage.tsx`) with dynamic API integration, custom skeleton loading states, empty statuses, and functional `BookCard` triggers.
 - **Layout & Dynamic Routing:** Configured standard layouts (`Navbar`, `Footer`) utilizing React Router client-side path linking, complete with active navigation state highlights.
 - **Profile View:** Developed the `UserProfilePage.tsx` along with responsive profile cards showing bio info, reading interests badges, and owned book lists.
+- **Authentication:** Supabase Auth provides confirmed email/password signup, login, logout, and persisted sessions.
+- **Database:** Supabase Postgres stores application data while Express verifies authenticated requests and enforces ownership.
+- **Book Metadata:** Express enriches stored catalogue records from the keyed Google Books API while preserving local ownership, condition, status, and lending terms.
 
 
 ---
@@ -34,7 +39,7 @@ This codebase is organized into logical layers, separating frontend concerns, ba
   - `book/`: `AddBook.tsx` and `BookForm.tsx` managing library ingest and updates.
   - `user/`: Header, Bio, Borrowed, and Owned lists representing segmented user profile sections.
 - **APIs & State Hooks (`client/apis/` & `client/hooks/`):** Consumes JSON API endpoints:
-  - `books.ts`, `externalBooks.ts`, and `users.ts`: Handles requests mapping to local Express routers and external search providers (OpenLibrary/Google Books).
+  - `books.ts` and `users.ts`: Handles requests mapping to local Express routers. Express proxies all external metadata lookups to the keyed Google Books API.
   - `useBooks.ts` & `useUserBooks.ts`: Dynamic React Query (TanStack Query) custom hooks for responsive query caching and mutation state.
 
 ### 2. Backend Server (`server/`)
@@ -43,8 +48,11 @@ This codebase is organized into logical layers, separating frontend concerns, ba
   - `users.ts`: Enforces user identity retrieval, signup verification, and profile management.
   - `server.ts`: Configures Express application middleware, JSON parsing, API routing, and static distribution logic.
 - **Database & Query Layer (`server/db/`):** Datastore configuration:
-  - `migrations/` & `seeds/`: Schema migrations defining `users`, `book`, and `loans` alongside curated developmental data sets.
-  - `book.ts` & `users.ts`: Standard Knex queries executing select, insert, join, and update operations against the local SQLite database file.
+  - `supabase/migrations/`: PostgreSQL schema migrations applied to the linked Supabase project.
+  - `book.ts`, `loan.ts`, and `users.ts`: Knex queries using the direct Supabase Postgres connection.
+- **Authentication (`server/auth/`):**
+  - Verifies Supabase access tokens sent as bearer tokens.
+  - Resolves the authenticated Supabase user to the application profile before protected routes run.
 - **Utilities (`server/utils/`):** Core server functions:
   - `generateWorkId.ts`: Unique primary keys generation for ingested books.
   - `getDistance.ts`: Calculates geographical distance metrics between user coordinates using the Haversine formula.
@@ -65,8 +73,9 @@ This codebase is organized into logical layers, separating frontend concerns, ba
 
 - **Frontend:** React (Vite), TypeScript, Tailwind CSS, Lucide Icons, TanStack Query (React Query)
 - **Backend:** Node.js, Express, tsx
-- **Database:** SQLite3, Knex.js (Migrations & Seeds)
-- **Testing:** Vitest
+- **Authentication:** Supabase Auth
+- **Database:** Supabase Postgres, Knex.js
+- **Testing:** Vitest, isolated in-memory SQLite database
 
 ---
 
@@ -80,19 +89,50 @@ Clone the repository, navigate into the directory, and install dependencies:
 npm install
 ```
 
-### 2. Database Migrations & Seeding
-
-Prepare the local SQLite database by running migrations and seeds:
+Copy the environment template:
 
 ```bash
-# Run database migrations
-npm run knex migrate:latest
-
-# Seed the database with books and users
-npm run knex seed:run
+cp .env.example .env
 ```
 
-### 3. Development Mode
+Add the following values from the Supabase project:
+
+```env
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_PUBLISHABLE_KEY=your-publishable-key
+
+DATABASE_URL=postgresql://postgres:your-password@db.your-project-ref.supabase.co:5432/postgres
+```
+
+The URL and publishable key appear twice because Vite only exposes browser
+variables prefixed with `VITE_`. Never commit `.env`.
+
+The team uses one shared Supabase project. Ask a project owner for the shared
+development values rather than creating or linking a separate Supabase project.
+
+### 2. Database Migrations
+
+PostgreSQL schema changes are stored in `supabase/migrations/` and are applied
+to the shared Supabase database by a project owner. `supabase/seed.sql` contains
+optional demo data.
+
+### 3. Database And Authentication Flow
+
+1. The React client signs users up and logs them in through Supabase Auth.
+2. Supabase stores and refreshes the browser session.
+3. Protected client API requests send the Supabase access token as a bearer token.
+4. Express verifies the token and resolves it to the matching `profiles` row.
+5. Express uses Knex and `DATABASE_URL` to query Supabase Postgres directly.
+6. Protected routes derive ownership from the verified profile instead of accepting user IDs from the client.
+
+Supabase Auth UUIDs are stored in `profiles.auth_user_id`. Existing application
+IDs such as `u_00001`, `bk_00001`, and `ln_00001` remain the IDs used by the
+application tables.
+
+### 4. Development Mode
 
 Start both the client dev server and the backend watch process in parallel:
 
@@ -102,7 +142,7 @@ npm run dev
 
 The app will be accessible locally in your browser.
 
-### 4. Production Build & Execution
+### 5. Production Build & Execution
 
 To bundle the application and start it in production mode:
 
@@ -114,13 +154,18 @@ npm run build
 npm start
 ```
 
-### 5. Testing
+### 6. Testing
 
-To run the Vitest test suite:
+Automated tests use an isolated in-memory SQLite database. They do not modify
+the hosted Supabase database.
 
 ```bash
 npm test -- --run
+npm run lint
+npm run typecheck
 ```
+
+For more detailed setup guidance, see `docs/supabase-auth-setup.md`.
 
 ---
 

@@ -1,330 +1,173 @@
-import { useEffect, useRef, useState } from 'react'
-import { useAddBookSearch, useAddBook, useBookEditions } from '../../hooks/useBooks'
-import BookForm from './BookForm' 
-import { Book, BookFormData, SelectableBook,BookEditionMinimal } from '../../../models/book'
-import { generateWorkId } from '../../../server/utils/generateWorkId'
+import { useEffect, useState } from 'react'
+import { Search, X } from 'lucide-react'
+import { Book, BookFormData, SelectableBook } from '../../../models/book'
 import { normaliseBookPayload } from '../../../shared/utils/normaliseBookPayload'
-import { IngestionPayload } from '../../apis/books'
+import { generateWorkId } from '../../../server/utils/generateWorkId'
+import { useAddBook, useAddBookSearch } from '../../hooks/useBooks'
+import BookForm from './BookForm'
 
-export function AddBook() {
+interface AddBookProps {
+  onAdded?: () => void
+  onCancel?: () => void
+}
+
+export function AddBook({ onAdded, onCancel }: AddBookProps) {
   const [inputValue, setInputValue] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedBook, setSelectedBook] = useState<SelectableBook | null>(null)
-  
-  //Track a search map when there are multiple isbns to choose from; track selected work.
-  const [bookWithPendingIsbnChoice, setBookWithPendingIsbnChoice] = useState<SelectableBook | null>(null)
-  const [activeWorkId, setActiveWorkId] = useState<string | undefined>(undefined)
-
-  //Join query and mutation hooks
-  const { data: searchResult, isLoading: isSearching } = useAddBookSearch(searchQuery)
-  const { data: harvestedIsbns, isLoading: isHarvesting } = useBookEditions(activeWorkId);
+  const { data: searchResult, isLoading: isSearching, error } = useAddBookSearch(searchQuery)
   const bookMutation = useAddBook()
-  const isSaving = bookMutation.isPending
-  
-  //Debounce to prevent excessive reloads/calls
+
   useEffect(() => {
-    // If the input is too short, skip the API entirely
-    if (inputValue.trim().length <= 2) {
+    if (inputValue.trim().length < 3) {
       setSearchQuery('')
       return
     }
 
-    // Single network window timer
-    const handler = setTimeout(() => {
-      setSearchQuery(inputValue.trim())
-    }, 600) 
-
-    // Clean-up before every single key strike
-    return () => {
-      clearTimeout(handler)
-    }
+    const handler = setTimeout(() => setSearchQuery(inputValue.trim()), 500)
+    return () => clearTimeout(handler)
   }, [inputValue])
 
-  //Process lazy-harvested sub-editions
-  useEffect(() => {
-    if (activeWorkId && harvestedIsbns && bookWithPendingIsbnChoice) {
-      if (harvestedIsbns.length > 0) {
-        setBookWithPendingIsbnChoice((prev) => {
-          if (!prev) return null;
+  const googleMatches = Array.isArray(searchResult?.externalData)
+    ? searchResult.externalData.map((book) => normaliseBookPayload(book, 'google'))
+    : []
 
-          const isbnStrings = harvestedIsbns.map(item => 
-            typeof item === 'string' ? item : item.isbn
-          );
-
-          return {
-            ...prev, // carry over values please, present to user for choice
-            availableIsbns: isbnStrings,
-            isbn: harvestedIsbns[0] as string
-          };
-        });
-      } else {
-        //No ISBN entries discovered, bypass sub menus and proceed to form
-        setSelectedBook({
-          ...bookWithPendingIsbnChoice,
-          isbn: ''
-        });
-        setBookWithPendingIsbnChoice(null);
-      }
-      // Stop tracking the active work query once it has successfully compiled
-      setActiveWorkId(undefined);
-    }
-  }, [harvestedIsbns, activeWorkId, bookWithPendingIsbnChoice]);
-
-  const localMatches = Array.isArray(searchResult?.localData)
-    ? searchResult.localData.map((b: any) => normaliseBookPayload(b, 'local'))
-    : [];
-
-  const externalMatches = Array.isArray(searchResult?.externalData)
-    ? searchResult.externalData.map((b: any) => 
-        normaliseBookPayload(b, searchResult?.externalSource || 'none')
-      )
-    : [];
-      
-  const lookupMatches: SelectableBook[] = [...localMatches, ...externalMatches];
-
-  //Intercept list selections
-  const handleSelectBookMatch = (book: SelectableBook) => {
-    if (book.availableIsbns && book.availableIsbns.length > 1) {
-      setBookWithPendingIsbnChoice(book)
-    } else if (book.source === 'openlibrary' && book.work_id) {
-        setBookWithPendingIsbnChoice(book);
-        setActiveWorkId(book.work_id);
-    } else {
-      // Completely isolated custom record fallback
-      setSelectedBook({
-        ...book,
-        isbn: book.isbn === 'No ISBN determined' ? '': book.isbn
-      })
-      setBookWithPendingIsbnChoice(null)
-    }
-  }
   const handleCreateRecord = async (formData: BookFormData) => {
-    let finalWorkId = selectedBook?.work_id || selectedBook?.googleVolumeId 
-    
-    if (!finalWorkId) {
-      finalWorkId = await generateWorkId(formData.title, formData.creator);//Incorporate hash later!
-    }
+    const workId =
+      selectedBook?.googleVolumeId ||
+      (await generateWorkId(formData.title, formData.creator))
 
-    const completeBookPayload: Partial<Book> = {
+    const payload: Partial<Book> = {
       ...formData,
-      owner_id: 'u_00001', //Pull from auth
-      work_id: finalWorkId,
-      condition: formData.condition|| 'Good',
+      work_id: workId,
+      condition: formData.condition || 'Good',
       search_index: `${formData.title.toLowerCase()} ${formData.creator.toLowerCase()}`,
       lending_terms: formData.lending_terms || '',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
     }
 
-    bookMutation.mutate(
-      {mode: 'manual', payload: completeBookPayload },
-    {
+    bookMutation.mutate(payload, {
       onSuccess: () => {
-        alert('Book listed in library manually')
-        setSelectedBook(null)
+        setInputValue('')
         setSearchQuery('')
-      },
-      onError: () => alert('Failed to save book.')
-    })
-}
-
-  const handleIngestRecord = (payload: IngestionPayload) => {
-    
-    bookMutation.mutate(
-      {mode: 'ingest', payload: payload },
-    {
-      onSuccess: () => {
-        alert('Book ingested from external registry')
         setSelectedBook(null)
-        setSearchQuery('')
+        onAdded?.()
       },
-      onError: (err: unknown) => {
-        const isHttpError = (err:unknown): err is { status: number } => {
-          return typeof err == 'object' && err !== null && 'status' in err;
-        }
-        if (isHttpError(err) && err.status === 401) {
-            alert('Session expired. Please log in again to ingest books.');
-          } else {
-            alert('Failed to ingest book. Check your connection or try manual entry.');
-          }
-        }
     })
-}
-
-const formSubmitHandler = (formData: BookFormData) => {
-  const source = selectedBook?.source 
-  const cleanIsbn = formData.isbn ? formData.isbn.trim() : ''
-  const isMissingIsbn = !cleanIsbn || cleanIsbn === 'No ISBN determined' || cleanIsbn === 'No ISBN'
-  
-  if ((source ==='openlibrary' || source === 'google') && !formData.edition_name) {
-    if (!isMissingIsbn) {
-        return handleIngestRecord({ type: 'isbn', identifier: cleanIsbn })
-      } else if (selectedBook?.work_id) {
-        return handleIngestRecord({ type: 'openlibrary', identifier: selectedBook.work_id })
-      } else if (source === 'google' && selectedBook?.googleVolumeId) {
-        return handleIngestRecord({ type: 'google', identifier: selectedBook.googleVolumeId })
-      }
-    }
-    return handleCreateRecord(formData)
   }
 
-console.log("=== API CASCADE STREAM DEBUG ===", {
-  rawSearchResult: searchResult,
-  computedLookupMatches: lookupMatches,
-  currentlySelectedBook: selectedBook
-});
-
-//Some badly formatted content, sorry!
-return (
-    <div style={{ display: 'flex', gap: '40px', padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ flex: 1, minWidth: '200px' }}>
-      <h2>Quick Lookup</h2>
-      <p>Search by Title or ISBN to pull details from local database, OpenLibrary or Google Books.</p>
-      
-      <input 
-        type="text"
-        placeholder="Search registries..."
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-      />
-
-      {isSearching && <div>Crawling external APIs...</div>}
-
-      {/*High-Level Search Results */}
-        {lookupMatches.length > 0 && !bookWithPendingIsbnChoice && (
+  if (selectedBook) {
+    return (
+      <section className="rounded-md border border-border/60 bg-surface p-5 shadow-card">
+        <div className="mb-5 flex items-start justify-between gap-4 border-b border-border/50 pb-4">
           <div>
-            <div style={{ fontWeight: 'bold', marginBottom: '10px' }}>Matches Found ({searchResult?.source} strategy):</div>
-            <ul style={{ listStyleType: 'none', padding: 0 }}>
-              {lookupMatches.map((book: SelectableBook, i: number) => {
-                const uniqueKeyId = `row-${book.source}-${book.work_id || book.googleVolumeId || 'idx'}-${i}`;
-
-                return (
-                <li key={uniqueKeyId} style={{ display: 'flex', gap: '12px', padding: '10px 0', borderBottom: '1px solid #eee', alignItems: 'center' }}>
-                  
-                  <div className="book-cover-thumbnail" style={{ width: '50px', height: '75px', backgroundColor: '#eee', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    {book.image ? (
-                      <img 
-                        src={book.image} 
-                        alt={`${book.title} cover`} 
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/assets/default-book-cover.png'
-                        }}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
-                      />
-                    ) : (
-                      <span style={{ fontSize: '10px', color: '#888' }}>No Cover</span>
-                    )}
-                  </div>
-
-                  <div style={{ flex: 1 }}>
-                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                    <span style={{ fontWeight: 'bold' }}>{book.title}</span>
-                    
-                    {/* Badge appears if the aggregated book lives in the local catalogue */}
-                    {book.availableIsbns && book.availableIsbns.length > 0 && (book.source === 'local' || book.id) && (
-                      <span style={{ 
-                        fontSize: '9px', 
-                        textTransform: 'uppercase', 
-                        letterSpacing: '0.5px', 
-                        fontWeight: '8px', 
-                        padding: '2px 6px', 
-                        borderRadius: '4px', 
-                        backgroundColor: '#f59e0b', // amber-500
-                        color: '#fff' 
-                      }}>
-                        In Catalogue
-                      </span>
-                    )}
-                  </div>
-              </div>
-
-               <div style={{ fontSize: '13px', color: '#555', marginTop: '2px' }}>by {book.creator}</div>
-
-                  <button type="button" onClick={() => handleSelectBookMatch(book)}>
-                    Select
-                  </button>
-                </li>
-              )
-            })}
-            </ul>
-          </div>
-        )}
-
-        {/*Interactive Sub-selector */}
-        {bookWithPendingIsbnChoice && bookWithPendingIsbnChoice.availableIsbns && (
-          <div style={{ padding: '16px', backgroundColor: '#f8fafc', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <h3 style={{ margin: 0, fontSize: '15px' }}>Verify Your Print Copy</h3>
-              <button type="button" style={{ fontSize: '11px' }} onClick={() => setBookWithPendingIsbnChoice(null)}>
-                ← Back
-              </button>
-            </div>
-            <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 12px 0' }}>
-              We found multiple ISBN prints for <strong>{bookWithPendingIsbnChoice.title}</strong> inside this registry record. Match the one on your copy:
+            <p className="text-xs font-bold uppercase tracking-wide text-primary">Confirm selection</p>
+            <h2 className="mt-1 text-xl font-bold text-secondary">Review this book before adding it</h2>
+            <p className="mt-1 text-sm text-text-muted">
+              Google Books filled these details. Edit anything that does not match your copy.
             </p>
-            {/* THE BYPASS: Let users push basic data straight to fields without an ISBN selection */}
-    <button
-      type="button"
-      onClick={() => {
-        setSelectedBook({
-          ...bookWithPendingIsbnChoice,
-          isbn: '' // Clear ISBN so it safely forces local manual mode execution path
-        })
-        setBookWithPendingIsbnChoice(null)
-      }}
-      style={{ 
-        width: '100%', 
-        padding: '8px', 
-        fontSize: '12px', 
-        fontWeight: 'bold',
-        backgroundColor: '#0284c7', 
-        color: '#fff', 
-        border: 'none', 
-        borderRadius: '4px', 
-        marginBottom: '12px',
-        cursor: 'pointer' 
-      }}
-    >
-      ✨ Skip ISBN & Use General Work Details ({bookWithPendingIsbnChoice.creator})
-    </button>
-
-    <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '10px' }}>
-      <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#475569', display: 'block', marginBottom: '6px' }}>
-        Or pick a specific registry print edition:
-      </span>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', maxHeight: '120px', overflowY: 'auto', padding: '2px' }}>
-        {bookWithPendingIsbnChoice.availableIsbns.map((isbnCode) => (
+          </div>
           <button
-            key={isbnCode}
             type="button"
-            onClick={() => {
-              if (!bookWithPendingIsbnChoice) return;
-              setSelectedBook({ ...bookWithPendingIsbnChoice, isbn: String(isbnCode).trim() });
-              setBookWithPendingIsbnChoice(null);
-            }}
-            style={{ padding: '6px 12px', fontSize: '12px', cursor: 'pointer', backgroundColor: '#fff', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+            onClick={() => setSelectedBook(null)}
+            className="flex min-h-10 items-center gap-1 rounded-sm border border-border px-3 text-sm text-text-muted hover:bg-background"
           >
-            📋 {isbnCode}
+            <X className="h-4 w-4" />
+            Back
           </button>
-        ))}
-      </div>
-    </div>
-  </div>
-)}
-</div>
-{/* RIGHT SECTION: Target Form */}
-  <div style={{ flex: 1, borderLeft: '1px solid #eee', paddingLeft: '40px' }}>
-    <h2>Book Specifications</h2>
-        <p>Verify before confirming your submission entry.</p>
-        
-        <BookForm 
-          key={`${selectedBook?.source || 'empty'}-${selectedBook?.work_id || selectedBook?.googleVolumeId || 'form'}-${selectedBook?.isbn || 'no-isbn'}`}
-          initialValues={selectedBook} 
-          onSubmit={formSubmitHandler}
-          isSaving={isSaving}
-        />
-    </div>
+        </div>
 
-    </div>
+        <BookForm
+          initialValues={selectedBook}
+          onSubmit={handleCreateRecord}
+          isSaving={bookMutation.isPending}
+        />
+        {bookMutation.isError && (
+          <p className="mt-3 text-sm font-semibold text-danger">
+            The book could not be saved. Check the details and try again.
+          </p>
+        )}
+      </section>
+    )
+  }
+
+  return (
+    <section className="rounded-md border border-border/60 bg-surface p-5 shadow-card">
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold text-secondary">Add one of your books</h2>
+          <p className="mt-1 text-sm text-text-muted">
+            Search Google Books, then select a result to review before uploading.
+          </p>
+        </div>
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            aria-label="Close add book"
+            className="rounded-sm border border-border p-2 text-text-muted hover:bg-background"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
+      </div>
+
+      <label htmlFor="google-book-search" className="mb-1 block text-sm font-semibold text-text-primary">
+        Search by title, author, or ISBN
+      </label>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+        <input
+          id="google-book-search"
+          type="search"
+          value={inputValue}
+          onChange={(event) => setInputValue(event.target.value)}
+          placeholder="e.g. The Left Hand of Darkness"
+          className="min-h-11 w-full rounded-sm border border-border bg-background/50 py-2 pl-10 pr-3 outline-none focus:border-primary"
+        />
+      </div>
+
+      {isSearching && <p className="mt-4 text-sm text-text-muted">Searching Google Books...</p>}
+      {error && (
+        <p className="mt-4 text-sm font-semibold text-danger">
+          Google Books search failed. Please try again.
+        </p>
+      )}
+      {!isSearching && searchQuery && !error && googleMatches.length === 0 && (
+        <p className="mt-4 text-sm text-text-muted">No Google Books matches found.</p>
+      )}
+
+      {googleMatches.length > 0 && (
+        <ul className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
+          {googleMatches.map((book, index) => (
+            <li
+              key={book.googleVolumeId || `${book.title}-${index}`}
+              className="flex gap-3 rounded-sm border border-border/50 bg-background/30 p-3"
+            >
+              <div className="h-28 w-20 flex-shrink-0 overflow-hidden rounded-sm bg-background">
+                {book.image ? (
+                  <img src={book.image} alt={`${book.title} cover`} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="flex h-full items-center justify-center px-2 text-center text-xs text-text-muted">
+                    No cover
+                  </div>
+                )}
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col">
+                <h3 className="line-clamp-2 text-sm font-bold text-text-primary">{book.title}</h3>
+                <p className="mt-1 line-clamp-1 text-xs text-text-muted">by {book.creator}</p>
+                {book.isbn && <p className="mt-1 text-xs text-text-muted">ISBN {book.isbn}</p>}
+                <button
+                  type="button"
+                  onClick={() => setSelectedBook(book)}
+                  className="mt-auto min-h-9 rounded-sm bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:opacity-90"
+                >
+                  Select and review
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   )
 }

@@ -1,25 +1,17 @@
 import request from 'superagent'
-import { Book } from '../../models/book' //Aspirations
-import { normaliseBookPayload } from '../../shared/utils/normaliseBookPayload';
-import { isValidISBN } from '../../shared/utils/isbnCheck'
+import { Book, SelectableBook } from '../../models/book'
+import { withAccessToken } from '../lib/authenticatedRequest'
 
 
 export interface SearchQueryResponse {
-  source: 'local' | 'openlibrary' | 'google' | 'mixed' | 'none' | 'worldcat';
-  data?: any[];          // Kept for borrow search compatibility
-  localData?: any[];     // New structure for catalog search
-  externalData?: any[];  // New structure for catalog search
-  externalSource?: 'openlibrary' | 'google' | 'none' | 'mixed';
-  redirectUrl?: string;
-}
-
-export interface IngestionPayload {
-  type: 'isbn' | 'openlibrary' | 'google';
-  identifier: string; // This could be an ISBN-13 string, an OL Work Key ("OL27479W"), or a Google Vol ID
+  source: 'local' | 'google' | 'mixed' | 'none';
+  data?: unknown[]
+  localData?: unknown[]
+  externalData?: unknown[]
+  externalSource?: 'google' | 'none';
 }
 
 const baseUrl = '/api/v1/books'
-console.log("🔥 API file loaded!");
 
 // GET all books
 export async function getAllBooks() {
@@ -45,38 +37,29 @@ export async function getBooksByOwner(ownerId: string) {
   return res.body
 }
 
-// EDIT book (draft, using short model cleanbookresult until i sort default vals,fallbacks etc.
+// EDIT book 
+
 export async function updateBook(book_id: string, updatedFields: Partial<Book>) {
-  //TODO: Replace hardcoded user id with one from Auth context
-  const currentUserId = 'u_00001';
-  const response = await request.patch(`/api/v1/books/${book_id}/update`)
-  .set('x-user-id', currentUserId)
-  .send(updatedFields)
-  return response.body
+  if (!book_id || book_id === 'undefined') {
+    throw new Error("CRITICAL: Attempted to PATCH with an invalid book ID");
+  }
+
+  const response = await withAccessToken(
+    request.patch(`/api/v1/books/${book_id}/update`).send(updatedFields),
+  )
+  
+  return response.body;
 }
 
-// ADD book (draft, using short model cleanbookresult until i sort default vals,fallbacks etc.
-export async function createLocalBook(newBook: Book) {
-  const response = await request.post('/api/v1/books').send(newBook)
-  return response.body
-}
-
-// ADD book (exotic external book)
-export async function ingestExternalBook(payload: IngestionPayload) {
-  const token = localStorage.getItem('token'); 
-  const response = await request
-  .post(`${baseUrl}/ingest`)
-  .set('Authorization', `Bearer ${token}`)
-  .send(payload)
-
+// ADD book 
+export async function createLocalBook(newBook: Partial<Book>) {
+  const response = await withAccessToken(request.post(`${baseUrl}/add`).send(newBook))
   return response.body
 }
 
 // SEARCH books,local and external
 export async function executeCatalogSearchCascade(query: string): Promise<SearchQueryResponse> {
   try {
-    console.log(`Sending single aggregated lookup request for: "${query}"`);
-    
     const response = await request
       .get('/api/v1/books/search/registries')
       .query({ query });
@@ -99,12 +82,11 @@ export async function executeCatalogSearchCascade(query: string): Promise<Search
 
 // SEARCH Peer Borrowing Cascade
 export async function executeBorrowSearchCascade(rawQuery: string): Promise<SearchQueryResponse> {
-  let query = rawQuery.trim()
+  const query = rawQuery.trim()
 
-  let localDataResult: any[] = []
-  let externalDataResult: any[] = []
-  let sourceResult: 'local' | 'openlibrary' | 'google' | 'mixed' | 'none' | 'worldcat' = 'none'
-  let redirectUrlResult: string | undefined = undefined
+  let localDataResult: unknown[] = []
+  let externalDataResult: unknown[] = []
+  let sourceResult: 'local' | 'google' | 'mixed' | 'none' = 'none'
 
   // Local Search Pass
   try {
@@ -117,11 +99,8 @@ export async function executeBorrowSearchCascade(rawQuery: string): Promise<Sear
     console.error("Backend local search route failed:", err);
   }
 
-  let targetIsbn = isValidISBN(query) ? query : null;
-
   // Aggregate External Repositories via Shared Gate
   try {
-    console.log(`Running background registry lookup to aggregate listings for: "${query}"`);
     const registryResult = await executeCatalogSearchCascade(query);
   
     if (registryResult && registryResult.externalData && registryResult.externalData.length > 0) {
@@ -130,8 +109,9 @@ export async function executeBorrowSearchCascade(rawQuery: string): Promise<Sear
     
     // Combine hidden db records safely
     if (registryResult && registryResult.localData && registryResult.localData.length > 0) {
-      registryResult.localData.forEach((item: any) => {
-        if (!localDataResult.some(existing => (existing.id || existing._id) === (item.id || item._id))) {
+      registryResult.localData.forEach((item) => {
+        const candidate = item as SelectableBook
+        if (!localDataResult.some(existing => (existing as SelectableBook).book_id === candidate.book_id)) {
           localDataResult.push(item);
         }
       });
@@ -143,61 +123,27 @@ export async function executeBorrowSearchCascade(rawQuery: string): Promise<Sear
     } else if (localDataResult.length > 0) {
       sourceResult = 'local';
     } else if (externalDataResult.length > 0) {
-      sourceResult = 'openlibrary';
+      sourceResult = 'google';
     }
 
-    // Try to extract an ISBN from the top match if none yet exists
-    const rawTopMatch = externalDataResult?.[0];
-    if (!targetIsbn && rawTopMatch) {
-      const topMatch = normaliseBookPayload(rawTopMatch, registryResult.source as any);
-      if (topMatch && topMatch.isbn) {
-        targetIsbn = topMatch.isbn;
-      }
-    }
   } catch (err) {
     console.error('⚠️ External lookup translation step encountered an error:', err);
   }
-
-  // Evaluate Redirect Safety Gates
-  if (targetIsbn && isValidISBN(targetIsbn)) {
-    if (localDataResult.length === 0) {
-      sourceResult = 'worldcat';
-      redirectUrlResult = `https://www.worldcat.org/isbn/${targetIsbn}`;
-    } else {
-      // Local data items! Demote source back to mixed and drop the redirect loop
-      sourceResult = 'mixed';
-      redirectUrlResult = undefined; 
-    }
-  }
-
-  // Final Emergency Safety Valve: If any local records survived, redirectUrl MUST be killed
-  if (localDataResult && localDataResult.length > 0) {
-    redirectUrlResult = undefined;
-  }
-
-  console.log(" CASCADE FINAL RETURN SNAPSHOT:", {
-    source: sourceResult,
-    localCount: localDataResult?.length,
-    externalCount: externalDataResult?.length,
-    hasRedirect: !!redirectUrlResult
-  });
 
   return { 
     source: sourceResult, 
     localData: localDataResult, 
     externalData: externalDataResult,
-    redirectUrl: redirectUrlResult
   };
 }
 
 // api/books.ts
 export async function editSearchBooks(query: string) {
-  console.log("🚀 Request initiated for:", query);
   if (!query || query.length < 3) return [];
   
   const response = await request
     .get(`/api/v1/books/search/metadata`)
-    .query({ q: encodeURIComponent(query) }); 
+    .query({ q: query });
     
   return response.body || [];
 }

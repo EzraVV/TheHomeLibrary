@@ -1,13 +1,22 @@
 import express from 'express'
 import * as db from '../db/users'
+import { requireAuth } from '../auth/middleware'
 
 const router = express.Router()
 
+function publicProfile(user: Awaited<ReturnType<typeof db.getUserById>>) {
+  if (!user) return user
+  const profile: Partial<typeof user> = { ...user }
+  delete profile.email
+  delete profile.postcode
+  return profile
+}
+
 // GET /api/v1/users
-router.get('/', async (req, res) => {
+router.get('/', requireAuth, async (req, res) => {
   try {
     const users = await db.getAllUsers()
-    res.json(users)
+    res.json(users.map((user) => publicProfile(user)))
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Failed to fetch users' })
@@ -19,11 +28,16 @@ router.get('/search', async (req, res) => {
   const q = (req.query.query as string) || ''
   try {
     const users = await db.searchUsers(q)
-    res.json(users)
+    res.json(users.map((user) => publicProfile(user)))
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Search failed' })
   }
+})
+
+router.get('/me', requireAuth, async (req, res) => {
+  const user = await db.getUserById(req.auth!.userId)
+  return res.json(user)
 })
 
 // GET /api/v1/users/:id
@@ -35,7 +49,7 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'User not found' })
     }
 
-    res.json(user)
+    res.json(publicProfile(user))
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: 'Failed to fetch user' })
@@ -43,31 +57,24 @@ router.get('/:id', async (req, res) => {
 })
 
 // POST /api/v1/users
-router.post('/', async (req, res) => {
-  try {
-    const lastId = await db.getLastUserId()
-    const newId = db.generateNextUserId(lastId)
-    const newUser = {
-      ...req.body,
-      user_id: newId,
-    }
-    const created = await db.createUser(newUser)
-    res.status(201).json(created)
-  } catch (err) {
-    const error = err as { code?: string }
-    if (error.code === 'SQLITE_CONSTRAINT') {
-      return res.status(400).json({ error: 'Email already in use' })
-    }
-
-    console.error(err)
-    res.sendStatus(500)
-  }
-})
-
 // PATCH /api/v1/users/:id
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', requireAuth, async (req, res) => {
   try {
-    const updated = await db.updateUser(req.params.id, req.body)
+    if (req.params.id !== req.auth!.userId) {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+    const allowedFields = [
+      'user_name',
+      'pronouns',
+      'postcode',
+      'about',
+      'interests',
+      'status',
+    ]
+    const updates = Object.fromEntries(
+      Object.entries(req.body).filter(([key]) => allowedFields.includes(key)),
+    )
+    const updated = await db.updateUser(req.auth!.userId, updates)
     res.json(updated)
   } catch (err) {
     console.error(err)
@@ -76,9 +83,12 @@ router.patch('/:id', async (req, res) => {
 })
 
 // DELETE /api/v1/users/:id (soft delete)
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAuth, async (req, res) => {
   try {
-    await db.softDeleteUser(req.params.id)
+    if (req.params.id !== req.auth!.userId) {
+      return res.status(403).json({ error: 'Access denied' })
+    }
+    await db.softDeleteUser(req.auth!.userId)
     res.status(204).end()
   } catch (err) {
     console.error(err)

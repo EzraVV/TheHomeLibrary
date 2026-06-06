@@ -1,11 +1,10 @@
 import { useSearchParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { useBorrowBookSearch } from '../hooks/useBooks'
-import { SelectableBook } from '../../models/book'
-import { normaliseBookPayload } from '../../shared/utils/normaliseBookPayload'
+import { SelectableBook } from '../../../models/book'
+import { normaliseBookPayload } from '../../../shared/utils/normaliseBookPayload'
+import { normaliseAuthorName } from '../../../shared/utils/formatters'
 
 function SafeBookCover({ src, alt }: { src?: string; alt: string }) {
-  console.log("SafeBookCover received src:", src);
   const [hasError, setHasError] = useState(false);
   const defaultImage = '/assets/default-book-cover.png';
 
@@ -26,8 +25,8 @@ function SafeBookCover({ src, alt }: { src?: string; alt: string }) {
 }
 
 interface SearchResultsData {
-  localData: any[];
-  externalData: any[];
+  localData: unknown[];
+  externalData: unknown[];
   externalSource?: string
 }
 
@@ -42,7 +41,7 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
 
   // Fire search cascade custom react-query hook
   const localMatches = (data?.localData || []).map(b => ({ ...normaliseBookPayload(b, 'local'), isLocal: true }));
-  const externalMatches = (data?.externalData || []).map(b => ({ ...normaliseBookPayload(b, (data.externalSource as any )|| 'openlibrary'), isLocal: false }));
+  const externalMatches = (data?.externalData || []).map(b => ({ ...normaliseBookPayload(b, 'google'), isLocal: false }));
 
   //Default collapse external results if something matches locally
   const [isExpanded, setIsExpanded] = useState<boolean>(() => {
@@ -53,7 +52,7 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
     <div className="p-6 max-w-app mx-auto">
       <div>
         <h1 className="text-2xl font-bold mb-4 text-secondary">
-          Search Results for "{searchQuery}"
+          Search Results for &quot;{searchQuery}&quot;
         </h1>
         <p className="text-xs text-text-muted mt-1">
             Found {localMatches.length} local items and {externalMatches.length} global references.
@@ -64,10 +63,9 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
         <div className="font-semibold mb-3">Available in your library ({localMatches.length}):</div>
           
           {localMatches.length > 0 ? (
-            console.log("Local Data received in SearchResultsPage:", localMatches),
             <ul className="divide-y divide-border">
               {localMatches.map((book: SelectableBook) => (
-                <li key={book.id} className="flex gap-4 py-3 items-center justify-between">
+                <li key={book.book_id ?? book.work_id ?? `fallback-${book.title}`} className="flex gap-4 py-3 items-center justify-between">
                   <div className="flex gap-4 items-center">
                     <div className="w-12 h-16 bg-background border border-border flex-shrink-0 rounded-sm overflow-hidden">
                       <SafeBookCover 
@@ -76,10 +74,12 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
                       />
                     </div>
                   <div>
-                    <a href={`/books/${book.id}`} className="font-bold text-sm text-secondary hover:underline">
+                    <a href={`/books/${book.book_id}`} className="font-bold text-sm text-secondary hover:underline">
                       {book.title ?? 'Untitled Book'}
                       </a>
-                      <p className="text-xs text-text-muted">{book.creator ?? 'Unknown Author'}</p>
+                      <p className="text-xs text-text-muted">
+                          {book.creator ? normaliseAuthorName(book.creator) : 'Unknown Author'}
+                        </p>
                     </div>
                   </div>
                   <span className="text-xs px-2.5 py-1 rounded-full font-semibold border bg-emerald-50 text-emerald-700 border-emerald-200">
@@ -105,7 +105,7 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
             className="w-full flex items-center justify-between font-semibold text-sm text-text-muted hover:text-text-primary transition-colors focus:outline-none"
           >
             <span className="flex items-center gap-2">
-              Not what you were after? Search Global Registries 
+              Not what you were after? Search Google Books
               <span className="text-xs bg-background border px-1.5 py-0.5 rounded text-text-muted">
                 {externalMatches.length} results
               </span>
@@ -122,10 +122,10 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
                 These books are not yet in our system, but might be available in another library:
               </p>
               <ul className="divide-y divide-border opacity-90">
-                {externalMatches.map((book: any, i: number) => {
+                {externalMatches.map((book, i: number) => {
                   const uniqueKey = book.isbn || book.work_id || `external-${i}`;
-                  const itemLinkUrl = book.isbn 
-                    ? `https://www.worldcat.org/isbn/${book.isbn}`
+                  const itemLinkUrl = book.googleVolumeId
+                    ? `https://books.google.com/books?id=${book.googleVolumeId}`
                     : null;
 
                   return (
@@ -134,7 +134,7 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
                         >
                       <div className="flex gap-4 items-center">
                         <div className="w-10 h-14 bg-background border border-border flex-shrink-0 rounded-sm overflow-hidden opacity-80">
-                          <SafeBookCover src={book.image} alt={book.title} />
+                          <SafeBookCover src={book.image} alt={book.title || 'Untitled book'} />
                         </div>
                         <div>
                           {itemLinkUrl ? (
