@@ -156,7 +156,7 @@ router.patch('/:id/return', requireAuth, async (req, res) => {
     // Update status
     await loanDb.updateLoanStatus(loanId, 'Returned')
 
-    // ⭐ Fetch the lender (owner)
+    // Fetch the lender (owner)
     const lender = await userDb.getUserById(loan.owner_id)
 
     return res.json({
