@@ -1,37 +1,94 @@
 import { Link } from 'react-router-dom'
 import { Loan } from '../../../models/loan'
+import { BookOpen } from 'lucide-react'
 
 interface BorrowedListProps {
-  loans: Loan[];
-  onUpdate:(id: string, fields: Partial<Loan>)=> void
+  loans: Loan[]
+  onUpdate?: (id: string, fields: Partial<Loan>) => void
 }
 
-export function BorrowedList({loans}: BorrowedListProps) {
+function formatDate(value?: string | null) {
+  if (!value) return 'Not set'
+
+  return new Intl.DateTimeFormat('en-NZ', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(value))
+}
+
+export function BorrowedList({ loans }: BorrowedListProps) {
   return (
     <section className="rounded-md bg-surface p-6 shadow-card border border-border/40 text-left w-full h-full flex flex-col">
       <div className="flex items-center justify-between border-b border-border/40 pb-3 mb-4">
         <h2 className="font-heading text-xl font-bold text-secondary flex items-center gap-2">
           Your requests and loans
         </h2>
-        {/*Add hook to display users books already on loan, iterate through, flag actions for each*/}
         <span className="text-xs font-semibold text-text-muted bg-background px-2.5 py-0.5 rounded-sm">
           {loans.length} borrowed or requested
         </span>
       </div>
 
-      {/* Empty State matching styling guide exact rules */}
-      <div className="flex-grow flex flex-col items-center justify-center text-center py-10 border border-dashed border-border/60 rounded-sm bg-background/30 px-4">
-        <h3 className="text-sm font-bold text-secondary mb-0.5">You haven’t borrowed any books yet</h3>
-        <p className="text-xs text-text-muted mb-4 max-w-[200px]">
-          Explore and find books available in the neighborhood library!
-        </p>
-        <Link
-          to="/books/search"
-          className="min-h-9 inline-flex items-center gap-1 text-xs rounded-sm bg-primary px-3.5 py-1.5 font-semibold text-white transition duration-200 ease-smooth hover:opacity-90 active:scale-[0.98]"
-        >
-          Browse Catalog
-        </Link>
-      </div>
+      {loans.length === 0 ? (
+        <div className="flex-grow flex flex-col items-center justify-center text-center py-10 border border-dashed border-border/60 rounded-sm bg-background/30 px-4">
+          <h3 className="text-sm font-bold text-secondary mb-0.5">You haven&apos;t borrowed any books yet</h3>
+          <p className="text-xs text-text-muted mb-4 max-w-[200px]">
+            Explore and find books available in the neighborhood library.
+          </p>
+          <Link
+            to="/books/search"
+            className="min-h-9 inline-flex items-center gap-1 text-xs rounded-sm bg-primary px-3.5 py-1.5 font-semibold text-white transition duration-200 ease-smooth hover:opacity-90 active:scale-[0.98]"
+          >
+            Browse Catalog
+          </Link>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-3">
+          {loans.map((loan) => (
+            <li
+              key={loan.loan_id}
+              className="flex gap-3 rounded-sm border border-border/50 bg-background/30 p-3"
+            >
+              <div className="h-20 w-14 flex-shrink-0 overflow-hidden rounded-sm border border-border/40 bg-background flex items-center justify-center">
+                {loan.book_image ? (
+                  <img
+                    src={loan.book_image}
+                    alt={loan.book_title || 'Book cover'}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <BookOpen className="h-6 w-6 text-text-muted/50" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <h3 className="font-semibold text-secondary">
+                      {loan.book_title || 'Untitled book'}
+                    </h3>
+                    <p className="text-xs text-text-muted">
+                      Owner: {loan.owner_name || loan.owner_id}
+                    </p>
+                  </div>
+                  <span className="rounded-pill bg-accent/15 px-2.5 py-1 text-xs font-semibold text-secondary">
+                    {loan.status}
+                  </span>
+                </div>
+                <dl className="mt-3 grid grid-cols-1 gap-1 text-xs text-text-muted sm:grid-cols-2">
+                  <div>
+                    <dt className="font-semibold text-secondary">Requested</dt>
+                    <dd>{formatDate(loan.created_at)}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold text-secondary">Due</dt>
+                    <dd>{formatDate(loan.due_at)}</dd>
+                  </div>
+                </dl>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   )
 }

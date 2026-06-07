@@ -25,8 +25,13 @@ export async function updateLoan(loan_id: string, updatedFields: Partial<Loan>) 
   return response.body
 }
 
-// ADD loan 
-export async function createLoan(newLoan: Omit<Loan, 'loan_id' | 'owner_id'>) {
+export interface CreateLoanRequest {
+  book_id: string
+  due_at?: string
+}
+
+// ADD loan
+export async function createLoan(newLoan: CreateLoanRequest) {
   const response = await withAccessToken(request.post(`${baseUrl}/add`).send(newLoan))
   return response.body 
 }

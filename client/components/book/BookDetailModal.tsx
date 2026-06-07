@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import BookDetail from './BookDetail'
+import { X } from 'lucide-react'
 
 interface Props {
   bookId: string
@@ -38,16 +39,40 @@ export default function BookDetailModal({
 
   return (
     <div
-      role="presentation"
-      className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4"
-      onClick={onClose}
+      role="button"
+      tabIndex={-1}
+      aria-label="Close book details overlay"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose()
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          onClose()
+        }
+      }}
     >
       <div
-        role="presentation"
-        className="w-full max-w-5xl max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Book details"
+        className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-md border border-border bg-surface shadow-card"
       >
-        <BookDetail bookId={bookId} onBorrow={onBorrow} isLoading={isLoading} />
+        <button
+          type="button"
+          aria-label="Close book details"
+          onClick={onClose}
+          className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-sm border border-border bg-surface text-text-muted transition hover:text-secondary"
+        >
+          <X className="h-4 w-4" />
+        </button>
+        <BookDetail
+          bookId={bookId}
+          onBorrow={onBorrow}
+          isLoading={isLoading}
+        />
       </div>
     </div>
   )

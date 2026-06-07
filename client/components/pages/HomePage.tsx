@@ -8,6 +8,7 @@ import BookCard from '../../components/BookCard'
 import { Library, Info, Sparkles } from 'lucide-react'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import BookDetailModal from '../book/BookDetailModal'
+import { useAddLoan } from '../../hooks/useLoans'
 
 export default function HomePage() {
   const {
@@ -20,24 +21,33 @@ export default function HomePage() {
   })
 
   const { data: user } = useCurrentUser()
+  const addLoanMutation = useAddLoan()
 
   const availableBooks = books?.filter(
     (book) => book.owner_id !== user?.user_id,
   )
 
-  // Simulated borrowing loading state for specific books
   const [borrowingId, setBorrowingId] = useState<string | null>(null)
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null)
+  const [requestMessage, setRequestMessage] = useState<string | null>(null)
 
   const handleBorrow = (bookId: string) => {
     setBorrowingId(bookId)
-    // Simulate borrowing process for 1.5s
-    setTimeout(() => {
-      alert(
-        'Simulated Borrowing: A borrow request was submitted successfully! The owner will be notified to arrange pickup or delivery.',
-      )
-      setBorrowingId(null)
-    }, 1500)
+    setRequestMessage(null)
+    addLoanMutation.mutate(
+      { book_id: bookId },
+      {
+        onSuccess: () => {
+          setRequestMessage('Borrow request sent.')
+        },
+        onError: () => {
+          setRequestMessage('Unable to send borrow request. Please try again.')
+        },
+        onSettled: () => {
+          setBorrowingId(null)
+        },
+      },
+    )
   }
 
   return (
@@ -107,6 +117,15 @@ export default function HomePage() {
                 Failed to load the library catalogue. Please try reloading the
                 page.
               </p>
+            </div>
+          )}
+
+          {requestMessage && (
+            <div
+              role="status"
+              className="mb-4 rounded-sm border border-border bg-surface px-4 py-3 text-sm font-medium text-secondary"
+            >
+              {requestMessage}
             </div>
           )}
 

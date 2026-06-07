@@ -1,6 +1,8 @@
 import express from 'express'
 import * as db from '../db/loan'
+import * as bookDb from '../db/book'
 import { requireAuth } from '../auth/middleware'
+import { calculateDueDate } from '../../shared/utils/calculateDueDate'
 
 const router = express.Router()
 // GET /api/v1/loans
@@ -29,15 +31,35 @@ router.get('/search', requireAuth, async (req, res) => {
 // POST /api/v1/loans
 router.post('/add', requireAuth, async (req, res) => {
   try {
-    const ownerId = req.auth!.userId
-    const loanFields = { ...req.body }
-    delete loanFields.loan_id
-    delete loanFields.owner_id
-    delete loanFields.created_at
-    delete loanFields.updated_at
+    const borrowerId = req.auth!.userId
+    const { book_id } = req.body
+
+    if (typeof book_id !== 'string' || book_id.trim() === '') {
+      return res.status(400).json({ error: 'book_id is required' })
+    }
+
+    const book = await bookDb.getBookById(book_id)
+
+    if (!book) {
+      return res.status(404).json({ error: 'Book not found' })
+    }
+
+    if (String(book.owner_id) === String(borrowerId)) {
+      return res.status(400).json({ error: 'You cannot borrow your own book' })
+    }
+
+    const now = new Date().toISOString()
     const newLoan = {
-      ...loanFields,
-      owner_id: ownerId,
+      book_id: book.book_id,
+      owner_id: book.owner_id,
+      borrower_id: borrowerId,
+      status: 'Pending' as const,
+      due_at: req.body.due_at || calculateDueDate(2, now),
+      returned_at: null,
+      created_at: now,
+      updated_at: now,
+      archived_at: null,
+      is_deleted: false,
     }
     const created = await db.createLoan(newLoan)
     res.status(201).json(created)
