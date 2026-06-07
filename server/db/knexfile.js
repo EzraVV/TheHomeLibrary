@@ -34,6 +34,10 @@ export default {
   production: {
     client: 'pg',
     connection: process.env.DATABASE_URL,
+    pool: {
+      min: 0,
+      max: 1,
+    },
     migrations: {
       directory: Path.join(__dirname, '../../supabase/migrations'),
     },
