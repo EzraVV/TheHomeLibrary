@@ -3,6 +3,8 @@ import * as db from '../db/loan'
 import * as bookDb from '../db/book'
 import { requireAuth } from '../auth/middleware'
 import { calculateDueDate } from '../../shared/utils/calculateDueDate'
+import * as loanDb from '../db/loan'
+import * as userDb from '../db/users'
 
 const router = express.Router()
 // GET /api/v1/loans
@@ -73,7 +75,7 @@ router.post('/add', requireAuth, async (req, res) => {
 router.patch('/:id', requireAuth, async (req, res) => {
   try {
     const userId = req.auth!.userId
-    const { id } = req.params;
+    const { id } = req.params
     const updates = { ...req.body }
     delete updates.loan_id
     delete updates.book_id
@@ -84,6 +86,86 @@ router.patch('/:id', requireAuth, async (req, res) => {
     res.json(updated)
   } catch {
     res.status(403).json({ error: 'Unauthorised or loan not found' })
+  }
+})
+
+router.patch('/:id/accept', requireAuth, async (req, res) => {
+  try {
+    const loanId = req.params.id
+    const lenderId = req.auth!.userId
+
+    const loan = await loanDb.getLoanById(loanId)
+    if (!loan) return res.status(404).json({ error: 'Loan not found' })
+
+    if (loan.owner_id !== lenderId) {
+      return res.status(403).json({ error: 'Not your loan request to accept' })
+    }
+
+    await loanDb.updateLoanStatus(loanId, 'Active')
+
+    // Fetch borrower email
+    const borrower = await userDb.getUserById(loan.borrower_id)
+
+    return res.json({
+      success: true,
+      borrowerEmail: borrower?.email ?? null,
+    })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to accept loan' })
+  }
+})
+
+router.patch('/:id/deny', requireAuth, async (req, res) => {
+  try {
+    const loanId = req.params.id
+    const lenderId = req.auth!.userId
+
+    const loan = await loanDb.getLoanById(loanId)
+    if (!loan) return res.status(404).json({ error: 'Loan not found' })
+
+    // Only the owner can deny
+    if (loan.owner_id !== lenderId) {
+      return res.status(403).json({ error: 'Not your loan request to deny' })
+    }
+
+    await loanDb.updateLoanStatus(loanId, 'Denied')
+
+    return res.json({ success: true })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to deny loan' })
+  }
+})
+
+router.patch('/:id/return', requireAuth, async (req, res) => {
+  try {
+    const loanId = req.params.id
+    const userId = req.auth!.userId
+
+    const loan = await loanDb.getLoanById(loanId)
+    if (!loan) return res.status(404).json({ error: 'Loan not found' })
+
+    // Only the borrower can return the book
+    if (loan.borrower_id !== userId) {
+      return res
+        .status(403)
+        .json({ error: "You cannot return a book you didn't borrow" })
+    }
+
+    // Update status
+    await loanDb.updateLoanStatus(loanId, 'Returned')
+
+    // ⭐ Fetch the lender (owner)
+    const lender = await userDb.getUserById(loan.owner_id)
+
+    return res.json({
+      success: true,
+      lenderEmail: lender?.email ?? null,
+    })
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: 'Failed to return loan' })
   }
 })
 

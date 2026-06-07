@@ -1,6 +1,9 @@
 import connection from './connection'
 import { User } from '../../models/user'
-import { atomiseInterests, stringifyInterests } from '../../shared/utils/interestProcessing'
+import {
+  atomiseInterests,
+  stringifyInterests,
+} from '../../shared/utils/interestProcessing'
 
 type UserRow = Omit<User, 'interests'> & {
   interests: string | string[] | null
@@ -94,9 +97,7 @@ export async function updateUser(
     updated_at: new Date().toISOString(),
   }
 
-  await connection(userTable)
-    .where({ user_id: id })
-    .update(storedUpdates)
+  await connection(userTable).where({ user_id: id }).update(storedUpdates)
 
   // Fetch
   const updated = await connection(userTable).where({ user_id: id }).first()
