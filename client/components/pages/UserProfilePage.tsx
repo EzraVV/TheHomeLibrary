@@ -1,5 +1,3 @@
-import Navbar from '../../components/layout/Navbar'
-import Footer from '../../components/layout/Footer'
 import UserHeader from '../../components/user/UserHeader'
 import UserAbout from '../../components/user/UserAbout'
 import UserBooksOwned from '../../components/user/UserBooksOwned'
