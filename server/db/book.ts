@@ -33,15 +33,21 @@ export async function getBookByTitle(title: string): Promise<Book | undefined> {
   return connection('book').where({ title }).first()
 }
 
-export async function updateBook(book_id: string, owner_id: string, updatedFields: Partial<Book>): Promise<Book | null> {
+export async function updateBook(
+  book_id: string,
+  owner_id: string,
+  updatedFields: Partial<Book>,
+): Promise<Book | null> {
   const bookData = await connection('book')
-  .where({book_id, owner_id})
-  .update(updatedFields)
-  .returning('*')
+    .where({ book_id, owner_id })
+    .update(updatedFields)
+    .returning('*')
   return bookData[0] ?? null
- }
+}
 
-export async function addBook(newBookData: Omit<Book, 'book_id'>): Promise<Book> {
+export async function addBook(
+  newBookData: Omit<Book, 'book_id'>,
+): Promise<Book> {
   if (process.env.NODE_ENV !== 'test') {
     const rows = await connection('book').insert(newBookData).returning('*')
     return rows[0]
@@ -55,13 +61,13 @@ export async function addBook(newBookData: Omit<Book, 'book_id'>): Promise<Book>
   try {
     const bookWithId = {
       ...newBookData,
-      book_id: nextBookId
-    } 
-    
+      book_id: nextBookId,
+    }
+
     await connection('book').insert(bookWithId)
     return bookWithId
   } catch (err) {
     console.error('Database insertion error', err)
     throw err
   }
- }
+}

@@ -58,3 +58,6 @@
     @apply transition-all duration-180 ease-smooth active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
   }
 }
+.blurb {
+  white-space: pre-line;
+}
