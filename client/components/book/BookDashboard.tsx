@@ -6,9 +6,6 @@ import { useSearchLoans } from "../../hooks/useLoans"
 import { useUpdateLoan } from "../../hooks/useLoans"
 import { useCurrentUser } from "../../hooks/useCurrentUser"
 
-//TO DO - expand from base book components pilfered from User - loan information, edit options, shortcuts to set lending parameters
-//Due dates, recent reviews? Plus books near me to borrow?
-
 export const BookDashboard = () => {
   const { data: allLoans, isLoading, error } = useSearchLoans('', true)
   const { data: currentUser } = useCurrentUser()
@@ -25,8 +22,8 @@ export const BookDashboard = () => {
   const lent = allLoans?.filter((l)=> l.owner_id === currentUser?.user_id) || [];
   const borrowed = allLoans?.filter((l)=> l.borrower_id === currentUser?.user_id) || [];
   
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading dashboard.</div>;
+  if (isLoading) return <div className="p-6">Loading loans...</div>
+  if (error) return <div role="alert" className="p-6">Error loading dashboard.</div>
 
     return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -38,12 +35,3 @@ export const BookDashboard = () => {
     </div>
   )
 }
-
-/*
-const updateMutation = useUpdateLoan();
-
-// Inside button click or event handler
-updateMutation.mutate({ 
-  loan_id: 'l_123', 
-  fields: { status: 'returned', returned_at: new Date().toISOString() } 
-});*/

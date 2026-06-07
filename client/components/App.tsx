@@ -37,6 +37,7 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/profile" element={<UserProfilePage />} />
           <Route path="/my-books" element={<MyBooksPage />} />
+          <Route path="/borrowed" element={<BookDashboard />} />
           <Route path="/books/dashboard" element={<BookDashboard />} />
           <Route path="/books/add" element={<AddBook />} />
           <Route path="/books/:id/update" element={<EditBook />} />

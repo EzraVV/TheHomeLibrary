@@ -100,32 +100,102 @@ describe('MVP API contracts', () => {
     expect(publicResponse.body.postcode).toBeUndefined()
   })
 
-  it('supports loan search/create/update and rejects unauthorized updates', async () => {
-    const book = await connection('book').first()
-    const created = await request(server)
-      .post('/api/v1/loans/add')
+  it('creates a pending loan request for an authenticated borrower', async () => {
+    const book = await request(server)
+      .post('/api/v1/books/add')
       .set('x-test-user-id', user.user_id)
       .send({
-        book_id: book.book_id,
-        borrower_id: 'u_test02',
-        status: 'Pending',
-        due_at: '2026-07-01T00:00:00.000Z',
-        returned_at: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        archived_at: null,
-        is_deleted: false,
+        title: 'Borrowable Contract Book',
+        creator: 'Loan Writer',
+        work_id: 'work_loan_contract',
+        format: 'Paperback',
+        status: 'Available',
+        image: '',
+      })
+
+    const created = await request(server)
+      .post('/api/v1/loans/add')
+      .set('x-test-user-id', 'u_test02')
+      .send({
+        book_id: book.body.book_id,
       })
 
     expect(created.status).toBe(201)
     expect(created.body.owner_id).toBe(user.user_id)
+    expect(created.body.borrower_id).toBe('u_test02')
+    expect(created.body.status).toBe('Pending')
 
     const search = await request(server)
       .get('/api/v1/loans/search')
-      .set('x-test-user-id', user.user_id)
-      .query({ query: 'Owned' })
+      .set('x-test-user-id', 'u_test02')
+      .query({ query: 'Borrowable' })
     expect(search.status).toBe(200)
     expect(search.body).toHaveLength(1)
+    expect(search.body[0]).toEqual(
+      expect.objectContaining({
+        book_title: 'Borrowable Contract Book',
+        owner_name: user.user_name,
+      }),
+    )
+  })
+
+  it('ignores spoofed owner and borrower IDs on loan creation', async () => {
+    const book = await request(server)
+      .post('/api/v1/books/add')
+      .set('x-test-user-id', user.user_id)
+      .send({
+        title: 'Spoof Resistant Loan Book',
+        creator: 'Loan Writer',
+        work_id: 'work_spoof_contract',
+        format: 'Paperback',
+        status: 'Available',
+        image: '',
+      })
+
+    const created = await request(server)
+      .post('/api/v1/loans/add')
+      .set('x-test-user-id', 'u_test02')
+      .send({
+        book_id: book.body.book_id,
+        owner_id: 'u_test02',
+        borrower_id: user.user_id,
+        status: 'Active',
+      })
+
+    expect(created.status).toBe(201)
+    expect(created.body.owner_id).toBe(user.user_id)
+    expect(created.body.borrower_id).toBe('u_test02')
+    expect(created.body.status).toBe('Pending')
+  })
+
+  it('rejects unauthenticated loan creation', async () => {
+    const response = await request(server).post('/api/v1/loans/add').send({
+      book_id: 'bk_missing',
+    })
+
+    expect(response.status).toBe(401)
+    expect(response.body.error).toBe('Authentication required')
+  })
+
+  it('keeps loan status updates owner-only', async () => {
+    const book = await request(server)
+      .post('/api/v1/books/add')
+      .set('x-test-user-id', user.user_id)
+      .send({
+        title: 'Owner Update Loan Book',
+        creator: 'Loan Writer',
+        work_id: 'work_update_contract',
+        format: 'Paperback',
+        status: 'Available',
+        image: '',
+      })
+
+    const created = await request(server)
+      .post('/api/v1/loans/add')
+      .set('x-test-user-id', 'u_test02')
+      .send({
+        book_id: book.body.book_id,
+      })
 
     const denied = await request(server)
       .patch(`/api/v1/loans/${created.body.loan_id}`)

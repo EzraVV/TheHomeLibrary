@@ -22,7 +22,7 @@ export async function searchLoans(query: string, userId: string) {
   const q = query.trim()
 
   let queryBuilder = connection('loan')
-    .select('loan.*', 'book.title', 'book.image', 'borrower.user_name as borrower_name',
+    .select('loan.*', 'book.title as book_title', 'book.image as book_image', 'borrower.user_name as borrower_name',
       'owner.user_name as owner_name' )
     .leftJoin('book', 'loan.book_id', 'book.book_id')
     .leftJoin(`${userTable} as borrower`, 'loan.borrower_id', 'borrower.user_id')
@@ -85,7 +85,19 @@ export async function updateLoan(
 //Admin access to view complete loan history (could limit).
 export async function getAllLoans(userId: string) {
   const loans = await connection('loan')
-    .where({ owner_id: userId })
-    .orWhere({ borrower_id: userId })
+    .select(
+      'loan.*',
+      'book.title as book_title',
+      'book.image as book_image',
+      'borrower.user_name as borrower_name',
+      'owner.user_name as owner_name',
+    )
+    .leftJoin('book', 'loan.book_id', 'book.book_id')
+    .leftJoin(`${userTable} as borrower`, 'loan.borrower_id', 'borrower.user_id')
+    .leftJoin(`${userTable} as owner`, 'loan.owner_id', 'owner.user_id')
+    .where('loan.is_deleted', false)
+    .andWhere((builder) => {
+      builder.where('loan.owner_id', userId).orWhere('loan.borrower_id', userId)
+    })
   return loans
 }

@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { FormEvent, useEffect, useState } from 'react'
 import { BookOpen, User, BookMarked, Layers, Search, LogOut, LogIn } from 'lucide-react'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import { useQueryClient } from '@tanstack/react-query'
@@ -20,39 +20,29 @@ export default function Navbar() {
   const currentQueryParams = new URLSearchParams(location.search)
   const currentQueryString = currentQueryParams.get('query') || ''
 
-  //Keep search value active while navigating
   useEffect(() => {
-    if (location.pathname === '/books/search' && currentQueryString !== inputValue) {
+    if (location.pathname === '/books/search') {
       setInputValue(currentQueryString)
-    } else if (location.pathname !== '/books/search' && inputValue !== '') {
-      // Clear the navbar box if they leave the search page completely
+    } else {
       setInputValue('')
     }
-  }, [location.pathname, currentQueryString, inputValue])
+  }, [location.pathname, currentQueryString])
 
-  //Debounce to reduce external calls
-  useEffect(() => {
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
     const trimmedInput = inputValue.trim()
-    // If the input is too short, skip the API entirely
-    if (trimmedInput.length <= 2) {
+
+    if (trimmedInput.length === 0) {
+      navigate('/books/search')
       return
     }
 
-    if (location.pathname === '/books/search' && currentQueryString === trimmedInput) {
+    if (trimmedInput.length < 3) {
       return
     }
 
-    // Single network window timer
-  const handler = setTimeout(() => {
-      // Redirect to dedicated search page automatically
-      navigate(`/books/search?query=${encodeURIComponent(trimmedInput)}`)
-    }, 600)
-
-    // Clean-up before every single key strike
-    return () => {
-      clearTimeout(handler)
-    }
-  }, [inputValue, navigate, location.pathname, currentQueryString])
+    navigate(`/books/search?query=${encodeURIComponent(trimmedInput)}`)
+  }
 
   const linkClass = (path: string) => {
     return `flex items-center gap-1.5 px-3 py-2 rounded-sm text-sm font-semibold transition-all duration-180 ${
@@ -106,8 +96,12 @@ export default function Navbar() {
 
         {/* Actions (Search and Buttons) */}
         <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
-          {/* Search box */}
-          <div className="relative flex-1 sm:flex-initial sm:w-48">
+          <form
+            role="search"
+            onSubmit={handleSearchSubmit}
+            className="flex flex-1 items-center gap-2 sm:flex-initial"
+          >
+          <div className="relative flex-1 sm:w-48">
             <input
               type="text"
               placeholder="Search library..."
@@ -116,7 +110,14 @@ export default function Navbar() {
               className="w-full min-h-11 rounded-sm border border-border bg-background/50 pl-9 pr-3 py-2 text-sm focus:bg-surface focus:outline focus:outline-2 focus:outline-primary transition-all"
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted opacity-60" />
-          </div>          
+          </div>
+          <button
+            type="submit"
+            className="min-h-11 rounded-sm bg-primary px-3 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+          >
+            Search
+          </button>
+          </form>
           
           {/* Action button */}
           <button

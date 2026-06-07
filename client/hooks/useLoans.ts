@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import  { searchLoans, updateLoan, createLoan }  from '../apis/loans'
+import  { searchLoans, updateLoan, createLoan, CreateLoanRequest }  from '../apis/loans'
 import { Loan } from '../../models/loan'
 
 export function useSearchLoans(query: string, enabled: boolean = true) {
@@ -33,7 +33,7 @@ export function useAddLoan() {
   const queryClient = useQueryClient()
 
   return useMutation ({
-    mutationFn: async (payload: Omit<Loan, 'loan_id' | 'owner_id'>) => {
+    mutationFn: async (payload: CreateLoanRequest) => {
     return createLoan(payload)
   },
     onSuccess: () => {

@@ -5,7 +5,7 @@ export interface Loan {
   borrower_id: string
   status: 'Pending' | 'Active' | 'Completed' | 'Overdue' | 'Declined' | 'Cancelled' //Disable requests if on hold, otherwise not available. Can't deal with queues.
   due_at: string
-  returned_at: string
+  returned_at: string | null
   created_at: string
   updated_at: string
   archived_at: string | null
