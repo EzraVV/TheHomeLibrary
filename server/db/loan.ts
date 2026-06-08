@@ -1,5 +1,5 @@
-import connection from './connection'
-import { Loan } from '../../models/loan'
+import connection from './connection.js'
+import { Loan } from '../../models/loan.js'
 
 const userTable = process.env.NODE_ENV === 'test' ? 'user' : 'profiles'
 

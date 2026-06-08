@@ -1,6 +1,6 @@
 import express from 'express'
-import * as db from '../db/users'
-import { requireAuth } from '../auth/middleware'
+import * as db from '../db/users.js'
+import { requireAuth } from '../auth/middleware.js'
 
 const router = express.Router()
 

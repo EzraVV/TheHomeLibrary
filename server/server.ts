@@ -1,6 +1,6 @@
 import * as Path from 'node:path'
 import express from 'express'
-import app from './app'
+import app from './app.js'
 
 const server = app
 

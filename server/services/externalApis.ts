@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import request from 'superagent';
-import type { Book } from '../../models/book'
-import { normaliseBookPayload } from '../../shared/utils/normaliseBookPayload'
+import type { Book } from '../../models/book.js'
+import { normaliseBookPayload } from '../../shared/utils/normaliseBookPayload.js'
 
 interface GoogleBooksResponse {
   items?: unknown[]

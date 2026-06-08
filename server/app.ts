@@ -2,10 +2,10 @@ import dotenv from 'dotenv'
 dotenv.config({ path: './.env' })
 
 import express from 'express'
-import users from './routes/users'
-import booksRoutes from './routes/book'
-import loanRoutes from './routes/loan'
-import supportRoutes from './routes/support'
+import users from './routes/users.js'
+import booksRoutes from './routes/book.js'
+import loanRoutes from './routes/loan.js'
+import supportRoutes from './routes/support.js'
 
 const app = express()
 app.use(express.json())

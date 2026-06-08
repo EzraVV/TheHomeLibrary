@@ -1,4 +1,4 @@
-import server from './server.ts'
+import server from './server.js'
 
 const PORT = process.env.PORT || 3000
 
