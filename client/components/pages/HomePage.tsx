@@ -9,6 +9,7 @@ import { Library, Info, Sparkles } from 'lucide-react'
 import { useCurrentUser } from '../../hooks/useCurrentUser'
 import BookDetailModal from '../book/BookDetailModal'
 import { useAddLoan } from '../../hooks/useLoans'
+import { getAllLoans } from '../../apis/loans'
 
 export default function HomePage() {
   const {
@@ -20,12 +21,24 @@ export default function HomePage() {
     queryFn: getAllBooks,
   })
 
+  const { data: loans } = useQuery({
+    queryKey: ['all-loans'],
+    queryFn: getAllLoans,
+  })
+
   const { data: user } = useCurrentUser()
   const addLoanMutation = useAddLoan()
 
-  const availableBooks = books?.filter(
-    (book) => book.owner_id !== user?.user_id,
-  )
+  const availableBooks = books
+    ?.filter((book) => book.owner_id !== user?.user_id)
+    ?.filter((book) => {
+      const activeOrPendingLoan = loans?.some(
+        (loan) =>
+          loan.book_id === book.book_id &&
+          (loan.status === 'Active' || loan.status === 'Pending'),
+      )
+      return !activeOrPendingLoan
+    })
 
   const [borrowingId, setBorrowingId] = useState<string | null>(null)
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null)

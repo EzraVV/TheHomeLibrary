@@ -94,9 +94,7 @@ export async function updateUser(
     updated_at: new Date().toISOString(),
   }
 
-  await connection(userTable)
-    .where({ user_id: id })
-    .update(storedUpdates)
+  await connection(userTable).where({ user_id: id }).update(storedUpdates)
 
   // Fetch
   const updated = await connection(userTable).where({ user_id: id }).first()

@@ -5,9 +5,11 @@ import { withAccessToken } from '../lib/authenticatedRequest'
 const baseUrl = '/api/v1/loans'
 
 export async function searchLoans(query: string): Promise<Loan[]> {
-  const response = await withAccessToken(request.get(`${baseUrl}/search`).query({ query }))
+  const response = await withAccessToken(
+    request.get(`${baseUrl}/search`).query({ query }),
+  )
 
-  if(!response.ok) {
+  if (!response.ok) {
     throw new Error('Network response was not ok')
   }
   const data: Loan[] = await response.body
@@ -20,8 +22,13 @@ export async function getAllLoans(): Promise<Loan[]> {
   return response.body
 }
 
-export async function updateLoan(loan_id: string, updatedFields: Partial<Loan>) {
-  const response = await withAccessToken(request.patch(`${baseUrl}/${loan_id}`).send(updatedFields))
+export async function updateLoan(
+  loan_id: string,
+  updatedFields: Partial<Loan>,
+) {
+  const response = await withAccessToken(
+    request.patch(`${baseUrl}/${loan_id}`).send(updatedFields),
+  )
   return response.body
 }
 
@@ -32,6 +39,29 @@ export interface CreateLoanRequest {
 
 // ADD loan
 export async function createLoan(newLoan: CreateLoanRequest) {
-  const response = await withAccessToken(request.post(`${baseUrl}/add`).send(newLoan))
-  return response.body 
+  const response = await withAccessToken(
+    request.post(`${baseUrl}/add`).send(newLoan),
+  )
+  return response.body
+}
+
+export async function acceptLoanRequest(loanId: string) {
+  const response = await withAccessToken(
+    request.patch(`/api/v1/loans/${loanId}/accept`),
+  )
+
+  return response.body
+}
+export async function denyLoanRequest(loanId: string) {
+  const response = await withAccessToken(
+    request.patch(`/api/v1/loans/${loanId}/deny`),
+  )
+  return response.body
+}
+
+export async function returnLoan(loanId: string) {
+  const response = await withAccessToken(
+    request.patch(`/api/v1/loans/${loanId}/return`),
+  )
+  return response.body
 }
