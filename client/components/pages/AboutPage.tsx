@@ -1,5 +1,5 @@
 import EzraImg from '../../assests/images/ezrapfp.jpg'
-import EdenImg from '../../assests/images/edenpfp.png'
+import EdenImg from '../../assests/images/edenpfp.jpg'
 import JenImg from '../../assests/images/jenpfp.jpg'
 import BrannanImg from '../../assests/images/brannanpfp.jpg'
 
