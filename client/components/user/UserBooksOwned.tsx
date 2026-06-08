@@ -26,12 +26,12 @@ export default function UserBooksOwned() {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'available':
-        return 'text-success bg-success/15 border-success/20'
+        return 'text-emerald-800 bg-emerald-50 border-emerald-200'
       case 'on loan':
       case 'borrowed':
-        return 'text-warning bg-warning/15 border-warning/20'
+        return 'text-amber-900 bg-amber-100 border-amber-300'
       default:
-        return 'text-accent bg-accent/15 border-accent/20'
+        return 'text-rose-800 bg-rose-50 border-rose-200'
     }
   }
 

@@ -19,6 +19,12 @@ function formatDate(value?: string | null) {
 }
 
 export function BorrowedList({ loans }: BorrowedListProps) {
+  const visibleLoans = loans.filter(
+    (loan) =>
+      loan.status.toLowerCase() !== 'denied' &&
+      loan.status.toLowerCase() !== 'returned',
+  )
+
   return (
     <section className="rounded-md bg-surface p-6 shadow-card border border-border/40 text-left w-full h-full flex flex-col">
       <div className="flex items-center justify-between border-b border-border/40 pb-3 mb-4">
@@ -30,7 +36,7 @@ export function BorrowedList({ loans }: BorrowedListProps) {
         </span>
       </div>
 
-      {loans.length === 0 ? (
+      {visibleLoans.length === 0 ? (
         <div className="flex-grow flex flex-col items-center justify-center text-center py-10 border border-dashed border-border/60 rounded-sm bg-background/30 px-4">
           <h3 className="text-sm font-bold text-secondary mb-0.5">
             You haven&apos;t borrowed any books yet
@@ -46,17 +52,17 @@ export function BorrowedList({ loans }: BorrowedListProps) {
           </Link>
         </div>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {loans
-            .filter(
-              (loan) =>
-                loan.status.toLowerCase() !== 'denied' &&
-                loan.status.toLowerCase() !== 'returned',
-            )
-            .map((loan) => (
+        <>
+          <p id="borrowed-list-help" className="sr-only">
+            Your requests and loans list. {visibleLoans.length} active items. Each item includes the book title, owner, loan status, request date, and due date when available.
+          </p>
+          <ul className="flex flex-col gap-3" aria-describedby="borrowed-list-help">
+            {visibleLoans.map((loan) => (
               <li
                 key={loan.loan_id}
                 className="flex gap-3 rounded-sm border border-border/50 bg-background/30 p-3"
+                aria-labelledby={`loan-title-${loan.loan_id}`}
+                aria-describedby={`loan-owner-${loan.loan_id} loan-status-copy-${loan.loan_id} loan-dates-${loan.loan_id}`}
               >
                 <div className="h-20 w-14 flex-shrink-0 overflow-hidden rounded-sm border border-border/40 bg-background flex items-center justify-center">
                   {loan.book_image ? (
@@ -72,18 +78,37 @@ export function BorrowedList({ loans }: BorrowedListProps) {
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
-                      <h3 className="font-semibold text-secondary">
+                      <h3
+                        id={`loan-title-${loan.loan_id}`}
+                        className="font-semibold text-secondary"
+                      >
                         {loan.book_title || 'Untitled book'}
                       </h3>
-                      <p className="text-xs text-text-muted">
+                      <p
+                        id={`loan-owner-${loan.loan_id}`}
+                        className="text-xs text-text-muted"
+                      >
                         Owner: {loan.owner_name || loan.owner_id}
                       </p>
+                      <p
+                        id={`loan-status-copy-${loan.loan_id}`}
+                        className="sr-only"
+                      >
+                        Status: {loan.status}
+                      </p>
                     </div>
-                    <span className="rounded-pill bg-accent/15 px-2.5 py-1 text-xs font-semibold text-secondary">
+                    <span
+                      id={`loan-status-${loan.loan_id}`}
+                      aria-hidden="true"
+                      className="rounded-pill bg-accent/15 px-2.5 py-1 text-xs font-semibold text-secondary"
+                    >
                       {loan.status}
                     </span>
                   </div>
-                  <dl className="mt-3 grid grid-cols-1 gap-1 text-xs text-text-muted sm:grid-cols-2">
+                  <dl
+                    id={`loan-dates-${loan.loan_id}`}
+                    className="mt-3 grid grid-cols-1 gap-1 text-xs text-text-muted sm:grid-cols-2"
+                  >
                     <div>
                       <dt className="font-semibold text-secondary">
                         Requested
@@ -119,7 +144,8 @@ export function BorrowedList({ loans }: BorrowedListProps) {
                 </div>
               </li>
             ))}
-        </ul>
+          </ul>
+        </>
       )}
     </section>
   )

@@ -71,7 +71,7 @@ export default function MyBooksPage() {
                 </div>
                 <h3 className="mt-3 line-clamp-2 text-sm font-bold text-text-primary">{book.title}</h3>
                 <p className="mt-1 line-clamp-1 text-xs text-text-muted">by {book.creator || 'Unknown author'}</p>
-                <span className="mt-3 inline-block rounded-pill bg-success/15 px-2.5 py-1 text-xs font-semibold text-success">
+                <span className="mt-3 inline-block rounded-pill border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-800">
                   {book.status}
                 </span>
               </article>
