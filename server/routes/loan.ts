@@ -1,10 +1,8 @@
 import express from 'express'
-import * as db from '../db/loan'
-import * as bookDb from '../db/book'
-import { requireAuth } from '../auth/middleware'
-import { calculateDueDate } from '../../shared/utils/calculateDueDate'
-import * as loanDb from '../db/loan'
-import * as userDb from '../db/users'
+import * as db from '../db/loan.js'
+import * as bookDb from '../db/book.js'
+import { requireAuth } from '../auth/middleware.js'
+import { calculateDueDate } from '../../shared/utils/calculateDueDate.js'
 
 const router = express.Router()
 // GET /api/v1/loans

@@ -1,4 +1,4 @@
-import { normaliseAuthorName, prepareForHash,  } from '../../shared/utils/formatters';
+import { normaliseAuthorName, prepareForHash,  } from '../../shared/utils/formatters.js';
 
 export async function generateWorkId(title: string, author: string) {
   if (!title) return 'wrk_unknown';

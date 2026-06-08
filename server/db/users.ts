@@ -1,9 +1,6 @@
-import connection from './connection'
-import { User } from '../../models/user'
-import {
-  atomiseInterests,
-  stringifyInterests,
-} from '../../shared/utils/interestProcessing'
+import connection from './connection.js'
+import { User } from '../../models/user.js'
+import { atomiseInterests, stringifyInterests } from '../../shared/utils/interestProcessing.js'
 
 type UserRow = Omit<User, 'interests'> & {
   interests: string | string[] | null

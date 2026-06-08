@@ -1,5 +1,5 @@
-import connection from './connection'
-import type { Book } from '../../models/book'
+import connection from './connection.js'
+import type { Book } from '../../models/book.js'
 
 function generateNextBookId(lastId: string | null): string {
   if (!lastId) {
