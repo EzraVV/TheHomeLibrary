@@ -1,6 +1,7 @@
 import EzraImg from '../../assests/images/ezrapfp.jpg'
 import EdenImg from '../../assests/images/edenpfp.png'
 import JenImg from '../../assests/images/jenpfp.jpg'
+import BrannanImg from '../../assests/images/brannanpfp.jpg'
 
 export default function AboutPage() {
   const team = [
@@ -25,17 +26,16 @@ I am a perpetual student and usually have several unrelated topics on the go at 
     },
     {
       name: 'Brannan',
-      image: '/images/branna.jpg',
-      blurb: 'aboutme4',
+      image: BrannanImg,
+      blurb: `I have interests in Football, Formula 1, History and a plethora of other nerdy things. I like to spend my spare time gaming or playing board games with my Partner and our friends.
+I felt drawn to The Home Library as I have always been surrounded by books and love the idea of enabling a space to share them easily. I am hoping that seeing what other people have to read will inspire me to broaden my horizons on the literature frontier.`,
     },
   ]
 
   return (
     <div className="about-page">
       <div className="max-w-app mx-auto py-12 px-4">
-        <h1 className="text-3xl font-bold mb-8 text-center">
-          Meet the Team
-        </h1>
+        <h1 className="text-3xl font-bold mb-8 text-center">Meet the Team</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {team.map((member) => (
             <div
