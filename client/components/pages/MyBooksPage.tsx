@@ -64,7 +64,7 @@ export default function MyBooksPage() {
               <article key={book.book_id} className="rounded-sm border border-border/50 bg-background/30 p-3">
                 <div className="aspect-[3/4] overflow-hidden rounded-sm bg-background">
                   {book.image ? (
-                    <img src={book.image} alt={book.title} className="h-full w-full object-cover" loading="lazy" />
+                    <img src={book.image} alt="" className="h-full w-full object-cover" loading="lazy" />
                   ) : (
                     <div className="flex h-full items-center justify-center text-sm text-text-muted">No cover</div>
                   )}

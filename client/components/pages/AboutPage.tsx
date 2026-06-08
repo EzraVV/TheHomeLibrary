@@ -32,7 +32,7 @@ I am a perpetual student and usually have several unrelated topics on the go at 
 
   return (
     <div className="about-page">
-      <main className="max-w-app mx-auto py-12 px-4">
+      <div className="max-w-app mx-auto py-12 px-4">
         <h1 className="text-3xl font-bold mb-8 text-center">Meet the Team</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {team.map((member) => (
@@ -50,7 +50,7 @@ I am a perpetual student and usually have several unrelated topics on the go at 
             </div>
           ))}
         </div>
-      </main>
+      </div>
     </div>
   )
 }

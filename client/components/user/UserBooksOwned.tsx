@@ -69,7 +69,7 @@ export default function UserBooksOwned() {
                 {b.image ? (
                   <img
                     src={b.image}
-                    alt={b.title}
+                    alt=""
                     className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                     loading="lazy"
                   />

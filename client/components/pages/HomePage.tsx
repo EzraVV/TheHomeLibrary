@@ -64,48 +64,60 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background text-text-primary font-body flex flex-col">
-      {/*<Navbar />*/}
-
-      <main className="flex-grow max-w-app w-full mx-auto px-4 py-6 md:px-6 md:py-8 flex flex-col gap-8">
-        {/* Cozy Hero Section */}
-        <section className="bg-surface rounded-md p-6 md:p-8 shadow-card border border-border/40 text-left relative overflow-hidden">
+    <>
+      <div className="w-full flex flex-col gap-8">
+        <section
+          aria-labelledby="home-hero-heading"
+          aria-describedby="home-hero-description"
+          className="bg-surface rounded-md p-6 md:p-8 shadow-card border border-border/40 text-left relative overflow-hidden"
+        >
+          <p className="sr-only">
+            Welcome to the discover page. Browse available community library books below.
+          </p>
           <div className="relative z-10 max-w-2xl">
-            <span className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-pill mb-3">
-              <Sparkles className="w-3 h-3" />
+            <p className="inline-flex items-center gap-1 bg-primary/10 text-primary text-xs font-semibold px-2.5 py-1 rounded-pill mb-3">
+              <Sparkles aria-hidden="true" className="w-3 h-3" />
               Community Shared Library
-            </span>
-            <h1 className="font-heading text-3xl md:text-4xl font-bold text-secondary mb-3 leading-tight">
+            </p>
+            <h1
+              id="home-hero-heading"
+              className="font-heading text-3xl md:text-4xl font-bold text-secondary mb-3 leading-tight"
+            >
               Unlock the libraries hidden in our homes
             </h1>
-            <p className="text-text-muted text-base md:text-lg mb-0">
+            <p
+              id="home-hero-description"
+              className="text-text-muted text-base md:text-lg mb-0"
+            >
               We are building a cozy, person-to-person book lending network.
               Borrow books you love, share books you&apos;ve read, and connect
               with fellow readers in your neighborhood.
             </p>
           </div>
           <div className="absolute right-0 bottom-0 opacity-5 pointer-events-none hidden md:block">
-            <Library className="w-64 h-64 text-primary" />
+            <Library aria-hidden="true" className="w-64 h-64 text-primary" />
           </div>
         </section>
 
-        {/* Section Heading */}
-        <div>
+        <section aria-labelledby="discover-books-heading">
           <div className="flex items-center justify-between border-b border-border/60 pb-3 mb-6">
-            <h2 className="font-heading text-2xl font-bold text-secondary flex items-center gap-2">
-              <Library className="w-5.5 h-5.5 text-primary stroke-[2.5]" />
+            <h2 id="discover-books-heading" className="font-heading text-2xl font-bold text-secondary flex items-center gap-2">
+              <Library aria-hidden="true" className="w-5.5 h-5.5 text-primary stroke-[2.5]" />
               Discover Books
             </h2>
-            <span className="text-sm font-semibold text-text-muted">
+            <p className="text-sm font-semibold text-text-muted" aria-live="polite">
               {availableBooks
                 ? `${availableBooks.length} books available`
                 : 'Loading...'}
-            </span>
+            </p>
           </div>
 
-          {/* Skeleton Loader for Lists */}
           {isLoading && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div
+              aria-busy="true"
+              aria-live="polite"
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+            >
               {[...Array(8)].map((_, i) => (
                 <div
                   key={i}
@@ -122,10 +134,9 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Error handling */}
           {error && (
-            <div className="bg-danger/10 border border-danger/30 text-danger rounded-md p-4 flex gap-3 items-center">
-              <Info className="w-5 h-5 flex-shrink-0" />
+            <div role="alert" className="bg-danger/10 border border-danger/30 text-danger rounded-md p-4 flex gap-3 items-center">
+              <Info aria-hidden="true" className="w-5 h-5 flex-shrink-0" />
               <p className="text-sm font-medium">
                 Failed to load the library catalogue. Please try reloading the
                 page.
@@ -142,12 +153,11 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Empty State */}
           {!isLoading &&
             !error &&
             (!availableBooks || availableBooks.length === 0) && (
               <div className="rounded-md bg-surface border border-dashed border-border py-12 px-4 text-center max-w-md mx-auto my-8">
-                <Library className="w-12 h-12 text-text-muted/40 mx-auto mb-3" />
+                <Library aria-hidden="true" className="w-12 h-12 text-text-muted/40 mx-auto mb-3" />
                 <h3 className="text-lg font-bold text-secondary mb-1">
                   No books uploaded yet
                 </h3>
@@ -155,31 +165,39 @@ export default function HomePage() {
                   Be the first to share your home library collection with the
                   community!
                 </p>
-                <button className="min-h-11 rounded-sm bg-primary px-5 py-2 font-semibold text-white transition duration-200 ease-smooth hover:opacity-90">
+                <button type="button" className="min-h-11 rounded-sm bg-primary px-5 py-2 font-semibold text-white transition duration-200 ease-smooth hover:opacity-90">
                   Share a Book
                 </button>
               </div>
             )}
 
-          {/* Catalog grid */}
           {!isLoading &&
             !error &&
             availableBooks &&
             availableBooks.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <>
+                <p id="discover-books-list-help" className="sr-only">
+                  Use the Next book button on each card to open details. The title, author, owner, and availability are announced as you read through the list.
+                </p>
+                <ul
+                  aria-describedby="discover-books-list-help"
+                  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+                >
                 {availableBooks.map((book: Book, i: number) => (
-                  <BookCard
-                    key={book.book_id || book.isbn || `catalogue-${i}`}
-                    book={book}
-                    onBorrow={handleBorrow}
-                    onSelect={() => setSelectedBookId(book.book_id)}
-                    isLoading={borrowingId === book.book_id}
-                  />
+                  <li key={book.book_id || book.isbn || `catalogue-${i}`} className="list-none">
+                    <BookCard
+                      book={book}
+                      onBorrow={handleBorrow}
+                      onSelect={() => setSelectedBookId(book.book_id)}
+                      isLoading={borrowingId === book.book_id}
+                    />
+                  </li>
                 ))}
-              </div>
+                </ul>
+              </>
             )}
-        </div>
-      </main>
+        </section>
+      </div>
 
       {selectedBookId && (
         <BookDetailModal
@@ -189,8 +207,6 @@ export default function HomePage() {
           onClose={() => setSelectedBookId(null)}
         />
       )}
-
-      {/*  <Footer /> */}
-    </div>
+    </>
   )
 }

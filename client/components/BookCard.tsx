@@ -1,6 +1,6 @@
+import { useId } from 'react'
 import { Book } from '../../models/book'
 import { BookOpen, User as UserIcon } from 'lucide-react'
-import { Link } from 'react-router-dom'
 
 interface BookCardProps {
   book: Book
@@ -15,24 +15,27 @@ export default function BookCard({
   onBorrow,
   isLoading,
 }: BookCardProps) {
+  const titleId = useId()
+  const statusId = useId()
+  const nextBookLabelId = useId()
+
   // Map status to styling guide badge classes
   const getBadgeClass = (status: string) => {
     switch (status.toLowerCase()) {
       case 'available':
-        return 'bg-success text-white'
+        return 'bg-[#3d6f4d] text-white'
       case 'on loan':
       case 'borrowed':
-        return 'bg-warning text-white'
+        return 'bg-[#8a651f] text-white'
       case 'overdue':
-        return 'bg-danger text-white'
+        return 'bg-[#943d3d] text-white'
       default:
-        return 'bg-accent text-white' // Reserved or In Transit
+        return 'bg-[#7a5a2c] text-white' // Reserved or In Transit
     }
   }
 
   const handleBorrow = (e: React.MouseEvent<HTMLButtonElement>) => {
-    // Stop Borrow button expanding card
-    e.stopPropagation
+    e.stopPropagation()
 
     if (onBorrow && book.status.toLowerCase() === 'available') {
       onBorrow(book.book_id)
@@ -40,39 +43,29 @@ export default function BookCard({
   }
 
   const isAvailable = book.status.toLowerCase() === 'available'
+  const authorName = book.creator || 'Unknown author'
+  const ownerName = book.owner_id || 'Library member'
 
   return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={onSelect}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault()
-          onSelect?.()
-        }
-      }}
-      className="rounded-md bg-surface p-4 shadow-card hover:-translate-y-0.5 transition-all duration-180 ease-smooth flex flex-col justify-between border border-border/40 h-full"
-    >
+    <article className="rounded-md bg-surface p-4 shadow-card hover:-translate-y-0.5 transition-all duration-180 ease-smooth flex flex-col justify-between border border-border/40 h-full">
       <div>
-        {/* Cover image container */}
         <div className="aspect-[3/4] bg-background rounded-sm overflow-hidden mb-3 relative flex items-center justify-center border border-border/20">
           {book.image ? (
             <img
               src={book.image}
-              alt={book.title}
+              alt=""
               className="w-full h-full object-cover"
               loading="lazy"
             />
           ) : (
             <div className="flex flex-col items-center text-text-muted">
-              <BookOpen className="w-8 h-8 mb-1 opacity-40" />
+              <BookOpen aria-hidden="true" className="w-8 h-8 mb-1 opacity-40" />
               <span className="text-xs">No Cover</span>
             </div>
           )}
-          {/* Status badge floating or top corner */}
           <div className="absolute top-2 right-2">
             <span
+              id={statusId}
               className={`rounded-pill px-3 py-1 text-xs font-semibold ${getBadgeClass(book.status)}`}
             >
               {book.status}
@@ -80,75 +73,94 @@ export default function BookCard({
           </div>
         </div>
 
-        {/* Book Details */}
         <div className="text-left">
-          <Link to={`/books/${book.book_id}`} className="hover:underline">
-            <h3
-              className="text-lg font-bold text-text-primary line-clamp-1 mb-0.5"
-              title={book.title}
-            >
-              {book.title}
-            </h3>
-          </Link>
+          <h3
+            id={titleId}
+            className="text-lg font-bold text-text-primary line-clamp-1 mb-0.5"
+            title={book.title}
+          >
+            {book.title}
+          </h3>
           <p className="text-sm text-text-muted line-clamp-1 mb-2 font-medium">
-            by {book.creator || 'Unknown Author'}
+            <span className="sr-only">Author: </span>
+            <span aria-hidden="true">by </span>
+            {authorName}
           </p>
 
-          {/* Owner details */}
           <div className="flex items-center gap-1.5 text-xs text-text-muted mb-4 bg-background/50 py-1 px-2 rounded-sm w-fit">
-            <UserIcon className="w-3.5 h-3.5 opacity-60" />
+            <UserIcon aria-hidden="true" className="w-3.5 h-3.5 opacity-60" />
             <span>
-              Owner:{' '}
+              <span className="sr-only">Owner: </span>
+              <span aria-hidden="true">Owner: </span>
               <strong className="font-semibold text-text-primary">
-                {book.owner_id || 'Library Member'}
+                {ownerName}
               </strong>
             </span>
           </div>
         </div>
       </div>
 
-      {/* Borrow button */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation()
-          handleBorrow(e)
-        }}
-        disabled={!isAvailable || isLoading}
-        className={`min-h-11 w-full rounded-sm font-semibold transition duration-200 ease-smooth hover:opacity-90 flex items-center justify-center gap-2 px-4 py-2 text-white outline-none focus:outline-2 focus:outline-primary focus:outline-offset-2 ${
-          isAvailable
-            ? 'bg-primary cursor-pointer'
-            : 'bg-text-muted/40 cursor-not-allowed opacity-60'
-        }`}
-      >
-        {isLoading ? (
-          <span className="flex items-center gap-1">
-            <svg
-              className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-              />
-            </svg>
-            Processing...
-          </span>
-        ) : isAvailable ? (
-          'Borrow Book'
-        ) : (
-          'Not Available'
+      <div className="flex flex-col gap-2">
+        {onSelect && (
+          <button
+            type="button"
+            onClick={onSelect}
+            className="min-h-11 w-full rounded-sm border border-border bg-background/40 px-4 py-2 text-sm font-semibold text-secondary transition hover:bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+            aria-labelledby={`${nextBookLabelId} ${titleId}`}
+            aria-describedby={statusId}
+          >
+            <span id={nextBookLabelId} className="sr-only">
+              Next book. View details for
+            </span>
+            View details
+          </button>
         )}
-      </button>
-    </div>
+        <button
+          type="button"
+          onClick={handleBorrow}
+          disabled={!isAvailable || isLoading}
+          aria-label={
+            isAvailable
+              ? `Borrow ${book.title} by ${authorName}`
+              : `${book.title} by ${authorName} is not available to borrow`
+          }
+          className={`min-h-11 w-full rounded-sm font-semibold transition duration-200 ease-smooth hover:opacity-90 flex items-center justify-center gap-2 px-4 py-2 text-white outline-none focus:outline-2 focus:outline-primary focus:outline-offset-2 ${
+            isAvailable
+              ? 'bg-primary cursor-pointer'
+              : 'bg-[#76706a] cursor-not-allowed opacity-100'
+          }`}
+        >
+          {isLoading ? (
+            <span className="flex items-center gap-1">
+              <svg
+                aria-hidden="true"
+                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+              Processing...
+            </span>
+          ) : isAvailable ? (
+            'Borrow Book'
+          ) : (
+            'Not Available'
+          )}
+        </button>
+      </div>
+    </article>
   )
 }

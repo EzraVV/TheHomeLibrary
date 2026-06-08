@@ -42,11 +42,21 @@ afterEach(() => {
 })
 
 describe('Navbar search', () => {
+  it('renders the primary navigation as a list', () => {
+    renderNavbar()
+
+    expect(screen.getByRole('list')).toBeInTheDocument()
+    expect(screen.getAllByRole('listitem')).toHaveLength(4)
+  })
+
   it('does not navigate while typing and submits on Enter', async () => {
     const user = userEvent.setup()
     renderNavbar()
 
-    await user.type(screen.getByPlaceholderText('Search library...'), 'dune')
+    await user.type(
+      screen.getByRole('textbox', { name: 'Search the library catalogue' }),
+      'dune',
+    )
 
     expect(screen.getByTestId('location')).toHaveTextContent('/')
 
@@ -61,7 +71,10 @@ describe('Navbar search', () => {
     const user = userEvent.setup()
     renderNavbar('/books/search')
 
-    await user.type(screen.getByPlaceholderText('Search library...'), 'asimov')
+    await user.type(
+      screen.getByRole('textbox', { name: 'Search the library catalogue' }),
+      'asimov',
+    )
     await user.click(screen.getByRole('button', { name: 'Search' }))
 
     expect(screen.getByTestId('location')).toHaveTextContent(

@@ -1,7 +1,6 @@
 import { BookMarked, BookOpen } from 'lucide-react'
 import { acceptLoanRequest } from '../../apis/loans'
 import { Loan } from '../../../models/loan'
-import { returnLoan } from '../../apis/loans'
 import { denyLoanRequest } from '../../apis/loans'
 interface LentListProps {
   loans: Loan[]

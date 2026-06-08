@@ -50,17 +50,24 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
 
   return (
     <div className="p-6 max-w-app mx-auto">
-      <div>
+      <section aria-labelledby="search-results-heading">
         <h1 className="text-2xl font-bold mb-4 text-secondary">
-          Search Results for &quot;{searchQuery}&quot;
+          <span id="search-results-heading">
+            Search Results for &quot;{searchQuery}&quot;
+          </span>
         </h1>
-        <p className="text-xs text-text-muted mt-1">
+        <p className="text-xs text-text-muted mt-1" aria-live="polite">
             Found {localMatches.length} local items and {externalMatches.length} global references.
         </p>
-      </div>
+      </section>
 
-      <div className="bg-surface border border-border rounded-sm p-4">
-        <div className="font-semibold mb-3">Available in your library ({localMatches.length}):</div>
+      <section
+        aria-labelledby="local-results-heading"
+        className="bg-surface border border-border rounded-sm p-4"
+      >
+        <h2 id="local-results-heading" className="font-semibold mb-3">
+          Available in your library ({localMatches.length})
+        </h2>
           
           {localMatches.length > 0 ? (
             <ul className="divide-y divide-border">
@@ -70,7 +77,7 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
                     <div className="w-12 h-16 bg-background border border-border flex-shrink-0 rounded-sm overflow-hidden">
                       <SafeBookCover 
                         src={book.image ?? ''} 
-                        alt={book.title ?? 'Untitled Book'} 
+                        alt=""
                       />
                     </div>
                   <div>
@@ -93,18 +100,23 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
             No copies currently hosted in your immediate network.
           </div>
         )}
-      </div>
+      </section>
 
       {externalMatches.length > 0 && (
-        <div className={`border rounded-sm p-4 transition-all duration-200 ${
+        <section
+          aria-labelledby="external-results-heading"
+          className={`border rounded-sm p-4 transition-all duration-200 ${
           isExpanded ? 'bg-surface border-border' : 'bg-background-muted/40 border-border/60 opacity-70'
-        }`}>
-          {/* Header Accordion Toggle Button */}
+        }`}
+        >
           <button 
+            type="button"
             onClick={() => setIsExpanded(!isExpanded)}
+            aria-expanded={isExpanded}
+            aria-controls="external-results-panel"
             className="w-full flex items-center justify-between font-semibold text-sm text-text-muted hover:text-text-primary transition-colors focus:outline-none"
           >
-            <span className="flex items-center gap-2">
+            <span id="external-results-heading" className="flex items-center gap-2">
               Not what you were after? Search Google Books
               <span className="text-xs bg-background border px-1.5 py-0.5 rounded text-text-muted">
                 {externalMatches.length} results
@@ -115,9 +127,11 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
             </span>
           </button>
         
-        {/* Conditional Collapsible Container */}
           {isExpanded && (
-            <div className="mt-4 pt-4 border-t border-border/60 animate-fadeIn">
+            <div
+              id="external-results-panel"
+              className="mt-4 pt-4 border-t border-border/60 animate-fadeIn"
+            >
               <p className="text-xs text-text-muted mb-3 italic">
                 These books are not yet in our system, but might be available in another library:
               </p>
@@ -134,7 +148,10 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
                         >
                       <div className="flex gap-4 items-center">
                         <div className="w-10 h-14 bg-background border border-border flex-shrink-0 rounded-sm overflow-hidden opacity-80">
-                          <SafeBookCover src={book.image} alt={book.title || 'Untitled book'} />
+                          <SafeBookCover
+                            src={book.image}
+                            alt=""
+                          />
                         </div>
                         <div>
                           {itemLinkUrl ? (
@@ -152,7 +169,7 @@ export default function SearchResultsPage({ data }:  SearchResultsProps ) {
               </ul>
             </div>
           )}
-        </div>
+        </section>
       )}
     </div>
   )
