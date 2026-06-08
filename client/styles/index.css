@@ -57,6 +57,46 @@
     font-weight: 600;
     @apply transition-all duration-180 ease-smooth active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
   }
+
+  *:focus-visible {
+    outline: 3px solid #456882;
+    outline-offset: 3px;
+  }
+}
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: 0.75rem;
+  z-index: 60;
+  transform: translateY(-200%);
+  border-radius: 0.125rem;
+  background: #456882;
+  color: #fff;
+  padding: 0.75rem 1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.animate-pulse,
+.animate-spin {
+  animation-iteration-count: 5;
+  animation-fill-mode: both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 .blurb {
   white-space: pre-line;

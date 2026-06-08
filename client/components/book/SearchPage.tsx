@@ -50,29 +50,59 @@ export default function SearchPage() {
 
   return (
     <>
-      <section>
-        <input
-          placeholder="Enter Postcode"
-          value={postcode}
-          onChange={(e) => setPostcode(e.target.value)}
-        />
-        <select
-          value={radius}
-          onChange={(e) => setRadius(parseInt(e.target.value))}
-        >
-          <option value="5">5km</option>
-          <option value="10">10km</option>
-          <option value="20">20km</option>
-        </select>
-        <button onClick={handleApplyFilters}>Apply Filters</button>
+      <section
+        aria-labelledby="search-filter-heading"
+        className="mb-6 rounded-md border border-border/40 bg-surface p-4 shadow-card"
+      >
+        <h1 id="search-filter-heading" className="text-xl font-bold text-secondary">
+          Search books
+        </h1>
+        <div className="mt-4 grid gap-4 md:grid-cols-[1fr_auto_auto] md:items-end">
+          <div>
+            <label htmlFor="search-postcode" className="mb-1 block text-sm font-semibold">
+              Filter by postcode
+            </label>
+            <input
+              id="search-postcode"
+              type="text"
+              inputMode="numeric"
+              placeholder="Enter postcode"
+              value={postcode}
+              onChange={(e) => setPostcode(e.target.value)}
+              className="min-h-11 w-full rounded-sm border border-border bg-background/50 px-3 py-2"
+            />
+          </div>
+          <div>
+            <label htmlFor="search-radius" className="mb-1 block text-sm font-semibold">
+              Radius
+            </label>
+            <select
+              id="search-radius"
+              value={radius}
+              onChange={(e) => setRadius(parseInt(e.target.value))}
+              className="min-h-11 rounded-sm border border-border bg-background/50 px-3 py-2"
+            >
+              <option value="5">5km</option>
+              <option value="10">10km</option>
+              <option value="20">20km</option>
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={handleApplyFilters}
+            className="min-h-11 rounded-sm bg-primary px-4 py-2 text-white"
+          >
+            Apply filters
+          </button>
+        </div>
       </section>
 
       {!hasSubmittedQuery ? (
-        <div className="p-6 text-sm text-text-muted">
+        <div role="status" className="p-6 text-sm text-text-muted">
           Submit a search of at least 3 characters to find books.
         </div>
       ) : isLoading ? (
-        <div>Loading...</div>
+        <div role="status" aria-live="polite">Loading...</div>
       ) : (
         <SearchResultsPage 
           data={{

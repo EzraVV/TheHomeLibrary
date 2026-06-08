@@ -14,7 +14,7 @@ export default {
         surface: '#FFFDF9',
         border: '#D8D1C7',
         'text-primary': '#1F1F1F',
-        'text-muted': '#5C5C5C',
+        'text-muted': '#4B4B4B',
         success: '#4E8B62',
         warning: '#D1A248',
         danger: '#B44C4C',

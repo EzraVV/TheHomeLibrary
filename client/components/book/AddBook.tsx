@@ -111,19 +111,44 @@ export function AddBook({ onAdded, onCancel }: AddBookProps) {
         )}
       </div>
 
-      <label htmlFor="google-book-search" className="mb-1 block text-sm font-semibold text-text-primary">
-        Search by title, author, or ISBN
-      </label>
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-        <input
-          id="google-book-search"
-          type="search"
-          value={inputValue}
-          onChange={(event) => setInputValue(event.target.value)}
-          placeholder="e.g. The Left Hand of Darkness"
-          className="min-h-11 w-full rounded-sm border border-border bg-background/50 py-2 pl-10 pr-3 outline-none focus:border-primary"
-        />
+      <div
+        role="search"
+        aria-label="Search Google Books to add one of your books"
+      >
+        <label
+          id="add-book-search-label"
+          htmlFor="google-book-search"
+          className="mb-1 block text-sm font-semibold text-text-primary"
+        >
+          Search by title, author, or ISBN
+        </label>
+        <div className="relative">
+          <Search
+            aria-hidden="true"
+            className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
+          />
+          <input
+            id="google-book-search"
+            type="search"
+            value={inputValue}
+            onChange={(event) => setInputValue(event.target.value)}
+            placeholder="e.g. The Left Hand of Darkness"
+            aria-label="Search Google Books by title, author, or ISBN"
+            aria-describedby="add-book-search-help add-book-search-status"
+            className="min-h-11 w-full rounded-sm border border-border bg-background/50 py-2 pl-10 pr-3 outline-none focus:border-primary"
+          />
+        </div>
+        <p id="add-book-search-help" className="sr-only">
+          Enter at least 3 characters to search Google Books, then choose a result to review before adding it.
+        </p>
+      </div>
+
+      <div id="add-book-search-status" className="sr-only" aria-live="polite">
+        {isSearching
+          ? 'Searching Google Books.'
+          : searchQuery && !error
+            ? `${googleMatches.length} Google Books results found.`
+            : 'No Google Books search results yet.'}
       </div>
 
       {isSearching && <p className="mt-4 text-sm text-text-muted">Searching Google Books...</p>}
@@ -137,36 +162,47 @@ export function AddBook({ onAdded, onCancel }: AddBookProps) {
       )}
 
       {googleMatches.length > 0 && (
-        <ul className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-2">
-          {googleMatches.map((book, index) => (
-            <li
-              key={book.googleVolumeId || `${book.title}-${index}`}
-              className="flex gap-3 rounded-sm border border-border/50 bg-background/30 p-3"
-            >
-              <div className="h-28 w-20 flex-shrink-0 overflow-hidden rounded-sm bg-background">
-                {book.image ? (
-                  <img src={book.image} alt={`${book.title} cover`} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="flex h-full items-center justify-center px-2 text-center text-xs text-text-muted">
-                    No cover
-                  </div>
-                )}
-              </div>
-              <div className="flex min-w-0 flex-1 flex-col">
-                <h3 className="line-clamp-2 text-sm font-bold text-text-primary">{book.title}</h3>
-                <p className="mt-1 line-clamp-1 text-xs text-text-muted">by {book.creator}</p>
-                {book.isbn && <p className="mt-1 text-xs text-text-muted">ISBN {book.isbn}</p>}
-                <button
-                  type="button"
-                  onClick={() => setSelectedBook(book)}
-                  className="mt-auto min-h-9 rounded-sm bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:opacity-90"
-                >
-                  Select and review
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <section className="mt-5" aria-labelledby="add-book-results-heading">
+          <h3 id="add-book-results-heading" className="text-sm font-bold text-secondary">
+            Google Books results
+          </h3>
+          <p id="add-book-results-help" className="sr-only">
+            {googleMatches.length} results found. Each result includes the book title, author, optional ISBN, and a button to select and review it before adding it to your library.
+          </p>
+          <ul
+            className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2"
+            aria-describedby="add-book-results-help"
+          >
+            {googleMatches.map((book, index) => (
+              <li
+                key={book.googleVolumeId || `${book.title}-${index}`}
+                className="flex gap-3 rounded-sm border border-border/50 bg-background/30 p-3"
+              >
+                <div className="h-28 w-20 flex-shrink-0 overflow-hidden rounded-sm bg-background">
+                  {book.image ? (
+                    <img src={book.image} alt={`${book.title} cover`} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center px-2 text-center text-xs text-text-muted">
+                      No cover
+                    </div>
+                  )}
+                </div>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <h4 className="line-clamp-2 text-sm font-bold text-text-primary">{book.title}</h4>
+                  <p className="mt-1 line-clamp-1 text-xs text-text-muted">by {book.creator}</p>
+                  {book.isbn && <p className="mt-1 text-xs text-text-muted">ISBN {book.isbn}</p>}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedBook(book)}
+                    className="mt-auto min-h-9 rounded-sm bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:opacity-90"
+                  >
+                    Select and review
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </section>
   )

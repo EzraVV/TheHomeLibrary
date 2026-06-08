@@ -26,12 +26,12 @@ export default function UserBooksOwned() {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'available':
-        return 'text-success bg-success/15 border-success/20'
+        return 'text-emerald-900 bg-emerald-100 border-emerald-300'
       case 'on loan':
       case 'borrowed':
-        return 'text-warning bg-warning/15 border-warning/20'
+        return 'text-amber-900 bg-amber-100 border-amber-300'
       default:
-        return 'text-accent bg-accent/15 border-accent/20'
+        return 'text-rose-900 bg-rose-100 border-rose-300'
     }
   }
 
@@ -69,7 +69,7 @@ export default function UserBooksOwned() {
                 {b.image ? (
                   <img
                     src={b.image}
-                    alt={b.title}
+                    alt=""
                     className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                     loading="lazy"
                   />

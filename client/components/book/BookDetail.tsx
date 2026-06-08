@@ -21,7 +21,11 @@ export default function BookDetail(
 
   if (isBookLoading) {
     return (
-      <section className="min-h-[22rem] rounded-md bg-surface p-6 text-left">
+      <section
+        aria-busy="true"
+        aria-live="polite"
+        className="min-h-[22rem] rounded-md bg-surface p-6 text-left"
+      >
         <div className="h-7 w-2/3 animate-pulse rounded-sm bg-background/80" />
         <div className="mt-5 flex gap-5">
           <div className="h-48 w-32 animate-pulse rounded-sm bg-background/80" />
@@ -52,7 +56,7 @@ export default function BookDetail(
         {book.image ? (
           <img
             src={book.image}
-            alt={book.title}
+            alt={`Cover of ${book.title}`}
             className="w-16 h-24 object-cover mr-4"
           />
         ) : (
@@ -109,6 +113,7 @@ export default function BookDetail(
       )}
 
       <button
+        type="button"
         onClick={() => {
           onBorrow?.(book.book_id)
         }}
