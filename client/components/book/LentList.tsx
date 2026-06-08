@@ -28,9 +28,7 @@ export function LentList({ loans }: LentListProps) {
           <BookMarked className="w-5.5 h-5.5 text-primary" />
           Your bookshelf
         </h2>
-        <span className="text-xs font-semibold text-text-muted bg-background px-2.5 py-0.5 rounded-sm">
-          {loans ? `${loans.length} listed` : '0 listed'}
-        </span>
+        <span className="text-xs font-semibold text-text-muted bg-background px-2.5 py-0.5 rounded-sm"></span>
       </div>
 
       {/* Empty State */}
