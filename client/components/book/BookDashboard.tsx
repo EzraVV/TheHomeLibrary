@@ -26,12 +26,9 @@ export const BookDashboard = () => {
   if (error) return <div role="alert" className="p-6">Error loading dashboard.</div>
 
     return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Owned books component */}
+    <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <LentList loans = {lent} onUpdate={handleUpdate}/> 
-      
-      {/* The borrowed books component */}
       <BorrowedList loans = {borrowed} onUpdate={handleUpdate}/> 
-    </div>
+    </section>
   )
 }
