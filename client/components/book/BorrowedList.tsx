@@ -25,9 +25,7 @@ export function BorrowedList({ loans }: BorrowedListProps) {
         <h2 className="font-heading text-xl font-bold text-secondary flex items-center gap-2">
           Your requests and loans
         </h2>
-        <span className="text-xs font-semibold text-text-muted bg-background px-2.5 py-0.5 rounded-sm">
-          {loans.length} borrowed or requested
-        </span>
+        <span className="text-xs font-semibold text-text-muted bg-background px-2.5 py-0.5 rounded-sm"></span>
       </div>
 
       {loans.length === 0 ? (
