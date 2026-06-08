@@ -1,12 +1,12 @@
 import express from 'express'
-import * as db from '../db/book'
-import { Book } from '../../models/book'
+import * as db from '../db/book.js'
+import { Book } from '../../models/book.js'
 import {
   enrichBooksWithGoogleMetadata,
   fetchFromGoogleBooksBackend,
   getGoogleMetadataForBook,
-} from '../services/externalApis'
-import { requireAuth } from '../auth/middleware'
+} from '../services/externalApis.js'
+import { requireAuth } from '../auth/middleware.js'
 
 const router = express.Router()
 

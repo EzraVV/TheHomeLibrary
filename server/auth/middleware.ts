@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from 'express'
-import { getUserByAuthId, getUserById } from '../db/users'
-import { getServerSupabaseClient } from './supabase'
+import { getUserByAuthId, getUserById } from '../db/users.js'
+import { getServerSupabaseClient } from './supabase.js'
 
 export async function requireAuth(
   req: Request,
